@@ -1,0 +1,122 @@
+STRUCTURE ERP COACH — Indesy Mialy
+
+Tu as déjà posé la base : sidebar verticale qui s'empile, contenu central à onglets. On garde tes 3 premiers modules, puis on ajoute 9 modules pensés pour qu'un coach vive dans la plateforme, pas juste dessus.
+
+L'objectif addictif : chaque module crée une petite boucle — voir, agir, être récompensé — comme dans les meilleures plateformes de coaching tout-en-un qui centralisent déjà "planification, CRM client, contrats et signature électronique, facturation et paiements, portail client, formulaires d'accueil, notes de séance". 
+
+Sidebar complète
+1. Dashboard (déjà fait)
+2. Message (déjà fait)
+3. Finance (déjà fait)
+4. Clients & CRM
+5. Sessions & Agenda
+6. Programmes & Parcours
+7. Contenus & Bibliothèque
+8. Communauté Indesy
+9. Analytics & Performance
+10. Automatisation & IA Coach
+11. Marketplace & Ventes
+12. Paramètres & Profil
+
+Module 4 : Clients & CRM
+Le cœur relationnel. Tout coach veut voir ses clients progresser.
+
+Onglets centraux :
+
+Pipeline : prospects → onboarding → actifs → alumni, avec drag & drop
+Fiches 360° : infos, contrat signé, objectifs, historique, notes privées
+Formulaires d'accueil : RIASEC, DISC, MBTI, estime de soi (intégrés comme chez Linkup Pilot) 
+Portail client : ce que le coaché voit, messages, devoirs
+Santé relationnelle : alerte si >7 jours sans interaction
+Addiction : jauge "relation chaude/froide", streak de suivi, badge "Coach attentif".
+
+Module 5 : Sessions & Agenda
+Où le temps devient argent.
+
+Onglets :
+
+Planning intelligent : synchro Google/Outlook, créneaux auto-proposés
+Visio intégrée : sans téléchargement, comme Coachello avec Teams/Slack 
+Notes de séance centralisées : template, tags, IA qui résume 
+Replays & transcriptions
+Suivi en temps réel : "sessions en cours ou terminées, relance ceux qui n'ont pas démarré" 
+Addiction : compte à rebours avant prochaine session, streak "0 no-show", XP gagné par séance complétée.
+
+Module 6 : Programmes & Parcours
+Industrialise ton savoir.
+
+Onglets :
+
+Créateur de parcours : modules, vidéos, exercices, jalons
+Bibliothèque de modèles : centaines de templates préconstruits adaptables 
+Assignations : glisser un programme sur un client
+Progression client : % complétion, blocages
+Certifications : délivrance automatique
+Addiction : barre de progression animée, déblocage de nouveaux templates quand tu termines un parcours.
+
+Module 7 : Contenus & Bibliothèque
+Ton coffre-fort.
+
+Onglets :
+
+Fichiers & ressources : partage centralisé 
+Médiathèque : vidéos, PDF, audio
+Snippets IA : résumés automatiques
+Droits d'accès : par client, par groupe
+Addiction : "ressource la plus utilisée cette semaine", suggestions IA.
+
+Module 8 : Communauté Indesy
+Le réseau qui retient.
+
+Onglets :
+
+Feed coachs : wins, questions, études de cas
+Groupes thématiques : leadership, bien-être, etc.
+Challenges mensuels : ex. "30 jours de feedback"
+Mentorat pair-à-pair
+Addiction : leaderboard, likes, badges visibles sur profil — effet réseau.
+
+Module 9 : Analytics & Performance
+Mesure = motivation.
+
+Onglets :
+
+People Analytics Dashboard : évolution mentalités et comportements 
+ROI coaching : +47% performance, +27% bien-être type indicateurs 
+Revenus & taux de rétention
+Impact commercial : ventes, quotas atteints 
+Addiction : graphiques qui montent, célébration animée quand objectif dépassé.
+
+Module 10 : Automatisation & IA Coach
+Ton équipe invisible.
+
+Onglets :
+
++15 agents IA pour admin, dev perso, auto-coaching 
+Accompagnement entre sessions avec contenus personnalisés 
+Workflows : relance paiement, envoi devoirs, recap séance
+Coaching IA quotidien : préparation conversation, décision 
+Addiction : l'IA te nudges "3 tâches automatisées aujourd'hui, tu as gagné 47 min".
+
+Module 11 : Marketplace & Ventes
+Monétise sans sortir.
+
+Onglets :
+
+Offres : 1:1, packs, abonnements
+Tunnel de vente : page, paiement Stripe/PayPal intégré 
+Codes promo & affiliés
+Vitrine publique Indesy
+Addiction : notification "ding" à chaque vente, compteur temps réel.
+
+Module 12 : Paramètres & Profil
+Onglets : identité, branding, intégrations, sécurité, préférences notifications.
+
+Comment rendre le coach addictif
+Boucles courtes : Dashboard montre 3 chiffres du jour — revenus, sessions, streak. Toujours visible en haut.
+Gamification légère : XP par action (note prise +5, séance +20), niveaux "Guide → Mentor → Maître", badges débloquent templates premium.
+Streaks & rituels : "7 jours de check-in client", rappel 9h comme Duolingo.
+Social proof : dans Communauté, voir qu'un autre coach vient de closer — FOMO saine.
+IA proactive : pas d'outil à chercher, l'agent vient à toi — "ton client Amina n'a pas ouvert son exercice depuis 3 jours, veux-tu relancer?"
+Modules en temps réel : soutien instantané quand besoin, ça crée l'habitude d'ouvrir l'app en cas d'urgence. 
+Résultat : le coach n'utilise plus 10 apps séparées. Il vit dans un seul cockpit où chaque clic produit un petit gain visible — temps, argent, ou statut. C'est exactement la promesse "puissance de +10 apps en une seule" qui fait gagner 47h/mois.
