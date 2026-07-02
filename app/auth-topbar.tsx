@@ -12,11 +12,9 @@ type UserProfile = {
 
 function getUserName(user: UserProfile | null) {
   if (!user) return null;
-  const metadata = user.user_metadata ?? {};
-  if (typeof metadata === "object") {
-    if (metadata.profile?.fullName) return metadata.profile.fullName;
-    if (metadata.fullName) return metadata.fullName;
-  }
+  const metadata = user.user_metadata as { profile?: { fullName?: string }, fullName?: string } | undefined;
+  if (metadata?.profile?.fullName) return metadata.profile.fullName;
+  if (metadata?.fullName) return metadata.fullName;
   return user.email || null;
 }
 

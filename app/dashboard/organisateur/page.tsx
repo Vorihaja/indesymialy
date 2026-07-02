@@ -88,7 +88,8 @@ export default function SaasOrganisateur() {
         setEventsError(message);
       } else if (data) {
         setEvents(
-          (data as Record<string, string | number>[]).map((event) => ({
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (data as any[]).map((event) => ({
             id: Number(event.id ?? event.event_id ?? 0),
             name: event.name ?? event.title ?? 'Événement',
             city: event.city ?? event.location_city ?? '—',
