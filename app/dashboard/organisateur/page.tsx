@@ -50,6 +50,7 @@ export default function SaasOrganisateur() {
   const [toast, setToast] = useState<{ show: boolean; msg: string; icon: string }>({ show: false, msg: "", icon: "🔔" });
   const [remoteFighters, setRemoteFighters] = useState<RemoteFighter[]>([]);
   const [events, setEvents] = useState<EventType[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [eventsError, setEventsError] = useState<string | null>(null);
 
@@ -87,7 +88,7 @@ export default function SaasOrganisateur() {
         setEventsError(message);
       } else if (data) {
         setEvents(
-          (data as any[]).map((event) => ({
+          (data as Record<string, string | number>[]).map((event) => ({
             id: Number(event.id ?? event.event_id ?? 0),
             name: event.name ?? event.title ?? 'Événement',
             city: event.city ?? event.location_city ?? '—',
@@ -141,8 +142,11 @@ export default function SaasOrganisateur() {
 
   // Helper pour trouver ou générer un profil par défaut si non listé explicitement
   const openFighterPublicProfile = (name: string) => {
-    const found = fighters.find(f => f.name.toLowerCase() === name.toLowerCase());
-    if (found) {
+const found = fighters.find((f) => {
+  if (!f.name) return false;
+  return f.name.toLowerCase() === name.toLowerCase();
+});    
+if (found) {
       setSelectedFighterProfile(found);
     } else {
       // Profil générique dynamique si l'athlète n'est pas encore dans la base statique
@@ -188,13 +192,18 @@ export default function SaasOrganisateur() {
       ? true
       : selectedDisciplines.some((discipline) => fight.cat.includes(discipline))
   );
-  const filteredFighters = fighters
-    .filter((f) => f.name.toLowerCase().includes(fighterQuery.toLowerCase()))
-    .filter((f) =>
-      selectedDisciplines.length === 0
-        ? true
-        : selectedDisciplines.some((discipline) => f.cat.includes(discipline))
-    );
+  const query = fighterQuery.toLowerCase();
+
+const filteredFighters = fighters
+  .filter((f) => {
+    const name = f.name ?? "";
+    return name.toLowerCase().includes(query);
+  })
+  .filter((f) => {
+    if (!f.cat) return false;
+    if (selectedDisciplines.length === 0) return true;
+    return selectedDisciplines.some((d) => f.cat?.includes(d));
+  });
 
   return (
     <ErpAuthGuard>
@@ -230,7 +239,7 @@ export default function SaasOrganisateur() {
               <button
                 key={item.id}
                 onClick={() => {
-                  // @ts-ignore
+                  // @ts-expect-error - ignored legacy
                   setCurrentNav(item.id);
                   if (item.id !== 'evenements') setSelectedEventId(null);
                 }}
@@ -326,8 +335,8 @@ export default function SaasOrganisateur() {
 
                     <div className="grid grid-cols-3 gap-2 pt-4 border-t border-white/5 text-[12px] text-zinc-400 mt-4">
                       <div><span className="block font-bold text-white text-[14px]">{event.fighters}</span>Combats</div>
-                      <div><span className="block font-bold text-white text-[14px]">{event.tickets.toLocaleString()}</span>Billets</div>
-                      <div><span className="block font-bold text-white text-[14px]">{event.budget > 0 ? formatCurrency(event.budget) : 'N/A'}</span>Budget</div>
+                      <div><span className="block font-bold text-white text-[14px]">{(event.tickets || 0).toLocaleString()}</span>Billets</div>
+                      <div><span className="block font-bold text-white text-[14px]">{(event.budget || 0) > 0 ? formatCurrency(event.budget || 0) : 'N/A'}</span>Budget</div>
                     </div>
                   </div>
                 ))}
@@ -364,7 +373,7 @@ export default function SaasOrganisateur() {
                       return (
                         <button
                           key={tab.id}
-                          // @ts-ignore
+                          // @ts-expect-error - ignored legacy
                           onClick={() => { setActiveTab(tab.id); }}
                           className={`px-4 py-3 text-[14px] font-medium border-b-2 whitespace-nowrap transition-all ${
                             isTabActive ? 'border-[#DC2626] text-white' : 'border-transparent text-zinc-400 hover:text-white'
@@ -425,7 +434,7 @@ export default function SaasOrganisateur() {
                         <thead className="bg-white/[0.02] text-[12px] uppercase text-zinc-500">
                           <tr>
                             <th className="p-4">Ordre</th>
-                            <th className="p-4">Affiche de l'Affrontement (Lien profil public)</th>
+                            <th className="p-4">Affiche de l&apos;Affrontement (Lien profil public)</th>
                             <th className="p-4">Discipline / Catégorie</th>
                             <th className="p-4">Statut</th>
                           </tr>
@@ -480,20 +489,20 @@ export default function SaasOrganisateur() {
                     <div className="overflow-x-auto">
                       <table className="w-full text-[13px] text-left">
                         <thead className="bg-white/[0.02] text-[11px] uppercase text-zinc-500">
-                          <tr>
-                            <th className="p-4">Nom de l'Athlète (Profil Public)</th>
-                            <th className="p-4">Division</th>
-                            <th className="p-4">Palmarès (Record)</th>
-                            <th className="p-4">Club d'origine</th>
-                            <th className="p-4">Disponibilité</th>
-                          </tr>
+                            <tr>
+                              <th className="p-4">Nom de l&apos;Athlète (Profil Public)</th>
+                              <th className="p-4">Division</th>
+                              <th className="p-4">Palmarès (Record)</th>
+                              <th className="p-4">Club d&apos;origine</th>
+                              <th className="p-4">Disponibilité</th>
+                            </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5 text-zinc-300">
                           {filteredFighters.map((f, i) => (
                             <tr key={i} className="hover:bg-white/[0.01]">
                               <td className="p-4">
                                 <button 
-                                  onClick={() => openFighterPublicProfile(f.name)}
+                                  onClick={() => openFighterPublicProfile(f.name || '')}
                                   className="font-bold text-red-400 text-left hover:text-red-300 hover:underline block focus:outline-none"
                                 >
                                   {f.name}
@@ -685,7 +694,7 @@ export default function SaasOrganisateur() {
               <div>
                 <div className="text-[12px] text-zinc-500 mb-1 font-medium">Biographie / Style de combat :</div>
                 <p className="text-zinc-300 leading-relaxed text-[13px] bg-white/[0.01] p-2.5 rounded-lg border border-white/5 italic">
-                  "{selectedFighterProfile.bio}"
+                  &quot;{selectedFighterProfile.bio}&quot;
                 </p>
               </div>
             </div>

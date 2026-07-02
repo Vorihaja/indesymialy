@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 
 type UserProfile = {
   email?: string;
-  user_metadata?: Record<string, any>;
+  user_metadata?: Record<string, unknown>;
 };
 
 function getUserName(user: UserProfile | null) {
@@ -72,9 +72,7 @@ export default function AuthTopBar() {
         .split(" ")
         .filter(Boolean)
         .slice(0, 2)
-        .map((part) => part[0].toUpperCase())
-        .join("")
-    : "IM";
+.map((part: string) => part?.[0]?.toUpperCase() ?? "")    : "IM";
 
   const role = (user?.user_metadata?.role as string) || "";
   const workspaceHref = ROLE_ERP_PATH[role] ?? "/dashboard/organisateur";

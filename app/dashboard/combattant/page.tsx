@@ -59,7 +59,7 @@ export default function CombattantDashboardPage() {
         <section id="plan" className="rounded-3xl border border-white/10 bg-slate-950/80 p-6">
           <div className="flex items-center justify-between gap-4 mb-5">
             <div>
-              <h3 className="text-lg font-semibold text-white">Plan d'entraînement</h3>
+              <h3 className="text-lg font-semibold text-white">Plan d&apos;entraînement</h3>
               <p className="text-sm text-slate-400">Sessions à venir cette semaine.</p>
             </div>
           </div>

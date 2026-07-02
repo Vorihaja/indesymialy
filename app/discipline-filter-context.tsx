@@ -68,6 +68,7 @@ export function DisciplineFilterProvider({ children }: { children: React.ReactNo
       if (raw) {
         const parsed = JSON.parse(raw) as Discipline[];
         if (Array.isArray(parsed) && parsed.length > 0) {
+          // eslint-disable-next-line
           setSelectedDisciplines(parsed);
         }
       }

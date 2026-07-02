@@ -301,7 +301,7 @@ export default function AuthPage() {
                 <div className="rounded-[2rem] border border-white/10 bg-slate-950/70 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.35)]">
                   <p className="text-xs uppercase tracking-[0.35em] text-amber-300">Fonctionnalité</p>
                   <div className="mt-6 space-y-4 text-slate-300 text-sm">
-                    <p>Choisis ton rôle lors de l'inscription pour voir immédiatement les champs nécessaires :</p>
+                    <p>Choisis ton rôle lors de l&apos;inscription pour voir immédiatement les champs nécessaires :</p>
                     <p className="rounded-3xl border border-white/10 bg-white/5 p-4">Combattant, organisateur, arbitre, juge, vendeur, fan, coach ou club.</p>
                     <p>Lorsque tu passes à la connexion, seuls les champs Email + Mot de passe restent visibles.</p>
                   </div>

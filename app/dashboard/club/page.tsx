@@ -3,6 +3,7 @@ import ErpShell from "../ErpShell";
 import ErpAuthGuard from "../ErpAuthGuard";
 
 export default function ClubDashboardPage() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const stats = [
     { label: "Membres actifs", value: "124", note: "Licence à jour, compétitions prêtes." },
     { label: "Licences validées", value: "98%", note: "Très bonne conformité fédérale." },

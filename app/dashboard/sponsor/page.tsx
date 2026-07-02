@@ -47,11 +47,12 @@ export default function ErpSponsoringNoirEtOr() {
     details: ''
   });
 
-  useEffect(() => {
-    fetchContracts();
-  }, []);
+  const triggerNotification = (msg: string) => {
+    setToast({ show: true, msg });
+    setTimeout(() => setToast({ show: false, msg: "" }), 3000);
+  };
 
-  async function fetchContracts() {
+  const fetchContracts = async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('contracts')
@@ -64,12 +65,13 @@ export default function ErpSponsoringNoirEtOr() {
       setContracts(data || []);
     }
     setLoading(false);
-  }
-
-  const triggerNotification = (msg: string) => {
-    setToast({ show: true, msg });
-    setTimeout(() => setToast({ show: false, msg: "" }), 3000);
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchContracts();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // --- FONCTIONS DE FORMATAGE ET NETTOYAGE ---
   const formatCurrency = (val: number) => {
@@ -626,7 +628,7 @@ export default function ErpSponsoringNoirEtOr() {
                   Annuler
                 </button>
                 <button type="submit" className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#E6C667] via-[#C5A041] to-[#927122] text-black font-black transition hover:brightness-110 shadow-md">
-                  Valider l'Engagement
+                  Valider l&apos;Engagement
                 </button>
               </div>
             </form>

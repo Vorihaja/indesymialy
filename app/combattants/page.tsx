@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useDisciplineFilter } from '../discipline-filter-context';
@@ -95,6 +95,7 @@ export default function Combattants() {
 
   const fighters = remoteFighters.length > 0 ? remoteFighters : FIGHTERS_DEMO;
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const disciplines = useMemo(() => {
     const values = new Set<string>();
     fighters.forEach((fighter) => {

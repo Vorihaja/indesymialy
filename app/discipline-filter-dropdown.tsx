@@ -9,7 +9,6 @@ export default function DisciplineFilterDropdown() {
     toggleDiscipline,
     selectAll,
     clearAll,
-    isAllSelected,
     label,
   } = useDisciplineFilter();
   const [isOpen, setIsOpen] = useState(false);
@@ -29,7 +28,7 @@ export default function DisciplineFilterDropdown() {
   useEffect(() => {
     if (!isOpen) return;
 
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
