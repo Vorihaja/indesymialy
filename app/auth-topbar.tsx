@@ -19,14 +19,14 @@ function getUserName(user: UserProfile | null) {
 }
 
 const ROLE_ERP_PATH: Record<string, string> = {
-  combattant: "/dashboard/combattant",
-  organisateur: "/dashboard/organisateur",
-  vendeur: "/dashboard/vendeur",
-  arbitre: "/dashboard/arbitre",
-  juge: "/dashboard/juge",
-  fan: "/dashboard/fan",
-  coach: "/dashboard/coach",
-  club: "/dashboard/club",
+  combattant: "/dashboard",
+  organisateur: "/dashboard",
+  vendeur: "/dashboard",
+  arbitre: "/dashboard",
+  juge: "/dashboard",
+  fan: "/dashboard",
+  coach: "/dashboard",
+  club: "/dashboard",
 };
 
 export default function AuthTopBar() {

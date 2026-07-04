@@ -86,6 +86,8 @@ export default function CoachDashboardPage() {
         }
         sidebarTopItems={[
           { id: "dashboard", label: "Dashboard", href: "#dashboard" },
+          { id: "messages", label: "Messages", href: "#messages" },
+          { id: "finance", label: "Finance", href: "#finance" },
           { id: "clients", label: "Clients & CRM", href: "#clients" },
           { id: "sessions", label: "Sessions & Agenda", href: "#sessions" },
           { id: "programmes", label: "Programmes & Parcours", href: "#programmes" },
@@ -94,7 +96,7 @@ export default function CoachDashboardPage() {
           { id: "contenus", label: "Contenus & Bibliothèque", href: "#contenus" },
           { id: "communaute", label: "Communauté Indesy", href: "#communaute" },
           { id: "analytics", label: "Analytics & Performance", href: "#analytics" },
-          { id: "ia", label: "Automation & IA Coach", href: "#ia" },
+          { id: "ia", label: "Automatisation & IA Coach", href: "#ia" },
           { id: "marketplace", label: "Marketplace & Ventes", href: "#marketplace" },
           { id: "settings", label: "Paramètres & Profil", href: "#settings" },
         ]}
