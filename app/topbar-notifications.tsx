@@ -2,50 +2,33 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-
-type SessionUser = {
-  id?: string;
-  email?: string;
-};
+import { Bell } from "lucide-react"; // Ou ton icône SVG actuelle
 
 export default function TopbarNotifications() {
-  const [user, setUser] = useState<SessionUser | null>(null);
+  const [session, setSession] = useState<any>(null);
 
   useEffect(() => {
-    let isMounted = true;
-
-    const fetchSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      if (!isMounted) return;
-      if (!error) {
-        setUser(data.session?.user ?? null);
-      }
-    };
-
-    fetchSession();
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_, session) => {
-      if (!isMounted) return;
-      setUser(session?.user ?? null);
+    // Récupère la session initiale
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
     });
 
-    return () => {
-      isMounted = false;
-      listener?.subscription.unsubscribe();
-    };
+    // Écoute les changements d'état (connexion/déconnexion)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  if (!user) {
-    return null;
-  }
+  // 💡 L'icône n'apparaît QUE si la session existe
+  if (!session) return null;
 
   return (
-    <button
-      type="button"
-      className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-slate-900/80 text-slate-200 transition hover:bg-slate-900 hover:text-white"
-      aria-label="Notifications"
-    >
-      🔔
+    <button className="relative p-2 text-slate-400 hover:text-amber-300 transition-colors">
+      <Bell size={20} />
+      {/* Ton badge de notification si présent */}
+      <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-orange-500" />
     </button>
   );
 }
