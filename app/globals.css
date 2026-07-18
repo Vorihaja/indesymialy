@@ -39,3 +39,114 @@ select {
     @apply bg-white/5 border border-white/10 shadow-[0_25px_60px_rgba(0,0,0,0.24)];
   }
 }
+
+/* ==========================================
+   BRUTALIST GLOBAL OVERRIDES
+   ========================================== */
+
+/* 1. Reset all border radiuses to absolute sharp corners */
+*, *::before, *::after {
+  border-radius: 0px !important;
+}
+
+/* 2. Brutalist Buttons & Main Action Elements */
+button,
+.btn,
+.button,
+a[class*="bg-amber-500"],
+a[class*="bg-gradient-to-r"],
+button[class*="bg-amber-500"],
+button[class*="bg-gradient-to-r"] {
+  border: 2.5px solid #000 !important;
+  box-shadow: 4px 4px 0px #f59e0b !important; /* Solid Amber-500 flat shadow */
+  transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+}
+
+button:hover,
+.btn:hover,
+.button:hover,
+a[class*="bg-amber-500"]:hover,
+button[class*="bg-amber-500"]:hover,
+a[class*="bg-gradient-to-r"]:hover,
+button[class*="bg-gradient-to-r"]:hover {
+  transform: translate(-1px, -1px) !important;
+  box-shadow: 5px 5px 0px #f59e0b !important;
+}
+
+button:active,
+.btn:active,
+.button:active,
+a[class*="bg-amber-500"]:active,
+button[class*="bg-amber-500"]:active,
+a[class*="bg-gradient-to-r"]:active,
+button[class*="bg-gradient-to-r"]:active {
+  transform: translate(3px, 3px) !important;
+  box-shadow: 1px 1px 0px #f59e0b !important;
+}
+
+/* 3. Secondary / Neutral Buttons */
+a[class*="bg-neutral-900"],
+button[class*="bg-neutral-900"],
+a[class*="bg-black/"],
+button[class*="bg-black/"] {
+  border: 2px solid #f59e0b !important; /* Amber border */
+  box-shadow: 4px 4px 0px rgba(245, 158, 11, 0.25) !important;
+}
+
+a[class*="bg-neutral-900"]:hover,
+button[class*="bg-neutral-900"]:hover,
+a[class*="bg-black/"]:hover,
+button[class*="bg-black/"]:hover {
+  box-shadow: 5px 5px 0px rgba(245, 158, 11, 0.4) !important;
+}
+
+/* 4. Brutalist Cards & Panels */
+[class*="bg-slate-900"],
+[class*="bg-neutral-900"],
+[class*="bg-white/5"],
+[class*="bg-black/40"],
+[class*="border-white/10"],
+[class*="border-neutral-800"],
+[class*="border-slate-800"] {
+  border-width: 2px !important;
+  border-style: solid !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.95), 6px 6px 0px 1px rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Interactive Cards / Hover effects */
+a[class*="bg-white/5"]:hover,
+a[class*="bg-slate-900"]:hover,
+a[class*="bg-neutral-900"]:hover {
+  border-color: #f59e0b !important; /* Highlight border on hover */
+  box-shadow: 8px 8px 0px #f59e0b !important;
+  transform: translate(-3px, -3px) !important;
+  transition: all 0.15s ease-out !important;
+}
+
+/* 5. Inputs, Selects & Textareas */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+select,
+textarea {
+  border-radius: 0px !important;
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+  background-color: #000000 !important;
+  box-shadow: 3px 3px 0px rgba(255, 255, 255, 0.1) !important;
+  transition: border-color 0.15s, box-shadow 0.15s !important;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="search"]:focus,
+select:focus,
+textarea:focus {
+  border-color: #f59e0b !important;
+  box-shadow: 4px 4px 0px #f59e0b !important;
+  outline: none !important;
+}
