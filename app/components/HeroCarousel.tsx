@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useRef, useEffect, MouseEvent } from "react"
-import { motion, useMotionValue, useSpring, useTransform, animate } from "framer-motion"
+import { motion, useMotionValue, useSpring, useTransform, animate, Variants } from "framer-motion"
 import { Shield, Target, Zap, Trophy, Users, Calendar, Swords } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 
@@ -31,6 +31,13 @@ function AnimatedCounter({ value }: { value: number }) {
 // ==========================================
 // COMPOSANT : SUIVI DE LA SAISON (SUPABASE)
 // ==========================================
+interface StatItem {
+  label: string
+  value: number
+  icon: React.ReactNode
+  suffix: string
+}
+
 function SeasonStats() {
   const [stats, setStats] = useState({
     totalFighters: 0,
@@ -82,7 +89,7 @@ function SeasonStats() {
     fetchRealSeasonData()
   }, [])
 
-  const items = [
+  const items: StatItem[] = [
     { label: "Athlètes Inscrits", value: stats.totalFighters, icon: <Users className="h-5 w-5" />, suffix: "" },
     { label: "Événements Live", value: stats.upcomingEvents, icon: <Calendar className="h-5 w-5" />, suffix: "" },
     { label: "Clubs Partenaires", value: stats.activeClubs, icon: <Shield className="h-5 w-5" />, suffix: "" },
@@ -211,7 +218,7 @@ function DisciplineCard({ title, description, icon, tag }: CardProps) {
 // COMPOSANT PRINCIPAL : HERO + SECTIONS
 // ==========================================
 export default function HeroAndFeatures() {
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -219,10 +226,14 @@ export default function HeroAndFeatures() {
     },
   }
 
-  const itemVariants = {
-    hidden: { y: 30, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } },
-  }
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { ease: "easeInOut", duration: 0.5 }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black text-white antialiased overflow-hidden selection:bg-amber-500/30">
@@ -245,7 +256,7 @@ export default function HeroAndFeatures() {
           <motion.div variants={itemVariants} className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/5 px-4 py-1.5 backdrop-blur-md">
             <span className="flex h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
             <span className="text-xs font-medium uppercase tracking-widest text-amber-400">
-              L'Écosystème des Sports de Combat
+              L&apos;Écosystème des Sports de Combat
             </span>
           </motion.div>
 
@@ -260,7 +271,7 @@ export default function HeroAndFeatures() {
             variants={itemVariants}
             className="max-w-2xl mx-auto text-lg text-zinc-400 sm:text-xl font-light leading-relaxed"
           >
-            Dominez l'arène. Gérez vos athlètes, organisez vos événements mondiaux et propulsez votre discipline dans une nouvelle dimension numérique.
+            Dominez l&apos;arène. Gérez vos athlètes, organisez vos événements mondiaux et propulsez votre discipline dans une nouvelle dimension numérique.
           </motion.p>
 
           <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
@@ -269,7 +280,7 @@ export default function HeroAndFeatures() {
               <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </button>
             <button className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold border border-zinc-800 bg-zinc-900/30 backdrop-blur-sm text-zinc-300 hover:border-zinc-700 hover:text-white transition-all duration-300">
-              Rejoindre l'Arène
+              Rejoindre l&apos;Arène
             </button>
           </motion.div>
         </motion.div>

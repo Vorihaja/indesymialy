@@ -1,443 +1,192 @@
 "use client"
-
 import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabase"
+import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/client"
 
-export default function AuthPage() {
-  // =========================
-  // NAVIGATION ONGLETS
-  // =========================
-  const [isLogin, setIsLogin] = useState(true)
+const ROLE_ICONS: any = {
+  fan: "◐", combattant: "🥊", coach: "◑", club: "⬢", federation: "⬣", organisateur: "◈", sponsor: "⬔", vendeur: "⬕", juge: "⬖", arbitre: "⬗"
+}
 
-  // =========================
-  // INFORMATIONS UTILISATEUR
-  // =========================
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [fullName, setFullName] = useState("")
+export default function AuthPage(){
+  const supabase = createClient()
+  const router = useRouter()
+  const [mode,setMode] = useState<"signin"|"signup">("signup")
+  const [step,setStep] = useState(1)
+  const [email,setEmail] = useState("")
+  const [password,setPassword] = useState("")
+  const [roles,setRoles] = useState<any[]>([])
+  const [disciplines,setDisciplines] = useState<any[]>([])
+  const [regions,setRegions] = useState<any[]>([])
+  const [cities,setCities] = useState<any[]>([])
+  const [selectedRoles,setSelectedRoles] = useState<string[]>([])
+  const [selectedDisc,setSelectedDisc] = useState<string[]>([])
+  const [selectedRegion,setSelectedRegion] = useState("")
+  const [selectedCity,setSelectedCity] = useState("")
+  const [loading,setLoading] = useState(false)
+  const [msg,setMsg] = useState("")
 
-  // =========================
-  // ROLES
-  // =========================
-  const [roles, setRoles] = useState<{ id: string; role_name: string }[]>([])
-  const [selectedRole, setSelectedRole] = useState("")
+  useEffect(()=>{
+    supabase.from("roles").select("*").then(r=>setRoles(r.data||[]))
+    supabase.from("disciplines").select("*").then(r=>setDisciplines(r.data||[]))
+    supabase.from("regions").select("*").then(r=>setRegions(r.data||[]))
+    supabase.from("cities").select("*").then(r=>setCities(r.data||[]))
+  },[])
 
-  // =========================
-  // DISCIPLINES
-  // =========================
-  const [disciplines, setDisciplines] = useState<{ id: string; name: string }[]>([])
-  const [selectedDiscipline, setSelectedDiscipline] = useState("")
+  const filteredCities = cities.filter((c:any)=>!selectedRegion || c.region_id === selectedRegion)
+  const toggle = (list:string[], id:string, set:any)=> set(list.includes(id)? list.filter((x:string)=>x!==id) : [...list, id])
 
-  // =========================
-  // LOCALISATION
-  // =========================
-  const [regions, setRegions] = useState<{ id: string; name: string }[]>([])
-  const [cities, setCities] = useState<{ id: string; name: string; region_id: string }[]>([])
-  const [selectedRegion, setSelectedRegion] = useState("")
-  const [selectedCity, setSelectedCity] = useState("")
-
-  // =========================
-  // ETATS INTERFACE
-  // =========================
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState("")
-
-  // =========================
-  // CHARGER LES ROLES
-  // =========================
-  useEffect(() => {
-    async function fetchRoles() {
-      const { data, error } = await supabase
-        .from("roles")
-        .select("id, role_name")
-        .order("role_name")
-
-      if (error) {
-        console.error("Erreur chargement rôles :", error)
-        return
-      }
-      setRoles(data)
-      if (data.length > 0) {
-        setSelectedRole(data[0].id)
-      }
-    }
-    fetchRoles()
-  }, [])
-
-  // =========================
-  // CHARGER LES DISCIPLINES
-  // =========================
-  useEffect(() => {
-    async function fetchDisciplines() {
-      const { data, error } = await supabase
-        .from("disciplines")
-        .select("id, name")
-        .order("name")
-
-      if (error) {
-        console.error("Erreur chargement disciplines :", error)
-        return
-      }
-      setDisciplines(data)
-    }
-    fetchDisciplines()
-  }, [])
-
-  // =========================
-  // CHARGER LES REGIONS
-  // =========================
-  useEffect(() => {
-    async function fetchRegions() {
-      const { data, error } = await supabase
-        .from("regions")
-        .select("id, name")
-        .order("name")
-
-      if (error) {
-        console.error("Erreur chargement régions :", error)
-        return
-      }
-      setRegions(data)
-    }
-    fetchRegions()
-  }, [])
-
-  // =========================
-  // CHARGER LES VILLES SELON LA REGION
-  // =========================
-  useEffect(() => {
-    async function fetchCities() {
-      if (!selectedRegion) {
-        setCities([])
-        return
-      }
-
-      const { data, error } = await supabase
-        .from("cities")
-        .select("id, name, region_id")
-        .eq("region_id", selectedRegion)
-        .order("name")
-
-      if (error) {
-        console.error("Erreur chargement villes :", error)
-        return
-      }
-      setCities(data)
-    }
-    fetchCities()
-  }, [selectedRegion])
-
-  // =========================
-  // VERIFIER SI DISCIPLINE NECESSAIRE
-  // =========================
-  const selectedRoleName = roles.find((role) => role.id === selectedRole)?.role_name
-
-  const requiresDiscipline = ["Combattant", "Coach", "Fédération", "Arbitre", "Juge"].includes(
-    selectedRoleName || ""
-  )
-
-  // =========================
-  // CONNEXION
-  // =========================
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setMessage("")
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-
-    if (error) {
-      setMessage(`Erreur de connexion : ${error.message}`)
-    } else {
-      setMessage("Connexion réussie !")
-      window.location.href = "/dashboard"
-    }
-    setLoading(false)
+  const handleSignup = async ()=>{
+    try{
+      if(!selectedRegion ||!selectedCity) throw new Error("Choisis ta région et ta ville")
+      if(!selectedRoles.length) throw new Error("Choisis au moins 1 rôle")
+      setLoading(true); setMsg("")
+      const { error: suErr } = await supabase.auth.signUp({ email, password })
+      if(suErr) throw suErr
+      const { data: li, error: liErr } = await supabase.auth.signInWithPassword({ email, password })
+      if(liErr) throw liErr
+      const uid = li.user?.id; if(!uid) throw new Error("Erreur session")
+      if(selectedRoles.length) await supabase.from("user_roles").insert(selectedRoles.map(rid=>({ user_id: uid, role_id: rid })))
+      if(selectedDisc.length) await supabase.from("user_disciplines").insert(selectedDisc.map(did=>({ user_id: uid, discipline_id: did })))
+      await supabase.from("profiles").upsert({ id: uid, email, region_id: selectedRegion, city_id: selectedCity }, { onConflict: 'id' })
+      router.push("/dashboard")
+    }catch(err:any){
+      setMsg(err.message || "Erreur")
+    }finally{ setLoading(false) }
   }
 
-  // =========================
-  // INSCRIPTION
-  // =========================
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setMessage("")
-
-    // 1. Création du compte Auth (on y stocke aussi les métadonnées de base)
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-          role_name_at_signup: selectedRoleName // Utile pour les politiques RLS ou triggers
-        },
-      },
-    })
-
-    if (authError) {
-      setMessage(`Erreur authentification : ${authError.message}`)
-      setLoading(false)
-      return
-    }
-
-    if (authData.user) {
-      const userId = authData.user.id
-
-      // 2. Création ou mise à jour du profil public (géré via upsert pour supporter le trigger d'insertion)
-      const { error: profileError } = await supabase.from("profiles").upsert({
-        id: userId,
-        full_name: fullName,
-        email: email,
-        region_id: selectedRegion || null,
-        city_id: selectedCity || null,
-      })
-
-      if (profileError) {
-        setMessage(`Erreur lors de la création du profil : ${profileError.message}`)
-        setLoading(false)
-        return
-      }
-
-      // 3. Attribution du rôle principal (géré via upsert pour supporter le trigger)
-      const { error: roleError } = await supabase.from("profile_roles").upsert({
-        profile_id: userId,
-        role_id: selectedRole,
-      })
-
-      if (roleError) {
-        setMessage(`Erreur lors de l'attribution du rôle : ${roleError.message}`)
-        setLoading(false)
-        return
-      }
-
-      // 4. Liaison de la discipline si nécessaire
-      if (requiresDiscipline && selectedDiscipline) {
-        let targetTable = ""
-
-        // Détermination de la table pivot selon le rôle sélectionné
-        if (selectedRoleName === "Combattant") targetTable = "fighter_disciplines"
-        else if (selectedRoleName === "Coach") targetTable = "coach_disciplines"
-        // Ajoute ici tes autres correspondances (ex: referee_disciplines, etc.)
-
-        if (targetTable) {
-          const { error: disciplineError } = await supabase.from(targetTable).insert({
-            // Ajuste les clés selon les noms exacts de tes colonnes (ex: fighter_id ou profile_id)
-            profile_id: userId, 
-            discipline_id: selectedDiscipline,
-          })
-
-          if (disciplineError) {
-            console.error(`Erreur liaison discipline (${targetTable}) :`, disciplineError.message)
-            // On ne bloque pas l'inscription complète pour ça, mais on le signale en console
-          }
-        }
-      }
-
-      setMessage("Inscription réussie ! Vérifiez votre boîte email pour confirmer.")
-    }
-
-    setLoading(false)
+  const handleSignin = async ()=>{
+    try{
+      setLoading(true); setMsg("")
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      if(error) throw error
+      router.push(email === "jayaherve@proton.me"? "/admin" : "/dashboard")
+    }catch(err:any){ setMsg(err.message) } finally{ setLoading(false) }
   }
 
   return (
-    <div className="flex h-screen items-center justify-center bg-black px-4 text-white overflow-hidden">
-      {/* CARD BRUTE : angles droits (rounded-none), bordure plus marquée */}
-      <div className="w-full max-w-md max-h-[95vh] flex flex-col border-2 border-zinc-800 bg-zinc-950 p-6 rounded-none overflow-y-auto scrollbar-none">
-        <div>
-          <h2 className="text-center text-2xl font-black uppercase tracking-wider text-amber-500">
-            {isLogin ? "Connexion" : "Créer votre compte"}
-          </h2>
-          <p className="mt-1 text-center text-xs uppercase tracking-widest text-zinc-500">
-            {isLogin ? "Espace Indesy Mialy" : "Écosystème Indesy Mialy"}
+    <div className="min-h-screen bg-[#050507] text-white flex">
+      {/* LEFT - BRAND */}
+      <div className="hidden lg:flex w-[44%] relative border-r border-white/10 p-12 flex-col justify-between overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.08),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(transparent_0%,rgba(255,255,255,0.02)_100%)]" />
+        <div className="relative z-10">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-white text-black flex items-center justify-center font-black text-">IM</div>
+            <span className="tracking-[0.3em] text- font-bold">INDESY MIALY</span>
+          </div>
+          <h1 className="mt-20 text- font-black leading-[0.85] tracking-tighter">
+            LE SANG.<br/>LA TERRE.<br/>LE COMBAT.
+          </h1>
+          <p className="mt-6 text- leading-6 text-zinc-400 max-w-">
+            Premier écosystème malgache des sports de combat. 4 blocs interconnectés : Informatif, Réseau Social, ERP, Marketplace.
           </p>
-        </div>
-
-        {/* SELECTEUR DE MODE BRUT */}
-        <div className="grid grid-cols-2 gap-0 bg-zinc-950 border border-zinc-800 mt-5 shrink-0">
-          <button
-            type="button"
-            onClick={() => { setIsLogin(true); setMessage(""); }}
-            className={`py-2 text-xs font-bold uppercase tracking-wider transition-all rounded-none ${
-              isLogin ? "bg-amber-600 text-black font-black" : "text-zinc-500 hover:text-white bg-zinc-900/50"
-            }`}
-          >
-            Connexion
-          </button>
-          <button
-            type="button"
-            onClick={() => { setIsLogin(false); setMessage(""); }}
-            className={`py-2 text-xs font-bold uppercase tracking-wider transition-all rounded-none ${
-              !isLogin ? "bg-amber-600 text-black font-black" : "text-zinc-500 hover:text-white bg-zinc-900/50"
-            }`}
-          >
-            Inscription
-          </button>
-        </div>
-
-        <form className="mt-5 space-y-4 flex-1" onSubmit={isLogin ? handleSignIn : handleSignUp}>
-          <div className="space-y-3">
-            {/* NOM COMPLET : INSCRIPTION UNIQUEMENT */}
-            {!isLogin && (
-              <div className="transition-all duration-300">
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
-                  Nom complet
-                </label>
-                <input
-                  type="text"
-                  required={!isLogin}
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="NOM ET PRÉNOM"
-                  className="w-full rounded-none border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none placeholder:text-zinc-600"
-                />
+          <div className="mt-10 grid grid-cols-2 gap-3">
+            {[
+              ["Site Informatif","Clubs, combats, actus"],
+              ["Réseau Social","Fans, combattants, orgas"],
+              ["ERP","Gestion membres & events"],
+              ["Marketplace","Équipements & billets"]
+            ].map(([t,d])=>(
+              <div key={t} className="border border-white/10 rounded-xl p-3 bg-white/[0.02]">
+                <p className="text- font-bold tracking-widest">{t}</p>
+                <p className="text- text-zinc-500 mt-1">{d}</p>
               </div>
-            )}
+            ))}
+          </div>
+        </div>
+        <p className="relative z-10 text- tracking-widest text-zinc-600">ANTANANARIVO • 2026 • BUILT FOR FIGHTERS</p>
+      </div>
 
-            {/* EMAIL */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
-                Adresse email
-              </label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="EXEMPLE@MAIL.COM"
-                className="w-full rounded-none border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none placeholder:text-zinc-600"
-              />
-            </div>
-
-            {/* MOT DE PASSE */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
-                Mot de passe
-              </label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full rounded-none border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none placeholder:text-zinc-600"
-              />
-            </div>
-
-            {/* CHAMPS COMPLÉMENTAIRES CÔTE À CÔTE : INSCRIPTION UNIQUEMENT */}
-            {!isLogin && (
-              <div className="space-y-3 transition-all duration-300">
-                
-                {/* LIGNE 1 : REGION ET VILLE */}
-                <div className="grid grid-cols-2 gap-4">
-                  {/* REGION */}
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-amber-500 mb-1">
-                      Région
-                    </label>
-                    <select
-                      value={selectedRegion}
-                      onChange={(e) => {
-                        setSelectedRegion(e.target.value)
-                        setSelectedCity("")
-                      }}
-                      className="w-full rounded-none border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none appearance-none"
-                    >
-                      <option value="">RÉGION</option>
-                      {regions.map((region) => (
-                        <option key={region.id} value={region.id}>
-                          {region.name.toUpperCase()}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* VILLE */}
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-amber-500 mb-1">
-                      Ville
-                    </label>
-                    <select
-                      value={selectedCity}
-                      onChange={(e) => setSelectedCity(e.target.value)}
-                      disabled={!selectedRegion}
-                      className="w-full rounded-none border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none disabled:opacity-30 appearance-none"
-                    >
-                      <option value="">VILLE</option>
-                      {cities.map((city) => (
-                        <option key={city.id} value={city.id}>
-                          {city.name.toUpperCase()}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* LIGNE 2 : ROLE ET DISCIPLINE */}
-                <div className={`grid ${requiresDiscipline ? "grid-cols-2" : "grid-cols-1"} gap-4`}>
-                  {/* ROLE */}
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-amber-500 mb-1">
-                      Profil principal
-                    </label>
-                    <select
-                      value={selectedRole}
-                      onChange={(e) => setSelectedRole(e.target.value)}
-                      className="w-full rounded-none border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none appearance-none"
-                    >
-                      {roles.map((role) => (
-                        <option key={role.id} value={role.id}>
-                          {role.role_name.toUpperCase()}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* DISCIPLINE CONDITIONNELLE */}
-                  {requiresDiscipline && (
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-amber-500 mb-1">
-                        Discipline
-                      </label>
-                      <select
-                        value={selectedDiscipline}
-                        onChange={(e) => setSelectedDiscipline(e.target.value)}
-                        className="w-full rounded-none border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-amber-500 focus:outline-none appearance-none"
-                      >
-                        <option value="">DISCIPLINE</option>
-                        {disciplines.map((discipline) => (
-                          <option key={discipline.id} value={discipline.id}>
-                            {discipline.name.toUpperCase()}
-                          </option>
-                      ))}
-                    </select>
-                    </div>
-                  )}
-                </div>
-
-              </div>
-            )}
+      {/* RIGHT - FORM */}
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
+        <div className="w-full max-w-">
+          <div className="flex gap-2 mb-8">
+            {[1,2,3].map(i=>(
+              <div key={i} className={`h- flex-1 transition-all ${mode==="signin"? "bg-white" : i<=step? "bg-white" : "bg-white/10"}`} />
+            ))}
           </div>
 
-          {/* BOUTON DYNAMIQUE BRUT */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-none bg-amber-600 px-3 py-2.5 text-xs font-black uppercase tracking-widest text-black hover:bg-amber-500 transition disabled:opacity-50 mt-4 border-b-4 border-amber-800 active:border-b-0 active:mt-[18px]"
-          >
-            {loading ? (isLogin ? "Connexion..." : "Création...") : (isLogin ? "Se connecter" : "S'inscrire")}
-          </button>
+          <h2 className="text-3xl font-black tracking-tighter">
+            {mode==="signin"? "BON RETOUR." : step===1? "QUI ES-TU?" : step===2? "D'OÙ VIENS-TU?" : "TU COMBATS QUOI?"}
+          </h2>
+          <p className="text- text-zinc-500 mt-2 tracking-wide">
+            {mode==="signin"? "Connecte-toi à ton écosystème" : "Inscription en 20 secondes • Rôles multiples possibles"}
+          </p>
 
-          {/* MESSAGE BRUT */}
-          {message && (
-            <p className="rounded-none border-2 border-amber-900 bg-amber-950/20 p-3 text-center text-xs uppercase tracking-wider text-amber-400 mt-3 font-semibold">
-              {message}
-            </p>
-          )}
-        </form>
+          <div className="mt-8 space-y-4">
+            {mode==="signup" && step===1 && <>
+              <div className="space-y-3">
+                <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email" className="w-full bg-[#0E0E10] border border-white/10 rounded-xl px-4 py-3.5 text- outline-none focus:border-white/30" />
+                <input value={password} onChange={e=>setPassword(e.target.value)} type="password" placeholder="Mot de passe" className="w-full bg-[#0E0E10] border border-white/10 rounded-xl px-4 py-3.5 text- outline-none focus:border-white/30" />
+              </div>
+              <button onClick={()=>{ if(!email||!password){ setMsg("Renseigne email et mdp"); return } setStep(2)}} className="w-full bg-white text-black font-black tracking-widest text- py-4 rounded-xl hover:bg-zinc-200 transition">CONTINUER →</button>
+            </>}
+
+            {mode==="signup" && step===2 && <>
+              <div className="grid grid-cols-2 gap-3">
+                <select value={selectedRegion} onChange={e=>{setSelectedRegion(e.target.value); setSelectedCity("")}} className="bg-[#0E0E10] border border-white/10 rounded-xl px-3 py-3.5 text-">
+                  <option value="">Région</option>
+                  {regions.map((r:any)=><option key={r.id} value={r.id}>{r.nom || r.name}</option>)}
+                </select>
+                <select value={selectedCity} onChange={e=>setSelectedCity(e.target.value)} className="bg-[#0E0E10] border border-white/10 rounded-xl px-3 py-3.5 text-">
+                  <option value="">Ville</option>
+                  {filteredCities.map((c:any)=><option key={c.id} value={c.id}>{c.nom || c.name}</option>)}
+                </select>
+              </div>
+
+              <p className="text- tracking-widest font-bold text-zinc-400 pt-2">TES RÔLES</p>
+              <div className="grid grid-cols-2 gap-2">
+                {roles.map((r:any)=>{
+                  const active = selectedRoles.includes(r.id)
+                  return (
+                    <button type="button" key={r.id} onClick={()=>toggle(selectedRoles, r.id, setSelectedRoles)}
+                      className={`text-left border rounded-xl p-3 flex items-center justify-between transition ${active? "bg-white text-black border-white" : "bg-[#0E0E10] border-white/10 hover:border-white/20"}`}>
+                      <span className="text- font-bold">{r.label}</span>
+                      <span className="text- opacity-60">{ROLE_ICONS[r.slug]||"•"}</span>
+                    </button>
+                  )
+                })}
+              </div>
+              <div className="flex gap-2">
+                <button onClick={()=>setStep(1)} className="flex-1 border border-white/10 rounded-xl py-4 text- tracking-widest">RETOUR</button>
+                <button onClick={()=>setStep(3)} className="flex-[2] bg-white text-black font-black tracking-widest text- py-4 rounded-xl">SUIVANT →</button>
+              </div>
+            </>}
+
+            {mode==="signup" && step===3 && <>
+              <p className="text- tracking-widest font-bold text-zinc-400">TES DISCIPLINES</p>
+              <div className="flex flex-wrap gap-2 max-h- overflow-auto pr-1">
+                {disciplines.map((d:any)=>{
+                  const active = selectedDisc.includes(d.id)
+                  return (
+                    <button type="button" key={d.id} onClick={()=>toggle(selectedDisc, d.id, setSelectedDisc)}
+                      className={`rounded-full px-3 py-1.5 text- border transition ${active? "bg-white text-black border-white" : "bg-[#0E0E10] border-white/10 text-zinc-400"}`}>
+                      {d.nom || d.name}
+                    </button>
+                  )
+                })}
+              </div>
+              <button onClick={handleSignup} disabled={loading} className="w-full bg-white text-black font-black tracking-widest text- py-4 rounded-xl disabled:opacity-50">
+                {loading? "CRÉATION..." : "REJOINDRE INDESY MIALY"}
+              </button>
+              <button onClick={()=>setStep(2)} className="w-full border border-white/10 rounded-xl py-3 text- tracking-widest">RETOUR</button>
+            </>}
+
+            {mode==="signin" && <>
+              <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email" className="w-full bg-[#0E0E10] border border-white/10 rounded-xl px-4 py-3.5 text-" />
+              <input value={password} onChange={e=>setPassword(e.target.value)} type="password" placeholder="Mot de passe" className="w-full bg-[#0E0E10] border border-white/10 rounded-xl px-4 py-3.5 text-" />
+              <button onClick={handleSignin} disabled={loading} className="w-full bg-white text-black font-black tracking-widest text- py-4 rounded-xl">{loading? "..." : "SE CONNECTER"}</button>
+            </>}
+          </div>
+
+          <div className="mt-6 flex justify-center">
+            <button onClick={()=>{ setMode(mode==="signin"?"signup":"signin"); setStep(1); setMsg("") }} className="text- tracking-widest text-zinc-500 hover:text-white transition underline underline-offset-8">
+              {mode==="signin"? "Pas encore de compte? S'inscrire" : "Déjà membre? Se connecter"}
+            </button>
+          </div>
+
+          {msg && <p className="mt-6 text- bg-red-500/10 border border-red-500/20 text-red-300 rounded-xl p-3">{msg}</p>}
+        </div>
       </div>
     </div>
   )

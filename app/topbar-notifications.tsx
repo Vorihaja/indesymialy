@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Bell } from "lucide-react"; // Ou ton icône SVG actuelle
+import { Bell } from "lucide-react";
+import type { Session } from "@supabase/supabase-js";
 
 export default function TopbarNotifications() {
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
     // Récupère la session initiale
