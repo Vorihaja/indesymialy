@@ -42,7 +42,7 @@ const HERO_SLIDES = [
     tag: "REJOINDRE L'ÉLITE",
     title: "ESPACE ORGANISATEURS & CLUBS",
     description: "Planifiez vos galas, gérez vos inscriptions d'athlètes et utilisez nos outils d'arbitrage transparents pour professionnaliser vos événements.",
-    image: "https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=1400&auto=format&fit=crop",
+    image: "https://jwoxjvrsgywmlvbzhyoi.supabase.co/storage/v1/object/public/public-images/affiche%201",
     cta: [
       { label: "Affilier votre Club", href: "/organisateur", primary: true },
       { label: "Devenir Partenaire", href: "/sponsor", primary: false }
@@ -92,20 +92,20 @@ const UPCOMING_GALAS = [
     date: "05 Septembre 2026",
     location: "Palais des Sports, Mahamasina",
     badge: "CHOC DES TITANS",
-    image: "https://images.unsplash.com/photo-1599058917212-d750089bc07e?q=80&w=600&auto=format&fit=crop"
+    image: "https://jwoxjvrsgywmlvbzhyoi.supabase.co/storage/v1/object/public/public-images/affiche%201"
   }
 ];
 
 const TOP_FIGHTERS = [
-  { name: "Rova Rakotonirina", discipline: "MMA", rank: "#1 Welterweight", record: "12-2-0", status: "Champion MFN", photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=150&auto=format&fit=crop" },
-  { name: "Jean Razafindrakoto", discipline: "MMA", rank: "#2 Welterweight", record: "10-1-0", status: "Challenger N°1", photo: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=150&auto=format&fit=crop" },
-  { name: "Aina Ramanantsoa", discipline: "Judo", rank: "-73kg National", record: "24-3-0", status: "Médaillé d'Or", photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=150&auto=format&fit=crop" },
+  { name: "Rova Rakotonirina", discipline: "MMA", rank: "#1 Welterweight", record: "12-2-0", status: "Champion MFN", photo: "https://jwoxjvrsgywmlvbzhyoi.supabase.co/storage/v1/object/public/public-images/combattant_1" },
+  { name: "Jean Razafindrakoto", discipline: "MMA", rank: "#2 Welterweight", record: "10-1-0", status: "Challenger N°1", photo: "https://jwoxjvrsgywmlvbzhyoi.supabase.co/storage/v1/object/public/public-images/combattant_2" },
+  { name: "Aina Ramanantsoa", discipline: "Judo", rank: "-73kg National", record: "24-3-0", status: "Médaillé d'Or", photo: "https://jwoxjvrsgywmlvbzhyoi.supabase.co/storage/v1/object/public/public-images/combattant_3" },
 ];
 
 const MARKETPLACE_HIGHLIGHTS = [
-  { name: "Gants de Boxe Premium INDESY", price: "85 000 Ar", type: "Vente", image: "https://images.unsplash.com/photo-1552667693-8a30343706ba?q=80&w=300&auto=format&fit=crop" },
-  { name: "Plastron de Protection Taekwondo", price: "8 000 Ar / jour", type: "Location", image: "https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=300&auto=format&fit=crop" },
-  { name: "Pao de Frappe Professionnel (Paire)", price: "120 000 Ar", type: "Vente", image: "https://images.unsplash.com/photo-1599058917212-d750089bc07e?q=80&w=300&auto=format&fit=crop" },
+  { name: "Gants de Boxe Premium INDESY", price: "85 000 Ar", type: "Vente", image: "https://jwoxjvrsgywmlvbzhyoi.supabase.co/storage/v1/object/public/public-images/affiche%201" },
+  { name: "Plastron de Protection Taekwondo", price: "8 000 Ar / jour", type: "Location", image: "https://jwoxjvrsgywmlvbzhyoi.supabase.co/storage/v1/object/public/public-images/affiche%201" },
+  { name: "Pao de Frappe Professionnel (Paire)", price: "120 000 Ar", type: "Vente", image: "https://jwoxjvrsgywmlvbzhyoi.supabase.co/storage/v1/object/public/public-images/affiche%201" },
 ];
 
 const LATEST_NEWS = [
@@ -147,7 +147,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-neutral-100 font-sans antialiased selection:bg-amber-500 selection:text-black">
+    <div className="min-h-screen bg-black text-neutral-100 font-sans antialiased selection:bg-red-600 selection:text-white">
       
       {/* ================= HERO SECTION MULTI-SLIDES DYNAMIQUE ================= */}
       <section className="relative w-full border-b border-neutral-800 bg-neutral-950 min-h-[75vh] lg:min-h-[80vh] flex items-center overflow-hidden">
@@ -170,8 +170,8 @@ export default function HomePage() {
         {/* Contenu principal */}
         <div className="relative z-10 max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-7 space-y-6">
-            <span className="inline-flex items-center gap-2 px-3 py-1 bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono text-[10px] uppercase font-black tracking-widest rounded-none">
-              <Zap size={12} className="text-amber-400 animate-pulse" /> {HERO_SLIDES[currentSlide].tag}
+            <span className="inline-flex items-center gap-2 px-3 py-1 bg-red-500/10 border border-red-500/30 text-red-500 font-mono text-[10px] uppercase font-black tracking-widest rounded-none">
+              <Zap size={12} className="text-red-500 animate-pulse" /> {HERO_SLIDES[currentSlide].tag}
             </span>
             
             {/* Conteneur à hauteur fixe minimale pour éviter les sauts de mise en page */}
@@ -192,8 +192,8 @@ export default function HomePage() {
                   href={button.href}
                   className={`px-6 py-3.5 font-mono text-xs font-black uppercase tracking-wider rounded-none transition-all ${
                     button.primary
-                      ? "bg-gradient-to-r from-amber-400 to-amber-600 text-black hover:opacity-90"
-                      : "bg-neutral-900 border border-neutral-800 text-amber-400 hover:bg-neutral-800"
+                      ? "bg-red-600 text-white hover:bg-red-400 hover:opacity-90"
+                      : "bg-transparent border border-red-600/40 text-red-500 hover:bg-red-400 hover:text-white hover:border-red-400"
                   }`}
                 >
                   {button.label}
@@ -203,9 +203,9 @@ export default function HomePage() {
           </div>
 
           {/* Panneau de Statistiques Fixe à Droite */}
-          <div className="lg:col-span-5 bg-neutral-900 border border-amber-500/10 p-6 md:p-8 rounded-none space-y-6 shadow-2xl z-20">
+          <div className="lg:col-span-5 bg-neutral-900 border border-red-500/20 p-6 md:p-8 rounded-none space-y-6 shadow-2xl z-20">
             <div className="flex items-center justify-between border-b border-neutral-800 pb-3 font-mono">
-              <h3 className="text-sm font-black text-amber-400 uppercase tracking-wider flex items-center gap-2">
+              <h3 className="text-sm font-black text-red-500 uppercase tracking-wider flex items-center gap-2">
                 <TrendingUp size={16} /> Suivi de la Saison
               </h3>
               <span className="text-[10px] px-2 py-0.5 bg-neutral-800 text-neutral-400 border border-neutral-700 rounded-none">LIVE</span>
@@ -218,7 +218,7 @@ export default function HomePage() {
                   <div key={i} className="bg-black/40 border border-neutral-800 p-4 rounded-none space-y-2">
                     <div className="flex items-center justify-between text-neutral-500">
                       <span className="text-[10px] font-mono uppercase font-bold tracking-wider">{stat.label}</span>
-                      <Icon size={14} className="text-amber-500/60" />
+                      <Icon size={14} className="text-red-500" />
                     </div>
                     <p className="text-2xl font-black font-mono text-white tracking-tight">{stat.value}</p>
                   </div>
@@ -233,10 +233,10 @@ export default function HomePage() {
           
           {/* Flèches de navigation manuelles */}
           <div className="flex items-center gap-1.5 order-2 sm:order-1">
-            <button onClick={prevSlide} className="p-2 border border-neutral-800 bg-neutral-950/80 text-neutral-400 hover:text-amber-400 hover:border-amber-500/30 rounded-none transition-colors">
+            <button onClick={prevSlide} className="p-2 border border-neutral-800 bg-neutral-950/80 text-neutral-400 hover:text-red-400 hover:border-red-500/30 rounded-none transition-colors">
               <ChevronLeft size={16} />
             </button>
-            <button onClick={nextSlide} className="p-2 border border-neutral-800 bg-neutral-950/80 text-neutral-400 hover:text-amber-400 hover:border-amber-500/30 rounded-none transition-colors">
+            <button onClick={nextSlide} className="p-2 border border-neutral-800 bg-neutral-950/80 text-neutral-400 hover:text-red-400 hover:border-red-500/30 rounded-none transition-colors">
               <ChevronRight size={16} />
             </button>
           </div>
@@ -251,14 +251,14 @@ export default function HomePage() {
               >
                 <div className="h-[3px] w-full bg-neutral-800 rounded-none overflow-hidden relative">
                   <div
-                    className="h-full bg-amber-500 absolute left-0 top-0 transition-all duration-100"
+                    className="h-full bg-red-600 absolute left-0 top-0 transition-all duration-100"
                     style={{
                       width: idx === currentSlide ? `${progress}%` : idx < currentSlide ? "100%" : "0%"
                     }}
                   />
                 </div>
                 <span className={`font-mono text-[9px] font-bold tracking-wider transition-colors ${
-                  idx === currentSlide ? "text-amber-400" : "text-neutral-600 group-hover:text-neutral-400"
+                  idx === currentSlide ? "text-red-500" : "text-neutral-600 group-hover:text-neutral-400"
                 }`}>
                   0{idx + 1}
                 </span>
@@ -279,23 +279,23 @@ export default function HomePage() {
           <section className="space-y-6">
             <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
               <h2 className="text-xl font-bold font-mono uppercase tracking-wider text-white flex items-center gap-2">
-                <Calendar size={20} className="text-amber-500" /> Prochains Galas Majeurs
+                <Calendar size={20} className="text-red-500" /> Prochains Galas Majeurs
               </h2>
-              <Link href="/events" className="text-xs font-mono text-amber-400 hover:text-white transition-colors flex items-center gap-1">
+              <Link href="/events" className="text-xs font-mono text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
                 Tout voir <ArrowUpRight size={14} />
               </Link>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {UPCOMING_GALAS.map((gala) => (
-                <div key={gala.id} className="bg-neutral-900 border border-neutral-800 hover:border-amber-500/20 transition-all rounded-none overflow-hidden flex flex-col group">
+                <div key={gala.id} className="bg-neutral-900 border border-neutral-800 hover:border-blue-500/40 transition-all rounded-none overflow-hidden flex flex-col group">
                   <div className="relative h-40 bg-neutral-950">
                     <img src={gala.image} alt={gala.title} className="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500" />
-                    <span className="absolute top-2 left-2 px-2 py-0.5 bg-black/90 text-amber-400 text-[9px] font-mono font-bold border border-amber-500/30 rounded-none tracking-widest">{gala.badge}</span>
+                    <span className="absolute top-2 left-2 px-2 py-0.5 bg-black/90 text-red-500 text-[9px] font-mono font-bold border border-red-500/30 rounded-none tracking-widest">{gala.badge}</span>
                   </div>
                   <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
                     <div>
-                      <span className="text-[10px] font-mono font-bold text-amber-500 tracking-wider block mb-1">{gala.discipline}</span>
+                      <span className="text-[10px] font-mono font-bold text-blue-400 tracking-wider block mb-1">{gala.discipline}</span>
                       <h4 className="font-mono font-bold text-sm text-white uppercase tracking-tight line-clamp-2">{gala.title}</h4>
                     </div>
                     <div className="space-y-1 text-[11px] font-mono text-neutral-400 border-t border-neutral-800/60 pt-2">
@@ -312,26 +312,26 @@ export default function HomePage() {
           <section className="space-y-6">
             <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
               <h2 className="text-xl font-bold font-mono uppercase tracking-wider text-white flex items-center gap-2">
-                <Award size={20} className="text-amber-500" /> Classement & Athlètes Vedettes
+                <Award size={20} className="text-red-500" /> Classement & Athlètes Vedettes
               </h2>
-              <Link href="/combattants" className="text-xs font-mono text-amber-400 hover:text-white transition-colors flex items-center gap-1">
+              <Link href="/combattants" className="text-xs font-mono text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
                 Tous les combattants <ArrowUpRight size={14} />
               </Link>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {TOP_FIGHTERS.map((fighter, idx) => (
-                <div key={idx} className="bg-neutral-900/60 border border-neutral-800 p-4 rounded-none flex items-center gap-4 transition-all hover:border-neutral-700">
+                <div key={idx} className="bg-neutral-900/60 border border-neutral-800 p-4 rounded-none flex items-center gap-4 transition-all hover:border-blue-500/40">
                   <img src={fighter.photo} alt={fighter.name} className="w-14 h-14 object-cover border border-neutral-800 bg-neutral-950 rounded-none grayscale hover:grayscale-0 transition-all" />
                   <div className="font-mono text-xs space-y-0.5 min-w-0">
                     <p className="font-bold text-white truncate">{fighter.name}</p>
                     <div className="flex items-center gap-1.5 text-[10px]">
-                      <span className="text-amber-400 font-bold">{fighter.discipline}</span>
-                      <span className="text-neutral-500">|</span>
+                      <span className="text-blue-400 font-bold">{fighter.discipline}</span>
+                      <span className="text-red-500">|</span>
                       <span className="text-neutral-400 truncate">{fighter.rank}</span>
                     </div>
                     <p className="text-[10px] text-neutral-500">Fiche: <span className="text-neutral-300">{fighter.record}</span></p>
-                    <span className="inline-block text-[9px] font-black bg-amber-500/10 text-amber-400 px-1 border border-amber-500/20 uppercase tracking-widest mt-1">{fighter.status}</span>
+                    <span className="inline-block text-[9px] font-black bg-red-500/10 text-red-500 px-1 border border-red-500/20 uppercase tracking-widest mt-1">{fighter.status}</span>
                   </div>
                 </div>
               ))}
@@ -342,9 +342,9 @@ export default function HomePage() {
           <section className="space-y-6">
             <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
               <h2 className="text-xl font-bold font-mono uppercase tracking-wider text-white flex items-center gap-2">
-                <ShoppingBag size={20} className="text-amber-500" /> Boutique Équipements & Locations
+                <ShoppingBag size={20} className="text-red-500" /> Boutique Équipements & Locations
               </h2>
-              <Link href="/marketplace" className="text-xs font-mono text-amber-400 hover:text-white transition-colors flex items-center gap-1">
+              <Link href="/marketplace" className="text-xs font-mono text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
                 Accéder au marché <ArrowUpRight size={14} />
               </Link>
             </div>
@@ -357,16 +357,16 @@ export default function HomePage() {
                     <span className={`absolute bottom-2 left-2 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 border ${
                       item.type === "Location" 
                         ? "bg-blue-500/10 text-blue-400 border-blue-500/20" 
-                        : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                        : "bg-blue-500/10 text-blue-400 border-blue-500/20"
                     }`}>
                       {item.type}
                     </span>
                   </div>
                   <div className="font-mono text-xs space-y-2">
-                    <h4 className="font-bold text-neutral-200 line-clamp-1 group-hover:text-amber-300 transition-colors">{item.name}</h4>
+                    <h4 className="font-bold text-neutral-200 line-clamp-1 group-hover:text-red-400 transition-colors">{item.name}</h4>
                     <div className="flex items-center justify-between border-t border-neutral-800/80 pt-2">
                       <span className="font-bold text-white text-sm">{item.price}</span>
-                      <button className="text-[10px] font-bold text-amber-400 hover:underline">Consulter</button>
+                      <button className="text-[10px] font-bold text-blue-400 hover:text-blue-300 hover:underline">Consulter</button>
                     </div>
                   </div>
                 </div>
@@ -382,15 +382,15 @@ export default function HomePage() {
           {/* PANNEAU D'INFORMATIONS ET ACTUS */}
           <section className="bg-neutral-900 border border-neutral-800 p-6 rounded-none space-y-4">
             <h3 className="text-sm font-bold font-mono uppercase tracking-wider text-white border-b border-neutral-800 pb-2 flex items-center gap-2">
-              <Flame size={16} className="text-amber-500" /> Actualités & Décisions Fédérales
+              <Flame size={16} className="text-red-500" /> Actualités & Décisions Fédérales
             </h3>
             
             <div className="space-y-4">
               {LATEST_NEWS.map((news, idx) => (
                 <div key={idx} className="space-y-1 font-mono group cursor-pointer">
                   <div className="flex items-center justify-between text-[10px]">
-                    <span className="text-amber-500 font-bold uppercase tracking-wider">{news.category}</span>
-                    <span className="text-neutral-500">{news.date}</span>
+                    <span className="text-red-500 font-bold uppercase tracking-wider">{news.category}</span>
+                    <span className="text-red-500">{news.date}</span>
                   </div>
                   <h4 className="text-xs font-bold text-neutral-300 group-hover:text-white transition-colors line-clamp-2 leading-snug">
                     {news.title}
@@ -403,8 +403,8 @@ export default function HomePage() {
 
           {/* CODE ETHIQUE / CHARTE */}
           <section id="charte" className="bg-neutral-900/40 border border-neutral-800 p-6 rounded-none space-y-3 font-mono text-xs scroll-mt-24">
-            <h3 className="font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-              <ShieldAlert size={14} className="text-amber-500" /> Charte de la Plateforme
+            <h3 className="font-bold uppercase tracking-wider text-red-500 flex items-center gap-1.5">
+              <ShieldAlert size={14} className="text-red-500" /> Charte de la Plateforme
             </h3>
             <p className="text-[11px] text-neutral-400 leading-relaxed">
               Toutes les compétitions affichées sur INDESY MIALY respectent scrupuleusement les réglementations nationales et internationales en vigueur pour la sécurité et la santé intégrale des combattants.
@@ -412,15 +412,15 @@ export default function HomePage() {
           </section>
 
           {/* INSCRIPTION CLUBS */}
-          <section className="bg-gradient-to-br from-neutral-900 to-black border border-amber-500/20 p-6 rounded-none space-y-4 font-mono">
+          <section className="bg-gradient-to-br from-neutral-900 to-black border border-red-500/20 p-6 rounded-none space-y-4 font-mono">
             <div className="space-y-1">
-              <h4 className="text-xs font-bold text-amber-400 uppercase tracking-widest">Organisateurs & Clubs</h4>
+              <h4 className="text-xs font-bold text-red-500 uppercase tracking-widest">Organisateurs & Clubs</h4>
               <p className="text-sm font-black text-white uppercase">Affiliez votre structure</p>
             </div>
             <p className="text-[11px] text-neutral-400 leading-relaxed">
               Bénéficiez de nos outils de billetterie centralisée, de la gestion automatique des poules et de notre visibilité médiatique nationale.
             </p>
-            <button className="w-full py-2.5 border border-amber-500/30 bg-amber-500/5 text-xs text-amber-400 font-bold uppercase tracking-wider hover:bg-amber-500 hover:text-black transition-all rounded-none">
+            <button className="w-full py-2.5 border border-red-500/30 bg-red-500/5 text-xs text-red-500 font-bold uppercase tracking-wider hover:bg-red-600 hover:text-white transition-all rounded-none">
               Soumettre une demande
             </button>
           </section>

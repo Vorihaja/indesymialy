@@ -12,7 +12,7 @@ export default function HeaderWrapper({ children }: { children: React.ReactNode 
       {/* HEADER FIXED - 2 étages */}
       <div className="fixed top-0 inset-x-0 z-[100] flex flex-col bg-black border-b border-neutral-900">
         {/* Étage 1 : FLASH */}
-        <div className="w-full min-h- bg-black">
+        <div className="w-full min-h-[28px] bg-black">
           <BreakingNews />
         </div>
         {/* Étage 2 : NAVBAR */}
@@ -30,7 +30,7 @@ export default function HeaderWrapper({ children }: { children: React.ReactNode 
       </div>
 
       {/* CONTENU - padding = hauteur du header fixed */}
-      <div className={`${showSearch? "pt-" : "pt-"} min-h-screen w-full bg-black`}>
+      <div className={`${showSearch? "pt-[124px]" : "pt-[84px]"} min-h-screen w-full bg-black`}>
         {children}
       </div>
     </>

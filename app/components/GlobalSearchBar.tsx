@@ -78,41 +78,41 @@ export default function GlobalSearchBar() {
   return (
     <div className="relative w-full bg-neutral-950 font-mono border-b border-neutral-900">
       {/* BARRE 40px */}
-      <div className="h- flex items-stretch divide-x divide-neutral-900 text- uppercase tracking-wider">
+      <div className="h-10 flex items-stretch divide-x divide-neutral-900 text-[10px] uppercase tracking-wider">
 
         {/* SEARCH */}
         <div id="global-search-input" className="flex items-center flex-1 px-4 gap-2.5 relative">
           <Search size={12} className="text-neutral-600" />
-          <input value={q} onChange={e => setQ(e.target.value)} onFocus={()=> q.length>=2 && setShowResults(true)} placeholder="RECHERCHE CLUB, COMBATTANT, EVENT..." className="w-full bg-transparent text-white placeholder-neutral-600 focus:outline-none font-bold text-" />
+          <input value={q} onChange={e => setQ(e.target.value)} onFocus={()=> q.length>=2 && setShowResults(true)} placeholder="RECHERCHE CLUB, COMBATTANT, EVENT..." className="w-full bg-transparent text-white placeholder-neutral-600 focus:outline-none font-bold text-xs" />
           {showResults && q.length>=2 && (
-            <div className="absolute top- left-0 right-0 bg-[#0a0a0a] border border-neutral-800 rounded-b-xl p-2 z-[200] flex flex-col gap-1">
-              {results.orgs.map((o:any)=><div key={o.id} className="text- px-2 py-1.5 bg-neutral-900 rounded flex justify-between"><span>{o.name}</span><span className="text-neutral-500">{o.ville||o.region}</span></div>)}
+            <div className="absolute top-full left-0 right-0 bg-[#0a0a0a] border border-neutral-800 rounded-b-xl p-2 z-[200] flex flex-col gap-1">
+              {results.orgs.map((o:any)=><div key={o.id} className="text-xs px-2 py-1.5 bg-neutral-900 rounded flex justify-between"><span>{o.name}</span><span className="text-neutral-500">{o.ville||o.region}</span></div>)}
             </div>
           )}
         </div>
 
         {/* DISCIPLINE - dropdown vers le BAS */}
         <div ref={discRef} className="flex items-center px-3 relative shrink-0">
-          <button onClick={() => setShowDisc(v =>!v)} className="flex items-center gap-2 font-bold text- h-full">
+          <button onClick={() => setShowDisc(v =>!v)} className="flex items-center gap-2 font-bold text-xs h-full">
             <Filter size={10} className={isAllSelected? "text-neutral-600" : "text-red-500"} />
             <span className={isAllSelected? "text-neutral-400" : "text-white"}>{isAllSelected? "Disciplines" : `${selectedDisciplines.length} disc.`}</span>
           </button>
 
           {showDisc && (
-            <div className="absolute top- left-0 w- bg-[#0f0f0f] border border-neutral-800 rounded-xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-[200] overflow-hidden animate-in fade-in slide-in-from-top-1">
+            <div className="absolute top-full left-0 w-64 bg-[#0f0f0f] border border-neutral-800 rounded-xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-[200] overflow-hidden animate-in fade-in slide-in-from-top-1">
               <div className="flex justify-between p-2 border-b border-neutral-800 bg-[#0a0a0a]">
-                <button onClick={selectAll} className="text- bg-white text-black px-2.5 py-1 rounded-full font-black">TOUT SELECT</button>
-                <button onClick={clearAll} className="text- bg-neutral-800 text-neutral-400 px-2.5 py-1 rounded-full font-bold">VIDER</button>
+                <button onClick={selectAll} className="text-[10px] bg-white text-black px-2.5 py-1 rounded-full font-black">TOUT SELECT</button>
+                <button onClick={clearAll} className="text-[10px] bg-neutral-800 text-neutral-400 px-2.5 py-1 rounded-full font-bold">VIDER</button>
               </div>
-              <div className="max-h- overflow-auto flex flex-col divide-y divide-neutral-900/60">
+              <div className="max-h-60 overflow-auto flex flex-col divide-y divide-neutral-900/60">
                 {DISCIPLINES.map((d: string) => {
                   const active = selectedDisciplines.includes(d);
                   return (
-                    <label key={d} className="flex items-center gap-2.5 px-3 py- hover:bg-neutral-900 cursor-pointer group">
-                      <div className={`w- h- rounded- border flex items-center justify-center shrink-0 transition ${active? 'bg-white border-white' : 'border-neutral-700 group-hover:border-neutral-500'}`}>
+                    <label key={d} className="flex items-center gap-2.5 px-3 py-2 hover:bg-neutral-900 cursor-pointer group">
+                      <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition ${active? 'bg-white border-white' : 'border-neutral-700 group-hover:border-neutral-500'}`}>
                         {active && <Check size={10} className="text-black" strokeWidth={3} />}
                       </div>
-                      <span className={`text- leading-none tracking-wide ${active? 'text-white font-bold' : 'text-neutral-400'}`}>{d}</span>
+                      <span className={`text-xs leading-none tracking-wide ${active? 'text-white font-bold' : 'text-neutral-400'}`}>{d}</span>
                       <input type="checkbox" checked={active} onChange={() => toggleDiscipline(d as any)} className="hidden" />
                     </label>
                   )
@@ -125,11 +125,11 @@ export default function GlobalSearchBar() {
         {/* REGION / VILLE dynamique DB */}
         <div className="flex items-center px-3 gap-2 shrink-0">
           <MapPin size={10} className="text-blue-500" />
-          <select value={region} onChange={e => setRegion(e.target.value)} className="bg-transparent font-bold text- focus:outline-none cursor-pointer max-w- text-neutral-300">
+          <select value={region} onChange={e => setRegion(e.target.value)} className="bg-transparent font-bold text-[10px] focus:outline-none cursor-pointer max-w-[120px] text-neutral-300">
             <option value="" className="bg-black">Toutes Régions</option>
             {(regionsDB.length? regionsDB : ["Analamanga","Boeny","DIANA"]).map(r => <option key={r} value={r} className="bg-black">{r}</option>)}
           </select>
-          <select value={ville} onChange={e => setVille(e.target.value)} className="bg-transparent font-bold text- border-l border-neutral-800 pl-2 ml-1 focus:outline-none cursor-pointer max-w- text-white">
+          <select value={ville} onChange={e => setVille(e.target.value)} className="bg-transparent font-bold text-[10px] border-l border-neutral-800 pl-2 ml-1 focus:outline-none cursor-pointer max-w-[100px] text-white">
             <option value="" className="bg-black">Villes</option>
             {(villesDB.length? villesDB : ["Antananarivo","Mahajanga"]).map(v => <option key={v} value={v} className="bg-black">{v}</option>)}
           </select>
@@ -138,12 +138,12 @@ export default function GlobalSearchBar() {
 
       {/* CHIPS */}
       {(q || region || ville ||!isAllSelected) && (
-        <div className="min-h- flex items-center gap-1.5 px-3 py-1.5 bg-[#050505] border-t border-neutral-900 flex-wrap">
-          {q && <span className="h-5 px-2 rounded-full bg-white text-black text- font-bold flex items-center gap-1">{q}<X size={10} className="cursor-pointer" onClick={() => setQ("")} /></span>}
-          {region && <span className="h-5 px-2 rounded-full bg-blue-600 text-white text- font-bold flex items-center gap-1">{region}<X size={10} className="cursor-pointer" onClick={() => setRegion("")} /></span>}
-          {ville && <span className="h-5 px-2 rounded-full bg-neutral-800 border border-neutral-700 text- flex items-center gap-1">{ville}<X size={10} className="cursor-pointer" onClick={() => setVille("")} /></span>}
-          {!isAllSelected && selectedDisciplines.slice(0, 3).map((d: string) => <span key={d} className="h-5 px-2 rounded-full bg-red-700 text-white text- font-bold flex items-center gap-1">{d}<X size={10} className="cursor-pointer" onClick={() => toggleDiscipline(d as any)} /></span>)}
-          {!isAllSelected && selectedDisciplines.length > 3 && <span className="h-5 px-2 rounded-full bg-neutral-800 text-">+{selectedDisciplines.length - 3}</span>}
+        <div className="min-h-[32px] flex items-center gap-1.5 px-3 py-1.5 bg-[#050505] border-t border-neutral-900 flex-wrap">
+          {q && <span className="h-5 px-2 rounded-full bg-white text-black text-[10px] font-bold flex items-center gap-1">{q}<X size={10} className="cursor-pointer" onClick={() => setQ("")} /></span>}
+          {region && <span className="h-5 px-2 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center gap-1">{region}<X size={10} className="cursor-pointer" onClick={() => setRegion("")} /></span>}
+          {ville && <span className="h-5 px-2 rounded-full bg-neutral-800 border border-neutral-700 text-[10px] flex items-center gap-1">{ville}<X size={10} className="cursor-pointer" onClick={() => setVille("")} /></span>}
+          {!isAllSelected && selectedDisciplines.slice(0, 3).map((d: string) => <span key={d} className="h-5 px-2 rounded-full bg-red-700 text-white text-[10px] font-bold flex items-center gap-1">{d}<X size={10} className="cursor-pointer" onClick={() => toggleDiscipline(d as any)} /></span>)}
+          {!isAllSelected && selectedDisciplines.length > 3 && <span className="h-5 px-2 rounded-full bg-neutral-800 text-[10px]">+{selectedDisciplines.length - 3}</span>}
         </div>
       )}
     </div>

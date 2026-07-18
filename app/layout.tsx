@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { DisciplineFilterProvider } from "./discipline-filter-context";
 import HeaderWrapper from "./components/HeaderWrapper";
+import BackToTopButton from "./components/BackToTopButton";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -19,7 +20,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <DisciplineFilterProvider>
           <HeaderWrapper>{children}</HeaderWrapper>
         </DisciplineFilterProvider>
-      </body>
+          <BackToTopButton />
+        </body>
     </html>
   );
 }

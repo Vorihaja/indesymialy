@@ -1,297 +1,225 @@
-"use client";
+"use client"
+import { useState, useEffect, useMemo } from "react"
+import Link from "next/link"
+import { Calendar, MapPin, Grid3x3, List } from "lucide-react"
+import { createClient } from "@supabase/supabase-js"
 
-import { useState } from "react";
-import { 
-  Calendar, MapPin, Trophy, Ticket, ChevronRight, 
-  Award, ShoppingBag, Clock, HelpCircle, AlertTriangle,
-  Flame, Star, Info
-} from "lucide-react";
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
-// Données complètes du Gala de Mahajanga
-const FEATURED_GALA = {
-  id: "mfn-3",
-  title: "MAHAJANGA FIGHT NIGHT - VOL.3",
-  subtitle: "L'ÉLITE DU MMA ET DU KICKBOXING MALAGASY",
-  discipline: "MMA / Kickboxing",
-  date: "28 Juillet 2026",
-  time: "18:00",
-  location: "Complexe Sportif Ampisikina, Mahajanga",
-  description: "Le plus grand événement de sports de combat de la province de Boeny est de retour. 12 combats professionnels, ceintures en jeu, et une ambiance électrique. Un show unique alliant lumière, et performance athlétique pure.",
-  priceFrom: "15 000 Ar",
-  vipPrice: "100 000 Ar",
-  // Image haute résolution pour le fond fixe
-  backgroundImage: "https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=1600&auto=format&fit=crop",
-  
-  fightCard: [
-    {
-      type: "MAIN EVENT",
-      weightClass: "Poids Welters (-77 kg) • Ceinture MFN",
-      fighterA: { name: "Rova 'The Eagle' Rakotonirina", record: "12-2-0", club: "Tana MMA Club", photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop" },
-      fighterB: { name: "Jean 'Liona' Razafindrakoto", record: "10-1-0", club: "Mahajanga Combat Academy", photo: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=200&auto=format&fit=crop" },
-    },
-    {
-      type: "CO-MAIN EVENT",
-      weightClass: "Poids Légers (-70 kg)",
-      fighterA: { name: "Andry 'Le Python' Tokiniana", record: "8-3-0", club: "Apex Martial Arts", photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop" },
-      fighterB: { name: "Mamy 'Iron' Andrianina", record: "7-2-0", club: "Tiger Gym Tamatave", photo: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop" },
-    }
-  ],
+function getEventStatus(dateStr: string) {
+  if (!dateStr) return { status: "NORMAL" as const, diffDays: 999 }
+  const now = new Date()
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+  const eventTime = new Date(dateStr).getTime()
+  const diffDays = Math.ceil((eventTime - startOfToday) / (1000*60*60*24))
+  const isSameDay = new Date(dateStr).toDateString() === now.toDateString()
+  if (isSameDay) return { status: "LIVE" as const, diffDays: 0 }
+  if (diffDays >= 1 && diffDays <= 3) return { status: "J-3" as const, diffDays }
+  if (diffDays < 0) return { status: "PASSÉ" as const, diffDays }
+  return { status: "NORMAL" as const, diffDays }
+}
 
-  schedule: [
-    { time: "16:30", event: "Ouverture des portes au public & Accès VIP" },
-    { time: "17:30", event: "Première partie : Combats Préliminaires" },
-    { time: "19:00", event: "Début de la Main Card & Show d'Ouverture" },
-    { time: "21:30", event: "Main Event : Combat pour le Titre Welter" },
-  ],
-
-  merchandise: [
-    { id: "m1", name: "T-Shirt Officiel MFN Vol.3", price: "35 000 Ar", type: "Vente", image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400&auto=format&fit=crop" },
-    { id: "m2", name: "Gants de MMA Premium INDESY", price: "25 000 Ar / jour", type: "Location", image: "https://images.unsplash.com/photo-1552667693-8a30343706ba?q=80&w=400&auto=format&fit=crop" }
-  ]
-};
-
-const ALL_EVENTS = [
-  { id: "2", title: "CHAMPIONNAT NATIONAL DE JUDO", discipline: "Judo", date: "12 Août 2026", location: "Gymnase Couvert, Antananarivo", image: "https://images.unsplash.com/photo-1555597673-b21d5c935865?q=80&w=600&auto=format&fit=crop" },
-  { id: "3", title: "GALA DES GUERRIERS - ELITE MUAY THAI", discipline: "Muay Thai", date: "05 Septembre 2026", location: "Palais des Sports Mahamasina", image: "https://images.unsplash.com/photo-1599058917212-d750089bc07e?q=80&w=600&auto=format&fit=crop" }
-];
+const FALLBACK = [
+  {
+    id: "evt-live",
+    name: "MAHAJANGA FIGHT NIGHT - VOL.3",
+    date: new Date().toISOString(),
+    location: "Complexe Sportif Ampisikina, Mahajanga",
+    disciplines: { name: "MMA" },
+    badge: "ÉVÉNEMENT MAJEUR",
+    image_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=600&auto=format&fit=crop"
+  },
+  {
+    id: "evt-j1",
+    name: "OPEN ANTSIRABE - KICKBOXING ELITE",
+    date: new Date(Date.now() + 1*24*3600*1000).toISOString(),
+    location: "Gymnase Vatofotsy, Antsirabe",
+    disciplines: { name: "Kickboxing" },
+    badge: "CHOC",
+    image_url: "https://images.unsplash.com/photo-1599058917212-d750089bc07e?q=80&w=600&auto=format&fit=crop"
+  },
+  {
+    id: "evt-j2",
+    name: "GALA DES GUERRIERS - MUAY THAI",
+    date: new Date(Date.now() + 2*24*3600*1000).toISOString(),
+    location: "Palais des Sports Mahamasina",
+    disciplines: { name: "Muay Thai" },
+    badge: "TITRE NATIONAL",
+    image_url: "https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=600&auto=format&fit=crop"
+  },
+  {
+    id: "evt-j3",
+    name: "CHAMPIONNAT NATIONAL DE JUDO",
+    date: new Date(Date.now() + 3*24*3600*1000).toISOString(),
+    location: "Gymnase Couvert, Antananarivo",
+    disciplines: { name: "Judo" },
+    badge: "OFFICIEL FMNJ",
+    image_url: "https://images.unsplash.com/photo-1555597673-b21d5c935865?q=80&w=600&auto=format&fit=crop"
+  },
+]
 
 export default function EventsPage() {
-  const [selectedDiscipline, setSelectedDiscipline] = useState("Tous");
-  const disciplines = ["Tous", "MMA", "Judo", "Muay Thai"];
+  const [view, setView] = useState<"cards" | "list">("cards")
+  const [filterDiscipline, setFilterDiscipline] = useState("Tous")
+  const [events, setEvents] = useState<any[]>([])
+  const [allDisciplines, setAllDisciplines] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function load() {
+      try {
+        // 1. Essaie avec jointure disciplines (ta vraie structure)
+        let { data: evData, error: evError } = await supabase
+          .from("events")
+          .select("id, name, date, location, city, badge, image_url, discipline_id, disciplines(id, name, slug)")
+          .order("date", { ascending: true })
+
+        // Fallback si jointure échoue (RLS ou pas de FK) -> select simple
+        if (evError) {
+          console.warn("Jointure events->disciplines échouée, fallback select *:", evError.message)
+          const { data: simple } = await supabase.from("events").select("*").order("date", { ascending: true })
+          evData = simple as any
+        }
+
+        const { data: discData } = await supabase.from("disciplines").select("id, name, slug").order("name")
+
+        if (evData && evData.length > 0) setEvents(evData)
+        if (discData) setAllDisciplines(discData)
+
+      } catch (e) {
+        console.warn("Erreur chargement Supabase, fallback utilisé", e)
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [])
+
+  const initialEvents = events.length > 0 ? events : FALLBACK
+
+  const filterOptions = useMemo(() => {
+    // Filtres depuis disciplines réelles + celles des events
+    const fromEvents = new Set(initialEvents.map((e: any) => e.disciplines?.name).filter(Boolean))
+    const fromTable = allDisciplines.map((d: any) => d.name)
+    const merged = new Set([...Array.from(fromEvents), ...fromTable])
+    return ["Tous", ...Array.from(merged)]
+  }, [initialEvents, allDisciplines])
+
+  const sortedEvents = useMemo(() => {
+    return [...initialEvents]
+      .filter((e: any) => {
+        if (filterDiscipline === "Tous") return true
+        return e.disciplines?.name === filterDiscipline
+      })
+      .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  }, [initialEvents, filterDiscipline])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <p className="font-mono text-sm text-neutral-400">Chargement des évènements...</p>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white font-sans antialiased selection:bg-amber-500 selection:text-slate-950">
-      
-      {/* ================= ZONE BANNER AVEC ARRIÈRE-PLAN FIGÉ (BG-FIXED) ================= */}
-      <div 
-        className="relative w-full min-h-[70vh] bg-cover bg-center bg-no-repeat bg-fixed border-b border-white/10 flex items-center"
-        style={{ backgroundImage: `url(${FEATURED_GALA.backgroundImage})` }}
-      >
-        {/* Voile sombre pour garantir la lisibilité du texte au défilement */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-black/50 to-black/80 z-10" />
-
-        <div className="relative z-20 max-w-7xl mx-auto px-6 py-16 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          <div className="lg:col-span-7 space-y-4">
-            <span className="inline-flex items-center gap-2 px-3 py-1 bg-amber-500 text-slate-950 font-mono text-[10px] uppercase font-black tracking-widest rounded-none">
-              <Flame size={12} /> ÉVÉNEMENT MAJEUR
-            </span>
-            <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-white font-mono uppercase leading-none">
-              {FEATURED_GALA.title}
-            </h1>
-            <p className="text-amber-400 font-mono text-xs tracking-widest font-bold uppercase">
-              {FEATURED_GALA.subtitle}
+    <div className="min-h-screen bg-black text-neutral-100">
+      <div className="max-w-[1680px] mx-auto px-4 lg:px-8 py-8 space-y-8">
+        {/* HEADER SANS NAVBAR */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 border-b border-neutral-800 pb-6">
+          <div>
+            <h1 className="text-3xl font-black font-mono uppercase tracking-tighter text-white">Évènements</h1>
+            <p className="text-sm text-neutral-400 font-mono mt-2">
+              {sortedEvents.length} évènements • Triés par date la plus proche • <span className="text-red-500">J-3 en rouge</span> • <span className="text-red-500">LIVE</span>
             </p>
-            <p className="text-slate-300 text-sm max-w-2xl font-light leading-relaxed">
-              {FEATURED_GALA.description}
-            </p>
-
-            <div className="flex flex-wrap items-center gap-4 pt-2 text-xs font-mono text-slate-400">
-              <div className="flex items-center gap-2 bg-slate-950/90 px-3 py-2 border border-white/5 rounded-none">
-                <Calendar size={14} className="text-amber-400" />
-                <span>{FEATURED_GALA.date} • {FEATURED_GALA.time}</span>
-              </div>
-              <div className="flex items-center gap-2 bg-slate-950/90 px-3 py-2 border border-white/5 rounded-none">
-                <MapPin size={14} className="text-amber-400" />
-                <span>{FEATURED_GALA.location}</span>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-4 pt-4">
-              <button className="px-6 py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-mono font-black uppercase tracking-wider text-xs rounded-none transition-all hover:opacity-90 flex items-center gap-2">
-                Billetterie (Dès {FEATURED_GALA.priceFrom}) <Ticket size={16} />
-              </button>
-            </div>
           </div>
-
-          <div className="lg:col-span-5 bg-slate-900/95 border border-amber-500/20 p-6 rounded-none space-y-4 font-mono backdrop-blur-sm">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-amber-400 border-b border-white/10 pb-2">Infos de Combat</h3>
-            <div className="grid grid-cols-2 gap-4 text-xs">
-              <div>
-                <p className="text-slate-500">DISCIPLINES</p>
-                <p className="font-bold text-slate-200">{FEATURED_GALA.discipline}</p>
-              </div>
-              <div>
-                <p className="text-slate-500">COMBATS</p>
-                <p className="font-bold text-slate-200">12 Assrontements</p>
-              </div>
-            </div>
-            <div className="pt-2">
-              <div className="w-full bg-slate-950 p-3 border border-white/5 text-[11px] text-slate-400 flex items-start gap-2">
-                <Info size={16} className="text-amber-500 shrink-0 mt-0.5" />
-                <span>Retrait des places physiques disponible au Cyber de la ville à Mahajanga.</span>
-              </div>
-            </div>
+          <div className="flex items-center gap-1 p-1 bg-neutral-900 border border-neutral-800">
+            <button onClick={() => setView("cards")} className={`px-4 py-2 text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${view==="cards" ? "bg-white text-black" : "text-neutral-400 hover:text-white"}`}>
+              <Grid3x3 size={14} /> Cartes
+            </button>
+            <button onClick={() => setView("list")} className={`px-4 py-2 text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${view==="list" ? "bg-white text-black" : "text-neutral-400 hover:text-white"}`}>
+              <List size={14} /> Liste
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* ================= ZONE DE CONTENU DÉFILANT ================= */}
-      <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-20">
-        
-        {/* PANNEAU PRINCIPAL (GAUCHE) */}
-        <div className="lg:col-span-8 space-y-12">
-          
-          {/* 1. FIGHT CARD */}
-          <section className="space-y-6">
-            <h2 className="text-xl font-bold font-mono uppercase tracking-wider flex items-center gap-2 border-b border-white/5 pb-3">
-              <Award size={20} className="text-amber-500" /> Carte des Combats (Fight Card)
-            </h2>
-            
-            <div className="space-y-4">
-              {FEATURED_GALA.fightCard.map((fight, index) => (
-                <div key={index} className="bg-slate-900/60 backdrop-blur-xs border border-white/5 rounded-none p-4 md:p-6 transition-all hover:border-amber-500/20">
-                  <div className="flex justify-between items-center mb-4 border-b border-white/5 pb-2">
-                    <span className="px-2 py-0.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-mono font-bold uppercase tracking-widest">{fight.type}</span>
-                    <span className="text-xs text-slate-400 font-mono">{fight.weightClass}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3 w-[42%] text-right justify-end font-mono">
-                      <div>
-                        <p className="text-xs font-bold text-white">{fight.fighterA.name}</p>
-                        <p className="text-[10px] text-slate-500">{fight.fighterA.record} | {fight.fighterA.club}</p>
-                      </div>
-                      <img src={fight.fighterA.photo} alt="" className="w-10 h-10 object-cover rounded-none border border-white/10 bg-slate-950" />
-                    </div>
-
-                    <div className="w-[16%] text-center">
-                      <span className="font-mono font-black text-xs text-amber-500 bg-slate-950 border border-white/10 px-2.5 py-1">VS</span>
-                    </div>
-
-                    <div className="flex items-center gap-3 w-[42%] text-left justify-start font-mono">
-                      <img src={fight.fighterB.photo} alt="" className="w-10 h-10 object-cover rounded-none border border-white/10 bg-slate-950" />
-                      <div>
-                        <p className="text-xs font-bold text-white">{fight.fighterB.name}</p>
-                        <p className="text-[10px] text-slate-500">{fight.fighterB.record} | {fight.fighterB.club}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* 2. PROGRAMME */}
-          <section className="space-y-4">
-            <h2 className="text-xl font-bold font-mono uppercase tracking-wider flex items-center gap-2 border-b border-white/5 pb-3">
-              <Clock size={20} className="text-amber-500" /> Horaires de la Journée
-            </h2>
-            <div className="bg-slate-900/40 backdrop-blur-xs border border-white/5 rounded-none p-6 space-y-4">
-              {FEATURED_GALA.schedule.map((item, idx) => (
-                <div key={idx} className="flex gap-4 items-start font-mono text-xs">
-                  <span className="text-amber-400 font-bold bg-slate-950 border border-white/5 px-2 py-0.5 shrink-0">{item.time}</span>
-                  <span className="text-slate-300 pt-0.5">{item.event}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* 3. AUTRES ÉVÉNEMENTS */}
-          <section className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-3">
-              <h2 className="text-xl font-bold font-mono uppercase tracking-wider flex items-center gap-2">
-                <Trophy size={20} className="text-amber-500" /> Calendrier des Galas Nationaux
-              </h2>
-              <div className="flex gap-1">
-                {disciplines.map((disc) => (
-                  <button
-                    key={disc}
-                    onClick={() => setSelectedDiscipline(disc)}
-                    className={`px-2.5 py-1 font-mono text-[10px] uppercase border rounded-none transition-all ${
-                      selectedDiscipline === disc 
-                        ? "bg-amber-500 border-amber-500 text-slate-950 font-bold" 
-                        : "bg-slate-900/60 border-white/5 text-slate-400 hover:text-white"
-                    }`}
-                  >
-                    {disc}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {ALL_EVENTS.map((ev) => (
-                <div key={ev.id} className="bg-slate-900/40 backdrop-blur-xs border border-white/5 rounded-none overflow-hidden flex flex-col group hover:border-amber-500/20 transition-all">
-                  <div className="relative h-32 bg-slate-950">
-                    <img src={ev.image} alt="" className="w-full h-full object-cover opacity-60" />
-                    <span className="absolute top-2 left-2 px-2 py-0.5 bg-black/80 text-amber-400 text-[9px] font-mono border border-amber-500/20 rounded-none">{ev.discipline}</span>
-                  </div>
-                  <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
-                    <h4 className="font-mono font-bold text-sm text-white uppercase group-hover:text-amber-400 transition-colors">{ev.title}</h4>
-                    <div className="text-[11px] font-mono text-slate-400 flex items-center gap-4">
-                      <span>{ev.date}</span>
-                      <span className="truncate max-w-[150px]">{ev.location}</span>
-                    </div>
-                    <button className="w-full py-2 border border-white/5 bg-slate-950 text-xs font-mono text-slate-300 hover:bg-amber-500 hover:text-slate-950 hover:border-amber-500 transition-all rounded-none font-bold flex items-center justify-center gap-1">
-                      Réserver <ChevronRight size={14} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
+        <div className="flex flex-wrap gap-2">
+          {filterOptions.map((d) => (
+            <button key={d} onClick={() => setFilterDiscipline(d)} className={`px-3 py-1.5 text-[11px] font-mono font-bold uppercase tracking-wider border transition-all ${filterDiscipline===d ? "bg-white text-black border-white" : "bg-neutral-900 text-neutral-400 border-neutral-800 hover:border-neutral-600 hover:text-white"}`}>
+              {d}
+            </button>
+          ))}
         </div>
 
-        {/* PANNEAU LATÉRAL (DROITE) */}
-        <div className="lg:col-span-4 space-y-8">
-          
-          {/* BOUTIQUE / RENTALS */}
-          <section className="bg-slate-900/60 backdrop-blur-xs border border-white/5 p-6 rounded-none space-y-4">
-            <h3 className="text-md font-bold font-mono uppercase tracking-wider text-white border-b border-white/10 pb-2 flex items-center gap-2">
-              <ShoppingBag size={16} className="text-amber-500" /> Boutique Officielle du Gala
-            </h3>
-            
-            <div className="space-y-4">
-              {FEATURED_GALA.merchandise.map((item) => (
-                <div key={item.id} className="flex gap-3 bg-slate-950 p-2.5 border border-white/5 rounded-none">
-                  <img src={item.image} alt="" className="w-12 h-12 object-cover rounded-none bg-slate-900 border border-white/5" />
-                  <div className="flex flex-col justify-between flex-1 font-mono text-xs">
+        {view === "cards" ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {sortedEvents.map((event: any) => {
+              const { status, diffDays } = getEventStatus(event.date)
+              const isJ3 = status === "J-3"
+              const isLive = status === "LIVE"
+              return (
+                <div key={event.id} className={`bg-neutral-900 border overflow-hidden flex flex-col group transition-all ${isJ3 ? "border-red-500/30 bg-red-500/[0.02]" : isLive ? "border-red-500/40 shadow-[0_0_20px_rgba(239,68,68,0.1)]" : "border-neutral-800 hover:border-neutral-700"}`}>
+                  <div className="relative h-48 bg-neutral-950 overflow-hidden">
+                    <img src={event.image_url || "https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=600&auto=format&fit=crop"} alt={event.name} className="w-full h-full object-cover opacity-70 group-hover:scale-105 transition-transform duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+                    <div className="absolute top-3 left-3"><span className="px-2 py-1 bg-black/80 text-neutral-300 text-[9px] font-mono font-bold border border-neutral-700 uppercase tracking-widest">{event.badge || "OFFICIEL"}</span></div>
+                    <div className="absolute top-3 right-3 flex flex-col gap-2 items-end">
+                      {isLive && <span className="px-2.5 py-1 bg-red-500/10 text-red-500 text-[10px] font-mono font-black border border-red-500/30 uppercase tracking-widest flex items-center gap-1.5"><span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" /> LIVE</span>}
+                      {isJ3 && <span className="px-2.5 py-1 bg-red-600 text-white text-[10px] font-mono font-black uppercase tracking-widest">J-{diffDays}</span>}
+                    </div>
+                  </div>
+                  <div className="p-4 flex-1 flex flex-col gap-3">
                     <div>
-                      <h4 className="font-bold text-slate-200 line-clamp-1">{item.name}</h4>
-                      <span className={`inline-block text-[9px] font-black uppercase tracking-wider px-1.5 mt-0.5 ${
-                        item.type === "Location" ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                      }`}>
-                        {item.type}
-                      </span>
+                      <span className="inline-block px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[9px] font-mono font-bold uppercase tracking-wider">{event.disciplines?.name || "MMA"}</span>
+                      <h3 className="font-mono font-bold text-sm text-white uppercase tracking-tight mt-2 line-clamp-2 leading-tight">{event.name}</h3>
                     </div>
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="font-bold text-slate-400">{item.price}</span>
-                      <button className="text-[10px] text-amber-400 hover:text-white transition-colors underline">Ajouter</button>
+                    <div className="space-y-1.5 text-[11px] font-mono text-neutral-400 border-t border-neutral-800/60 pt-3 mt-auto">
+                      <div className="flex items-center gap-1.5"><MapPin size={12} className="text-neutral-600 shrink-0" /><span className="truncate">{event.location || event.city}</span></div>
+                      <div className={`flex items-center gap-1.5 ${isJ3 ? "text-red-500 font-bold" : ""}`}><Calendar size={12} className={isJ3 ? "text-red-500" : "text-neutral-600"} /><span>{new Date(event.date).toLocaleDateString("fr-FR", { day:"2-digit", month:"short", year:"numeric" })} {isJ3 && `• J-${diffDays}`}</span></div>
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                      <Link href={`/events/${event.id}`} className="flex-1 py-2.5 bg-white text-black text-xs font-mono font-bold uppercase tracking-wider text-center hover:bg-neutral-200 transition-colors">Réserver</Link>
+                      <Link href={`/events/${event.id}`} className="flex-1 py-2.5 border border-neutral-700 text-neutral-300 text-xs font-mono font-bold uppercase tracking-wider text-center hover:text-white hover:border-white transition-colors">Voir détails</Link>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </section>
-
-          {/* SÉCURITÉ */}
-          <section className="bg-slate-900/40 backdrop-blur-xs border border-red-500/10 p-6 rounded-none space-y-2 font-mono text-xs">
-            <h3 className="font-bold uppercase tracking-wider text-red-400 flex items-center gap-1.5">
-              <AlertTriangle size={14} /> Directives
-            </h3>
-            <ul className="text-[11px] text-slate-400 space-y-1.5 list-inside list-disc">
-              <li>Objets en verre strictement interdits.</li>
-              <li>Fouille de sécurité à l'entrée.</li>
-            </ul>
-          </section>
-
-          {/* FAQ */}
-          <section className="space-y-4">
-            <h3 className="text-sm font-bold font-mono uppercase tracking-wider text-white flex items-center gap-2">
-              <HelpCircle size={16} className="text-amber-500" /> FAQ
-            </h3>
-            <div className="space-y-2 font-mono text-xs">
-              <div className="p-3 bg-slate-900/60 backdrop-blur-xs border border-white/5 rounded-none">
-                <p className="font-bold text-slate-200 mb-1">Où récupérer les articles loués ?</p>
-                <p className="text-[11px] text-slate-400">Directement au guichet boutique d'Ampisikina le jour J.</p>
-              </div>
-            </div>
-          </section>
-          
-        </div>
-
+              )
+            })}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {sortedEvents.map((event: any) => {
+              const { status, diffDays } = getEventStatus(event.date)
+              const isJ3 = status === "J-3"
+              const isLive = status === "LIVE"
+              return (
+                <div key={event.id} className={`bg-neutral-900 border p-4 flex flex-col lg:flex-row gap-4 items-start lg:items-center transition-all ${isJ3 ? "border-red-500/30 bg-red-500/[0.02]" : isLive ? "border-red-500/40" : "border-neutral-800 hover:border-neutral-700"}`}>
+                  <img src={event.image_url || "https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=200&auto=format&fit=crop"} alt={event.name} className="w-full lg:w-24 h-24 object-cover border border-neutral-800 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <span className="px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[9px] font-mono font-bold uppercase">{event.disciplines?.name || "MMA"}</span>
+                      {isLive && <span className="px-2 py-0.5 bg-red-500/10 text-red-500 border border-red-500/20 text-[9px] font-mono font-black uppercase flex items-center gap-1"><span className="w-1 h-1 bg-red-500 rounded-full animate-pulse" /> LIVE</span>}
+                      {isJ3 && <span className="px-2 py-0.5 bg-red-600 text-white text-[9px] font-mono font-black uppercase">J-{diffDays}</span>}
+                    </div>
+                    <h3 className="font-mono font-bold text-sm text-white uppercase truncate">{event.name}</h3>
+                    <div className="flex flex-wrap gap-4 mt-1 text-[11px] font-mono text-neutral-400">
+                      <span className="flex items-center gap-1"><MapPin size={12} />{event.location}</span>
+                      <span className={`flex items-center gap-1 ${isJ3 ? "text-red-500 font-bold" : ""}`}><Calendar size={12} />{new Date(event.date).toLocaleDateString("fr-FR")} {isJ3 && `• J-${diffDays}`}</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 w-full lg:w-auto shrink-0">
+                    <Link href={`/events/${event.id}`} className="flex-1 lg:flex-none px-5 py-2.5 bg-white text-black text-xs font-mono font-bold uppercase tracking-wider text-center hover:bg-neutral-200">Réserver</Link>
+                    <Link href={`/events/${event.id}`} className="flex-1 lg:flex-none px-5 py-2.5 border border-neutral-700 text-neutral-300 text-xs font-mono uppercase text-center hover:text-white hover:border-white">Voir détails</Link>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
-
     </div>
-  );
+  )
 }

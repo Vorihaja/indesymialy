@@ -33,7 +33,7 @@ export default function BreakingNews() {
   const scrollingText = items.join(" • ");
 
   return (
-    <div className="h-7 w-full border-b border-neutral-900 bg-neutral-950 flex items-center font-mono text- uppercase tracking-wider select-none overflow-hidden relative z-50">
+    <div className="h-7 w-full border-b border-neutral-900 bg-neutral-950 flex items-center font-mono text-[10px] uppercase tracking-wider select-none overflow-hidden relative z-50">
       <style>{`
         @keyframes marquee {
           0% { transform: translate3d(0, 0, 0); }
