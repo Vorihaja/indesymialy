@@ -1,0 +1,235 @@
+/* =====================================
+   INDESY MIALY GLASS SYSTEM
+===================================== */
+
+
+/* =====================================
+   BASIC GLASS
+===================================== */
+
+
+.glass {
+
+  background:
+
+    rgba(255,255,255,.06);
+
+
+  backdrop-filter:
+
+    blur(20px);
+
+
+  -webkit-backdrop-filter:
+
+    blur(20px);
+
+
+  border:
+
+    1px solid rgba(255,255,255,.12);
+
+
+}
+
+
+
+/* =====================================
+   DARK GLASS PANEL
+===================================== */
+
+
+.glass-panel {
+
+
+  background:
+
+    rgba(15,23,42,.65);
+
+
+  backdrop-filter:
+
+    blur(24px);
+
+
+  -webkit-backdrop-filter:
+
+    blur(24px);
+
+
+  border:
+
+    1px solid rgba(255,255,255,.1);
+
+
+  box-shadow:
+
+    var(--shadow-lg);
+
+
+}
+
+
+
+/* =====================================
+   LIGHT GLASS
+===================================== */
+
+
+[data-theme="light"] .glass {
+
+
+  background:
+
+    rgba(255,255,255,.65);
+
+
+  border:
+
+    1px solid rgba(15,23,42,.1);
+
+
+}
+
+
+
+/* =====================================
+   FLOATING ELEMENTS
+===================================== */
+
+
+.floating {
+
+
+  box-shadow:
+
+    0 20px 60px rgba(0,0,0,.35);
+
+
+  border-radius:
+
+    var(--radius-xl);
+
+
+}
+
+
+
+/* =====================================
+   NAVBAR GLASS
+===================================== */
+
+
+.navbar-glass {
+
+
+  background:
+
+    rgba(2,6,23,.75);
+
+
+  backdrop-filter:
+
+    blur(18px);
+
+
+  border-bottom:
+
+    1px solid rgba(255,255,255,.1);
+
+
+}
+
+
+
+[data-theme="light"] .navbar-glass {
+
+
+  background:
+
+    rgba(255,255,255,.75);
+
+
+  border-bottom:
+
+    1px solid rgba(15,23,42,.1);
+
+
+}
+
+
+
+/* =====================================
+   MODAL GLASS
+===================================== */
+
+
+.modal-glass {
+
+
+  background:
+
+    rgba(15,23,42,.85);
+
+
+  backdrop-filter:
+
+    blur(30px);
+
+
+  border:
+
+    1px solid rgba(255,255,255,.15);
+
+
+  border-radius:
+
+    var(--radius-xl);
+
+
+}
+
+
+
+/* =====================================
+   BADGE GLASS
+===================================== */
+
+
+.badge-glass {
+
+
+  display:inline-flex;
+
+
+  align-items:center;
+
+
+  gap:.4rem;
+
+
+  padding:
+
+    .35rem .8rem;
+
+
+  border-radius:
+
+    999px;
+
+
+  background:
+
+    rgba(255,255,255,.08);
+
+
+  border:
+
+    1px solid rgba(255,255,255,.12);
+
+
+  font-size:
+
+    .8rem;
+
+}

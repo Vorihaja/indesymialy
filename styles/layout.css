@@ -1,0 +1,326 @@
+/* =====================================
+   INDESY MIALY LAYOUT SYSTEM
+===================================== */
+
+
+/* =====================================
+   GLOBAL CONTAINERS
+===================================== */
+
+
+.container {
+
+  width: 100%;
+
+  max-width: 1440px;
+
+  margin-inline: auto;
+
+  padding-inline: 1.5rem;
+
+}
+
+
+
+.container-sm {
+
+  max-width: 768px;
+
+  margin-inline:auto;
+
+  padding-inline:1.5rem;
+
+}
+
+
+
+.container-lg {
+
+  max-width: 1600px;
+
+  margin-inline:auto;
+
+  padding-inline:2rem;
+
+}
+
+
+
+/* =====================================
+   PAGE STRUCTURE
+===================================== */
+
+
+.page {
+
+  min-height:
+
+    100vh;
+
+  background:
+
+    var(--color-background);
+
+}
+
+
+
+.section {
+
+  padding-block:
+
+    5rem;
+
+}
+
+
+
+.section-sm {
+
+  padding-block:
+
+    2.5rem;
+
+}
+
+
+
+.section-lg {
+
+  padding-block:
+
+    8rem;
+
+}
+
+
+
+/* =====================================
+   FLEX SYSTEM
+===================================== */
+
+
+.flex {
+
+  display:flex;
+
+}
+
+
+.flex-center {
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+}
+
+
+.flex-between {
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:space-between;
+
+}
+
+
+
+.flex-column {
+
+  display:flex;
+
+  flex-direction:column;
+
+}
+
+
+
+/* =====================================
+   GRID SYSTEM
+===================================== */
+
+
+.grid {
+
+  display:grid;
+
+}
+
+
+
+.grid-2 {
+
+  grid-template-columns:
+
+    repeat(2,minmax(0,1fr));
+
+}
+
+
+
+.grid-3 {
+
+  grid-template-columns:
+
+    repeat(3,minmax(0,1fr));
+
+}
+
+
+
+.grid-4 {
+
+  grid-template-columns:
+
+    repeat(4,minmax(0,1fr));
+
+}
+
+
+
+.dashboard-grid {
+
+  display:grid;
+
+  grid-template-columns:
+
+    repeat(auto-fit,minmax(260px,1fr));
+
+  gap:
+
+    1.5rem;
+
+}
+
+
+
+/* =====================================
+   SPACING
+===================================== */
+
+
+.stack-sm {
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:.75rem;
+
+}
+
+
+
+.stack-md {
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:1.5rem;
+
+}
+
+
+
+.stack-lg {
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:2.5rem;
+
+}
+
+
+
+/* =====================================
+   ERP LAYOUT
+===================================== */
+
+
+.erp-layout {
+
+  display:grid;
+
+  grid-template-columns:
+
+    280px 1fr;
+
+  min-height:
+
+    100vh;
+
+}
+
+
+
+.erp-content {
+
+  padding:
+
+    2rem;
+
+}
+
+
+
+/* =====================================
+   MOBILE
+===================================== */
+
+
+@media(max-width:1024px){
+
+
+  .erp-layout {
+
+    grid-template-columns:
+
+      1fr;
+
+  }
+
+
+  .grid-4 {
+
+    grid-template-columns:
+
+      repeat(2,1fr);
+
+  }
+
+}
+
+
+
+@media(max-width:640px){
+
+
+  .container {
+
+    padding-inline:
+
+      1rem;
+
+  }
+
+
+  .grid-2,
+  .grid-3,
+  .grid-4 {
+
+    grid-template-columns:
+
+      1fr;
+
+  }
+
+
+}

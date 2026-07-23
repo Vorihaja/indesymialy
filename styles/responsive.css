@@ -1,0 +1,182 @@
+/* =====================================
+   INDESY MIALY RESPONSIVE SYSTEM
+===================================== */
+
+
+/* =====================================
+   LARGE DESKTOP
+===================================== */
+
+
+@media (max-width:1600px){
+
+
+  .container-lg {
+
+    max-width:1400px;
+
+  }
+
+
+}
+
+
+
+/* =====================================
+   TABLET LANDSCAPE
+===================================== */
+
+
+@media (max-width:1200px){
+
+
+  .section {
+
+    padding-block:4rem;
+
+  }
+
+
+
+  .erp-content {
+
+    padding:1.5rem;
+
+  }
+
+
+
+}
+
+
+
+/* =====================================
+   TABLET
+===================================== */
+
+
+@media (max-width:1024px){
+
+
+  .hide-tablet {
+
+    display:none;
+
+  }
+
+
+
+  .show-tablet {
+
+    display:block;
+
+  }
+
+
+
+  .dashboard-grid {
+
+    grid-template-columns:
+
+      repeat(2,minmax(0,1fr));
+
+  }
+
+
+
+}
+
+
+
+/* =====================================
+   MOBILE
+===================================== */
+
+
+@media (max-width:768px){
+
+
+  .hide-mobile {
+
+    display:none;
+
+  }
+
+
+
+  .show-mobile {
+
+    display:block;
+
+  }
+
+
+
+  .section {
+
+    padding-block:
+
+      3rem;
+
+  }
+
+
+
+  .dashboard-grid {
+
+    grid-template-columns:
+
+      1fr;
+
+  }
+
+
+
+  .flex-mobile-column {
+
+    flex-direction:column;
+
+  }
+
+
+
+}
+
+
+
+/* =====================================
+   SMALL MOBILE
+===================================== */
+
+
+@media (max-width:480px){
+
+
+  .container {
+
+    padding-inline:
+
+      .75rem;
+
+  }
+
+
+
+  .btn {
+
+    width:100%;
+
+  }
+
+
+
+  .card {
+
+    border-radius:
+
+      var(--radius-md);
+
+  }
+
+
+}

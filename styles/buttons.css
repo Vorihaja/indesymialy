@@ -1,0 +1,377 @@
+/* =====================================
+   INDESY MIALY BUTTON SYSTEM
+===================================== */
+
+
+/* =====================================
+   BASE BUTTON
+===================================== */
+
+
+.btn {
+
+  display:inline-flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  gap:.5rem;
+
+  border:none;
+
+  cursor:pointer;
+
+  font-weight:600;
+
+  border-radius:
+
+    var(--radius-md);
+
+  padding:
+
+    .75rem 1.5rem;
+
+  transition:
+
+    var(--transition-normal);
+
+  user-select:none;
+
+}
+
+
+
+/* =====================================
+   PRIMARY
+===================================== */
+
+
+.btn-primary {
+
+  background:
+
+    var(--brand-primary);
+
+  color:#020617;
+
+}
+
+
+
+.btn-primary:hover {
+
+  transform:
+
+    translateY(-2px);
+
+  box-shadow:
+
+    var(--shadow-md);
+
+}
+
+
+
+/* =====================================
+   SECONDARY
+===================================== */
+
+
+.btn-secondary {
+
+  background:
+
+    var(--brand-secondary);
+
+  color:white;
+
+}
+
+
+
+.btn-secondary:hover {
+
+  filter:
+
+    brightness(1.15);
+
+  transform:
+
+    translateY(-2px);
+
+}
+
+
+
+/* =====================================
+   ACCENT / ACTION
+===================================== */
+
+
+.btn-accent {
+
+  background:
+
+    var(--brand-accent);
+
+  color:white;
+
+}
+
+
+
+.btn-accent:hover {
+
+  transform:
+
+    translateY(-2px);
+
+}
+
+
+
+/* =====================================
+   OUTLINE
+===================================== */
+
+
+.btn-outline {
+
+
+  background:
+
+    transparent;
+
+
+  color:
+
+    var(--color-text);
+
+
+  border:
+
+    1px solid var(--color-border);
+
+}
+
+
+
+.btn-outline:hover {
+
+  background:
+
+    rgba(255,255,255,.08);
+
+}
+
+
+
+/* =====================================
+   GLASS BUTTON
+===================================== */
+
+
+.btn-glass {
+
+  background:
+
+    rgba(255,255,255,.08);
+
+
+  backdrop-filter:
+
+    blur(12px);
+
+
+  border:
+
+    1px solid rgba(255,255,255,.15);
+
+
+  color:
+
+    var(--color-text);
+
+}
+
+
+
+.btn-glass:hover {
+
+  background:
+
+    rgba(255,255,255,.15);
+
+}
+
+
+
+/* =====================================
+   DANGER
+===================================== */
+
+
+.btn-danger {
+
+  background:
+
+    var(--danger);
+
+  color:white;
+
+}
+
+
+
+.btn-danger:hover {
+
+  filter:
+
+    brightness(1.15);
+
+}
+
+
+
+/* =====================================
+   SUCCESS
+===================================== */
+
+
+.btn-success {
+
+  background:
+
+    var(--success);
+
+  color:white;
+
+}
+
+
+
+/* =====================================
+   SIZES
+===================================== */
+
+
+.btn-sm {
+
+  padding:
+
+    .5rem 1rem;
+
+  font-size:
+
+    .875rem;
+
+}
+
+
+
+.btn-lg {
+
+  padding:
+
+    1rem 2rem;
+
+  font-size:
+
+    1.125rem;
+
+}
+
+
+
+.btn-xl {
+
+  padding:
+
+    1.25rem 2.5rem;
+
+  font-size:
+
+    1.25rem;
+
+}
+
+
+
+/* =====================================
+   ICON BUTTON
+===================================== */
+
+
+.btn-icon {
+
+  width:
+
+    42px;
+
+  height:
+
+    42px;
+
+  padding:
+
+    0;
+
+  border-radius:
+
+    50%;
+
+}
+
+
+
+/* =====================================
+   ERP ACTION BUTTONS
+===================================== */
+
+
+.btn-create {
+
+  background:
+
+    #16a34a;
+
+  color:white;
+
+}
+
+
+
+.btn-edit {
+
+  background:
+
+    #2563eb;
+
+  color:white;
+
+}
+
+
+
+.btn-delete {
+
+  background:
+
+    #dc2626;
+
+  color:white;
+
+}
+
+
+
+.btn-view {
+
+  background:
+
+    #7c3aed;
+
+  color:white;
+
+}

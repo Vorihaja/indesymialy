@@ -3,7 +3,7 @@ export default function DashboardLoading() {
     <div className="flex min-h-screen bg-black text-zinc-100 animate-pulse">
       
       {/* Skeleton Sidebar (Gauche) */}
-      <aside className="fixed inset-y-0 left-0 z-20 w-64 border-r border-zinc-900 bg-zinc-950 flex flex-col justify-between p-4">
+      <aside className="fixed bottom-0 left-0 top-[var(--platform-header-height)] z-20 w-64 border-r border-zinc-900 bg-zinc-950 flex flex-col justify-between p-4">
         <div>
           {/* Logo Brand */}
           <div className="flex items-center gap-3 px-2 py-3 border-b border-zinc-900">

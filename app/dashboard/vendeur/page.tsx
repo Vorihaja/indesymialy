@@ -1,239 +1,173 @@
 "use client"
 
-import React, { useState, useEffect, createContext, useContext } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import {
-  LayoutDashboard, Package, ShoppingCart, Boxes, MapPinned, Wallet, Users, Tag, Truck, FileText,
-  Search, Bell, Plus, X, Calendar, MapPin, Eye, Trash2, Upload,
-  ArrowUpRight, AlertTriangle, CheckCircle2, Activity, Shield
+import React, { useState, createContext, useContext } from "react"
+import { 
+  LayoutDashboard, 
+  ShieldCheck, 
+  Calendar, 
+  FileText, 
+  Award, 
+  Clock, 
+  BarChart3, 
+  FileSpreadsheet, 
+  Wallet, 
+  Wrench, 
+  HeartPulse, 
+  GraduationCap, 
+  MessageSquare, 
+  PieChart, 
+  Scale,
+  Bell,
+  Search,
+  CheckCircle2,
+  AlertTriangle,
+  Info,
+  X,
+  ChevronRight,
+  UserCheck,
+  Check,
+  Download,
+  Filter,
+  Plus
 } from "lucide-react"
-
-type VendorModule = "overview" | "catalogue" | "commandes" | "stock" | "ventes" | "finances" | "clients" | "promos" | "livraison" | "documents"
-type PopupType = "info" | "success" | "warning" | "confirm" | "prompt"
-
-interface PopupState { 
-  open: boolean; 
-  title: string; 
-  message: string; 
-  type: PopupType; 
-  confirmText?: string; 
-  cancelText?: string; 
-  onConfirm?: (...a: any[]) => void; 
-  onCancel?: () => void; 
-  showInput?: boolean; 
-  showSecondInput?: boolean; 
-  inputPlaceholder?: string; 
-  secondInputPlaceholder?: string; 
-  inputValue?: string; 
-  secondInputValue?: string 
+// Context pour les popups d'interaction
+interface PopupState {
+  title: string
+  message: string
+  type: "info" | "success" | "warning"
 }
 
-const PopupContext = createContext<any>(null)
+const PopupContext = createContext<{ showPopup: (p: PopupState) => void }>({ showPopup: () => {} })
 
-function BrandPopup({ popup, setPopup }: { popup: PopupState; setPopup: any }) {
-  const [input, setInput] = useState("")
-  const [input2, setInput2] = useState("")
-
-  useEffect(() => { 
-    if (popup.open) { 
-      setInput(popup.inputValue || "") 
-      setInput2(popup.secondInputValue || "") 
-    } 
-  }, [popup.open, popup.inputValue, popup.secondInputValue])
-
-  if (!popup.open) return null
-
-  const close = () => setPopup((p: any) => ({ ...p, open: false }))
-  const ok = () => { 
-    if (popup.showInput && popup.showSecondInput) { 
-      if (!input.trim() || !input2.trim()) return
-      popup.onConfirm?.(input.trim(), input2.trim()) 
-    } else if (popup.showInput) { 
-      if (!input.trim()) return
-      popup.onConfirm?.(input.trim()) 
-    } else {
-      popup.onConfirm?.() 
-    }
-    close() 
-  }
-  const cancel = () => { 
-    popup.onCancel?.() 
-    close() 
-  }
-
+function BrandPopup({ popup, setPopup }: { popup: PopupState | null, setPopup: (p: PopupState | null) => void }) {
+  if (!popup) return null
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={cancel} />
-      <div className="relative w-full max-w-md bg-zinc-950 border border-zinc-800 shadow-xl overflow-hidden rounded-sm">
-        <div className="h-1 w-full bg-amber-500" />
-        <div className="p-3.5">
-          <div className="flex justify-between">
-            <div className="flex items-center gap-1.5">
-              <div className="h-5 w-5 bg-amber-500 text-black font-black text-[10px] flex items-center justify-center">IM</div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Indesy Mialy • Vendeur</span>
-            </div>
-            <button onClick={cancel} className="text-zinc-600 hover:text-zinc-300">
-              <X className="h-3 w-3" />
-            </button>
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-zinc-950 border border-zinc-800 max-w-md w-full p-6 space-y-4 relative shadow-2xl">
+        <div className="flex items-center justify-between border-b border-zinc-900 pb-3">
+          <div className="flex items-center gap-2">
+            {popup.type === "success" && <CheckCircle2 className="h-5 w-5 text-emerald-500" />}
+            {popup.type === "warning" && <AlertTriangle className="h-5 w-5 text-amber-500" />}
+            {popup.type === "info" && <Info className="h-5 w-5 text-blue-500" />}
+            <h3 className="text-sm font-bold uppercase tracking-wider text-white">{popup.title}</h3>
           </div>
-          <h4 className="mt-3 text-[11.5px] font-bold uppercase text-white">{popup.title}</h4>
-          <p className="mt-1 text-xs leading-[1.5] text-zinc-400 whitespace-pre-wrap">{popup.message}</p>
-          
-          {popup.showInput && (
-            <div className="mt-3 space-y-1.5">
-              <input 
-                autoFocus 
-                value={input} 
-                onChange={e => setInput(e.target.value)} 
-                onKeyDown={e => e.key === 'Enter' && ok()} 
-                placeholder={popup.inputPlaceholder} 
-                className="h-8 w-full bg-zinc-900 border border-zinc-800 px-2.5 text-xs text-white outline-none focus:border-amber-500/50" 
-              />
-              {popup.showSecondInput && (
-                <input 
-                  value={input2} 
-                  onChange={e => setInput2(e.target.value)} 
-                  onKeyDown={e => e.key === 'Enter' && ok()}
-                  placeholder={popup.secondInputPlaceholder} 
-                  className="h-8 w-full bg-zinc-900 border border-zinc-800 px-2.5 text-xs text-white outline-none focus:border-amber-500/50" 
-                />
-              )}
-            </div>
-          )}
-          
-          <div className="mt-3.5 flex justify-end gap-1.5">
-            {(popup.type === "confirm" || popup.showInput) && (
-              <button onClick={cancel} className="h-7 px-3 text-[10.5px] border border-zinc-800 text-zinc-400 hover:bg-zinc-900/50 transition">
-                {popup.cancelText || "Annuler"}
-              </button>
-            )}
-            <button onClick={ok} className="h-7 px-3 text-[10.5px] font-bold bg-amber-500 text-black hover:bg-amber-600 transition">
-              {popup.confirmText || "OK"}
-            </button>
-          </div>
+          <button onClick={() => setPopup(null)} className="text-zinc-500 hover:text-white">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <p className="text-xs text-zinc-300 leading-relaxed whitespace-pre-line font-mono">{popup.message}</p>
+        <div className="flex justify-end pt-2">
+          <button onClick={() => setPopup(null)} className="px-4 py-2 bg-amber-500 text-black font-bold text-xs hover:bg-amber-400 uppercase tracking-wider">
+            Compris
+          </button>
         </div>
       </div>
     </div>
   )
 }
 
-// MODULES VENDEUR
+// Sous-composants des Modules Fédéraux Indesy Mialy
 function OverviewModule() {
-  const ctx = useContext(PopupContext)
   return (
-    <div className="space-y-5">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <div className="border border-zinc-900 bg-zinc-950 p-4">
-          <p className="text-[10px] uppercase font-bold text-zinc-500">CA Aujourd'hui</p>
-          <p className="mt-1 text-xl font-black text-white">1 240 000 Ar</p>
-          <p className="text-xs text-emerald-400 flex items-center gap-1"><ArrowUpRight className="h-3 w-3" />+18% vs hier</p>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="p-5 bg-zinc-900 border border-zinc-800 space-y-2">
+          <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-mono">Arbitres Actifs</span>
+          <div className="text-2xl font-black text-white">42</div>
+          <div className="text-[10px] text-emerald-500 flex items-center gap-1">↑ +3 ce mois (Madagascar)</div>
         </div>
-        <div className="border border-zinc-900 bg-zinc-950 p-4">
-          <p className="text-[10px] uppercase font-bold text-zinc-500">Commandes</p>
-          <p className="mt-1 text-xl font-black text-white">27</p>
-          <p className="text-xs text-amber-400">6 en attente préparation</p>
+        <div className="p-5 bg-zinc-900 border border-zinc-800 space-y-2">
+          <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-mono">Combats Certifiés</span>
+          <div className="text-2xl font-black text-amber-500">128</div>
+          <div className="text-[10px] text-zinc-400">Saison 2026 FMMADA</div>
         </div>
-        <div className="border border-zinc-900 bg-zinc-950 p-4">
-          <p className="text-[10px] uppercase font-bold text-zinc-500">Stock critique</p>
-          <p className="mt-1 text-xl font-black text-red-400">4</p>
-          <p className="text-xs text-zinc-500">Produits à réapprovisionner</p>
+        <div className="p-5 bg-zinc-900 border border-zinc-800 space-y-2">
+          <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-mono">Désignations en cours</span>
+          <div className="text-2xl font-black text-white">14</div>
+          <div className="text-[10px] text-blue-400">Prêts pour validation</div>
         </div>
-        <div className="border border-zinc-900 bg-zinc-950 p-4">
-          <p className="text-[10px] uppercase font-bold text-zinc-500">Prochain Event</p>
-          <p className="mt-1 text-sm font-bold text-white">MFN VI</p>
-          <p className="text-xs text-zinc-500 flex items-center gap-1"><Calendar className="h-3 w-3" />15 Août • Mahajanga</p>
+        <div className="p-5 bg-zinc-900 border border-zinc-800 space-y-2">
+          <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-mono">Indemnités Validées</span>
+          <div className="text-2xl font-black text-emerald-400">4 750 000 Ar</div>
+          <div className="text-[10px] text-zinc-400">Tranche MFN V</div>
         </div>
       </div>
-      
-      <div className="grid md:grid-cols-3 gap-3">
-        <div className="md:col-span-2 border border-zinc-900 bg-zinc-950 p-5">
-          <h3 className="text-sm font-bold text-white">Alertes Vendeur</h3>
-          <div className="mt-3 space-y-2">
-            <div className="flex justify-between items-center bg-amber-500/10 border border-amber-500/20 p-3">
-              <span className="text-xs text-amber-200">4 produits sous seuil (Gants 14oz, T-shirt L)</span>
-              <button onClick={() => ctx?.showPopup({ title: "Stock", message: "Ouvre le module Stock pour réappro", type: "warning" })} className="text-xs font-bold text-amber-400 underline">Voir</button>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 p-6 bg-zinc-900 border border-zinc-800 space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-white">Prochains Événements Officiels</h3>
+            <span className="text-xs text-zinc-500 font-mono">Mahajanga / Antananarivo</span>
+          </div>
+          <div className="space-y-2">
+            {[
+              { title: "Championnat National MMA - Éliminatoires", date: "05 Août 2026", loc: "Mahajanga Arena", status: "Confirmé" },
+              { title: "Séminaire de Recyclage Arbitres Judo", date: "18 Août 2026", loc: "Institut National", status: "Ouvert" },
+              { title: "Gala International Indesy Mialy", date: "30 Septembre 2026", loc: "Ankorondrano Tana", status: "En attente" }
+            ].map((ev, i) => (
+              <div key={i} className="p-3 bg-zinc-950 border border-zinc-850 flex items-center justify-between text-xs">
+                <div>
+                  <div className="font-bold text-white">{ev.title}</div>
+                  <div className="text-zinc-500 mt-0.5">{ev.date} • {ev.loc}</div>
+                </div>
+                <span className="px-2 py-1 bg-zinc-900 border border-zinc-800 text-amber-500 font-mono text-[10px]">{ev.status}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="p-6 bg-zinc-900 border border-zinc-800 space-y-4">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-white">Alertes & Rappels</h3>
+          <div className="space-y-3 text-xs text-zinc-300">
+            <div className="p-3 bg-zinc-950 border border-zinc-850 space-y-1">
+              <span className="text-[10px] text-amber-500 font-mono font-bold">CERTIFICAT MÉDICAL</span>
+              <p>5 arbitres doivent renouveler leur aptitude avant le 10 août.</p>
             </div>
-            <div className="flex justify-between items-center bg-zinc-900/50 border border-zinc-800 p-3">
-              <span className="text-xs text-zinc-400">Commission INDESY MIALY 12% prélevée sur 2 commandes</span>
-              <span className="text-xs text-zinc-500">- 48 000 Ar</span>
+            <div className="p-3 bg-zinc-950 border border-zinc-850 space-y-1">
+              <span className="text-[10px] text-emerald-500 font-mono font-bold">RÈGLEMENTATION</span>
+              <p>Mise à jour des grilles de notation MMA disponible.</p>
             </div>
           </div>
-        </div> {/* Correction : Fermeture de la div md:col-span-2 résolue ici */}
-        
-        <div className="border border-zinc-900 bg-zinc-950 p-5">
-          <h3 className="text-sm font-bold text-white">Stand Event</h3>
-          <p className="text-xs text-zinc-500 mt-1">Zone B12 • Accès élec. OK</p>
-          <div className="mt-3 h-1.5 w-full bg-zinc-900">
-            <div className="h-full bg-emerald-500" style={{ width: "92%" }} />
-          </div>
-          <p className="mt-2 text-xs text-zinc-500">Setup validé à 92% par l'orga</p>
         </div>
       </div>
     </div>
   )
 }
 
-function CatalogueModule() {
-  const ctx = useContext(PopupContext)
-  const [products, setProducts] = useState([
-    { id: "p1", name: "Gants MMA Pro 14oz", sku: "GLOV-14", price: "180 000 Ar", stock: 12, cat: "Équipement" }, 
-    { id: "p2", name: "T-Shirt MFN V - Noir", sku: "TSH-MFN5-BK-L", price: "45 000 Ar", stock: 3, cat: "Merch" }, 
-    { id: "p3", name: "Protège-dents custom", sku: "MOUTH-CUST", price: "25 000 Ar", stock: 24, cat: "Accessoire" }
-  ])
-  
-  const add = () => ctx?.showDoublePrompt({ 
-    title: "Nouveau produit", 
-    message: "Nom + Prix (ex: 45000)", 
-    firstPlaceholder: "Nom produit", 
-    secondPlaceholder: "Prix en Ar", 
-    onConfirm: (n: string, pr: string) => setProducts((p) => [
-      { id: `p_${Date.now()}`, name: n, sku: `SKU-${Date.now()}`, price: `${pr} Ar`, stock: 10, cat: "Nouveau" },
-      ...p
-    ]) 
-  })
-
+function DesignationsModule() {
+  const { showPopup } = useContext(PopupContext)
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-sm font-bold text-white">Catalogue Produits • {products.length}</h3>
-        <button onClick={add} className="h-8 px-3 bg-amber-500 text-black text-xs font-bold flex items-center gap-1.5 hover:bg-amber-600 transition">
-          <Plus className="h-3.5 w-3.5" />Ajouter produit
-        </button>
+        <h3 className="text-sm font-bold uppercase tracking-wider text-white">Gestion des Désignations Officielles</h3>
+        <button onClick={() => showPopup({ title: "Nouvelle Désignation", message: "Formulaire d'assignation d'officiel ouvert.", type: "info" })} className="px-3 py-1.5 bg-amber-500 text-black text-xs font-bold uppercase">Assigner</button>
       </div>
-      <div className="border border-zinc-900 bg-zinc-950 overflow-hidden">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="bg-zinc-900/30 border-b border-zinc-900 text-xs uppercase font-bold text-zinc-500">
-              <th className="p-3">Produit</th>
-              <th className="p-3">SKU</th>
-              <th className="p-3">Prix</th>
-              <th className="p-3">Stock</th>
-              <th className="p-3">Actions</th>
+      <div className="border border-zinc-800 bg-zinc-900 overflow-hidden">
+        <table className="w-full text-left text-xs">
+          <thead className="bg-zinc-950 text-zinc-500 uppercase font-mono text-[10px] border-b border-zinc-800">
+            <tr>
+              <th className="p-3">ID Match</th>
+              <th className="p-3">Événement</th>
+              <th className="p-3">Arbitre Principal</th>
+              <th className="p-3">Juges de Ring</th>
+              <th className="p-3">Statut</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-900 text-xs">
-            {products.map((pr) => (
-              <tr key={pr.id} className="hover:bg-zinc-900/20">
-                <td className="p-3 font-bold text-white flex items-center gap-2">
-                  <Package className="h-3.5 w-3.5 text-zinc-600" />{pr.name}
-                </td>
-                <td className="p-3 font-mono text-zinc-500">{pr.sku}</td>
-                <td className="p-3 text-zinc-300">{pr.price}</td>
-                <td className="p-3">
-                  <span className={`px-1.5 py-0.5 text-[10px] font-bold ${pr.stock <= 5 ? "bg-red-500/10 text-red-400" : "bg-zinc-800 text-zinc-400"}`}>
-                    {pr.stock}
-                  </span>
-                </td>
-                <td className="p-3 flex gap-1">
-                  <button onClick={() => ctx?.showPopup({ title: pr.name, message: `Catégorie: ${pr.cat}\nStock: ${pr.stock}`, type: "info" })} className="h-6 w-6 border border-zinc-800 flex items-center justify-center text-zinc-500 hover:text-white transition">
-                    <Eye className="h-3 w-3" />
-                  </button>
-                  <button onClick={() => setProducts((p) => p.filter((x) => x.id !== pr.id))} className="h-6 w-6 border border-zinc-800 flex items-center justify-center text-zinc-600 hover:text-red-400 transition">
-                    <Trash2 className="h-3 w-3" />
-                  </button>
-                </td>
-              </tr>
-            ))}
+          <tbody className="divide-y divide-zinc-850 text-zinc-300">
+            <tr>
+              <td className="p-3 font-mono text-amber-500">#MMA-206</td>
+              <td className="p-3">Tournoi Mahajanga Open</td>
+              <td className="p-3 font-bold text-white">Rakoto Jean</td>
+              <td className="p-3 text-zinc-400">Andria M., Be N.</td>
+              <td className="p-3"><span className="text-emerald-500 font-mono text-[10px]">Validé</span></td>
+            </tr>
+            <tr>
+              <td className="p-3 font-mono text-amber-500">#JUD-112</td>
+              <td className="p-3">Coupe Nationale Cadets</td>
+              <td className="p-3 font-bold text-white">Rasoanaivo H.</td>
+              <td className="p-3 text-zinc-400">Kolo P., Randria T.</td>
+              <td className="p-3"><span className="text-amber-500 font-mono text-[10px]">En attente</span></td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -241,323 +175,351 @@ function CatalogueModule() {
   )
 }
 
-function CommandesModule() {
-  const ctx = useContext(PopupContext)
-  const [orders] = useState([
-    { id: "#1024", client: "Andry R.", total: "125 000 Ar", status: "En attente", date: "12/07" }, 
-    { id: "#1023", client: "Sitraka M.", total: "45 000 Ar", status: "Préparée", date: "12/07" }, 
-    { id: "#1022", client: "Guillaume B.", total: "360 000 Ar", status: "Livrée", date: "11/07" }
-  ])
-
+function HistoriqueModule() {
   return (
-    <div className="space-y-3">
-      <div className="flex justify-between">
-        <h3 className="text-sm font-bold text-white">Commandes récentes</h3>
-        <span className="text-xs text-zinc-500">{orders.length} commandes</span>
+    <div className="p-6 bg-zinc-900 border border-zinc-800 space-y-4">
+      <h3 className="text-sm font-bold uppercase tracking-wider text-white">Historique Complet des Combats & Arbitrages</h3>
+      <p className="text-xs text-zinc-400">Registre officiel archivé des performances et décisions arbitrales de la plateforme.</p>
+      <div className="space-y-2">
+        {[
+          { id: "CB-902", discipline: "MMA", vainqueur: "Berthier 'The Lion'", duree: "R2 - 2:14", arbitre: "Rakoto Jean" },
+          { id: "CB-901", discipline: "Judo", vainqueur: "Zafy Marc (Ippon)", duree: "R1 - 1:45", arbitre: "Rasoanaivo H." }
+        ].map((c, i) => (
+          <div key={i} className="p-3 bg-zinc-950 border border-zinc-850 flex justify-between items-center text-xs">
+            <div>
+              <span className="font-mono text-amber-500 mr-2">{c.id}</span>
+              <span className="font-bold text-white">{c.discipline} • {c.vainqueur}</span>
+            </div>
+            <div className="text-zinc-400 text-right">
+              <div>{c.duree}</div>
+              <div className="text-[10px] text-zinc-500">Arbitre: {c.arbitre}</div>
+            </div>
+          </div>
+        ))}
       </div>
-      {orders.map((o) => (
-        <div key={o.id} className="flex justify-between items-center border border-zinc-900 bg-zinc-950 p-4">
-          <div>
-            <p className="text-sm font-bold text-white">{o.id} • {o.client}</p>
-            <p className="text-xs text-zinc-500">{o.date} • {o.total}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className={`px-2 py-0.5 text-[10px] font-bold uppercase ${o.status === "Livrée" ? "bg-emerald-500/10 text-emerald-400" : o.status === "Préparée" ? "bg-amber-500/10 text-amber-400" : "bg-zinc-800 text-zinc-400"}`}>
-              {o.status}
-            </span>
-            <button onClick={() => ctx?.showConfirm({ title: "Changer statut?", message: `Passer ${o.id} en Livrée?`, confirmText: "Valider", onConfirm: () => ctx?.showPopup({ title: "OK", message: "Commande mise à jour", type: "success" }) })} className="h-7 px-2.5 border border-zinc-800 text-xs text-zinc-400 hover:bg-zinc-900 transition">
-              Traiter
-            </button>
-          </div>
-        </div>
-      ))}
     </div>
   )
 }
 
-function StockModule() { 
+function ReglementsModule() {
   return (
-    <div className="grid md:grid-cols-2 gap-3">
-      <div className="border border-red-500/20 bg-red-500/5 p-4">
-        <p className="text-sm font-bold text-red-300 flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4" />Rupture imminente
-        </p>
-        <ul className="mt-3 space-y-1.5 text-xs text-zinc-400">
-          <li>• T-Shirt L - Noir (3 restants)</li>
-          <li>• Gants 14oz - Rouge (2 restants)</li>
-        </ul>
-      </div>
-      <div className="border border-zinc-900 bg-zinc-950 p-4">
-        <p className="text-sm font-bold text-white">Inventaire global</p>
-        <p className="mt-2 text-2xl font-black text-white">187</p>
-        <p className="text-xs text-zinc-500">unités en stock • 12 SKU actifs</p>
+    <div className="p-6 bg-zinc-900 border border-zinc-800 space-y-4">
+      <h3 className="text-sm font-bold uppercase tracking-wider text-white">Règlements & Codes Officiels</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+        <div className="p-4 bg-zinc-950 border border-zinc-850 space-y-2">
+          <div className="font-bold text-white uppercase">Code Sportif MMA FMMADA</div>
+          <p className="text-zinc-400">Normes unifiées de l'arbitrage, catégories de poids, équipements obligatoires et fautes graves.</p>
+          <span className="text-amber-500 font-mono text-[10px] block">PDF • 2.4 Mo</span>
+        </div>
+        <div className="p-4 bg-zinc-950 border border-zinc-850 space-y-2">
+          <div className="font-bold text-white uppercase">Règlement International Judo</div>
+          <p className="text-zinc-400">Application des critères de notation IJF, restrictions de saisie et arbitrage vidéo.</p>
+          <span className="text-amber-500 font-mono text-[10px] block">PDF • 1.8 Mo</span>
+        </div>
       </div>
     </div>
-  ) 
+  )
 }
 
-function VentesEventModule() { 
-  const ctx = useContext(PopupContext)
+function CertifsModule() {
   return (
-    <div className="space-y-3">
-      <div className="border border-zinc-900 bg-zinc-950 p-5 flex justify-between items-center">
+    <div className="p-6 bg-zinc-900 border border-zinc-800 space-y-4">
+      <h3 className="text-sm font-bold uppercase tracking-wider text-white">Suivi des Certifications Fédérales</h3>
+      <p className="text-xs text-zinc-400">Validation des diplômes d'arbitres, juges et commissaires sportifs.</p>
+      <div className="p-4 bg-zinc-950 border border-zinc-850 text-xs flex justify-between items-center">
         <div>
-          <p className="text-sm font-bold text-white">Mahajanga Fight Night VI</p>
-          <p className="text-xs text-zinc-500 flex items-center gap-1">
-            <MapPinned className="h-3 w-3" />Zone B12 • 15 Août • Stand validé
-          </p>
+          <div className="font-bold text-white">Licence Nationale Arbitre Grade A</div>
+          <div className="text-zinc-500">Titulaire: Administration Indesy Mialy</div>
         </div>
-        <span className="px-2 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase">Confirmé</span>
-      </div>
-      <button onClick={() => ctx?.showPopup({ title: "Ventes sur place", message: "Mode caisse offline activé pour l'event", type: "success" })} className="w-full h-10 bg-amber-500 text-black text-xs font-black uppercase hover:bg-amber-600 transition">
-        Ouvrir caisse évènement
-      </button>
-    </div>
-  ) 
-}
-
-function FinancesModule() { 
-  return (
-    <div className="grid md:grid-cols-3 gap-3">
-      <div className="border border-zinc-900 bg-zinc-950 p-4">
-        <p className="text-[10px] uppercase text-zinc-500">CA brut (30j)</p>
-        <p className="text-xl font-black text-white mt-1">8 420 000 Ar</p>
-      </div>
-      <div className="border border-zinc-900 bg-zinc-950 p-4">
-        <p className="text-[10px] uppercase text-zinc-500">Commissions INDESY (12%)</p>
-        <p className="text-xl font-black text-amber-400 mt-1">- 1 010 400 Ar</p>
-      </div>
-      <div className="border border-zinc-900 bg-zinc-950 p-4">
-        <p className="text-[10px] uppercase text-zinc-500">Net à percevoir</p>
-        <p className="text-xl font-black text-emerald-400 mt-1">7 409 600 Ar</p>
-        <p className="text-xs text-zinc-500 mt-1">Payout le 20/07 via Mobile Money</p>
+        <span className="px-2 py-1 bg-emerald-950 text-emerald-400 border border-emerald-800 font-mono text-[10px]">Actif</span>
       </div>
     </div>
-  ) 
+  )
 }
 
-function ClientsModule() { 
+function DisposModule() {
   return (
-    <div className="border border-zinc-900 bg-zinc-950 overflow-hidden">
-      <table className="w-full text-left text-xs">
-        <thead>
-          <tr className="bg-zinc-900/30 border-b border-zinc-900 text-xs uppercase font-bold text-zinc-500">
-            <th className="p-3">Client</th>
-            <th className="p-3">Commandes</th>
-            <th className="p-3">Total dépensé</th>
-            <th className="p-3">Fidélité</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-zinc-900">
-          {[{ n: "Andry R.", c: 4, t: "520 000 Ar", f: "Gold" }, { n: "Sitraka M.", c: 2, t: "90 000 Ar", f: "Silver" }].map((cl) => (
-            <tr key={cl.n} className="hover:bg-zinc-900/10 transition-colors">
-              <td className="p-3 font-bold text-white">{cl.n}</td>
-              <td className="p-3 text-zinc-400">{cl.c}</td>
-              <td className="p-3 text-zinc-300">{cl.t}</td>
-              <td className="p-3">
-                <span className="px-1.5 py-0.5 bg-zinc-800 text-[10px] text-zinc-300">{cl.f}</span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  ) 
-}
-
-function PromosModule() { 
-  const ctx = useContext(PopupContext)
-  return (
-    <div className="space-y-3">
-      <div className="flex justify-between items-center">
-        <h3 className="text-sm font-bold text-white">Codes promo actifs</h3>
-        <button onClick={() => ctx?.showDoublePrompt({ title: "Nouveau code", message: "Code + Remise %", firstPlaceholder: "Ex: MFN10", secondPlaceholder: "Ex: 10", onConfirm: (c: string, r: string) => ctx?.showPopup({ title: "Créé", message: `${c} - ${r}% créé`, type: "success" }) })} className="h-7 px-3 bg-zinc-900 border border-zinc-800 text-xs font-bold text-zinc-300 hover:bg-zinc-800 transition">
-          Créer code
-        </button>
-      </div>
-      <div className="border border-zinc-900 bg-zinc-950 p-4 flex justify-between">
-        <div>
-          <p className="text-sm font-bold text-white">MFN10</p>
-          <p className="text-xs text-zinc-500">-10% sur tout le merch • 34 utilisations</p>
-        </div>
-        <span className="text-xs font-bold text-emerald-400">ACTIF</span>
+    <div className="p-6 bg-zinc-900 border border-zinc-800 space-y-4">
+      <h3 className="text-sm font-bold uppercase tracking-wider text-white">Calendrier & Disponibilités du Corps Arbitral</h3>
+      <p className="text-xs text-zinc-400">Gestion des plannings d'indisponibilité pour la saison en cours.</p>
+      <div className="p-4 bg-zinc-950 border border-zinc-850 text-xs text-zinc-300">
+        Aucun congé ou indisponibilité enregistré pour le mois d'août 2026. Corps arbitral pleinement opérationnel.
       </div>
     </div>
-  ) 
+  )
 }
 
-function LivraisonModule() { 
+function EvaluationsModule() {
   return (
-    <div className="border border-zinc-900 bg-zinc-950 p-5">
-      <h3 className="text-sm font-bold text-white flex items-center gap-2">
-        <Truck className="h-4 w-4 text-amber-500" />Expéditions en cours
-      </h3>
-      <div className="mt-4 space-y-2">
-        <div className="flex justify-between items-center bg-zinc-900/50 border border-zinc-800 p-3">
-          <span className="text-xs text-zinc-300">#1023 • Colis en transit vers Nosy Be</span>
-          <span className="text-xs text-amber-400">En cours</span>
-        </div>
-        <div className="flex justify-between items-center bg-zinc-900/50 border border-zinc-800 p-3">
-          <span className="text-xs text-zinc-300">#1022 • Livré le 11/07</span>
-          <span className="text-xs text-emerald-400">Livré</span>
-        </div>
-      </div>
-    </div>
-  ) 
-}
-
-function DocsModule() { 
-  return (
-    <div className="space-y-2">
-      {[{ n: "KYC Vendeur - Validé", s: "Validé", i: CheckCircle2 }, { n: "Facture Commission Juin", s: "À payer", i: FileText }].map((d) => (
-        <div key={d.n} className="flex justify-between items-center border border-zinc-900 bg-zinc-950 p-4">
-          <div className="flex items-center gap-3">
-            <d.i className="h-4 w-4 text-zinc-500" />
-            <div>
-              <p className="text-sm font-bold text-white">{d.n}</p>
-              <p className="text-xs uppercase font-bold text-zinc-500">{d.s}</p>
-            </div>
+    <div className="p-6 bg-zinc-900 border border-zinc-800 space-y-4">
+      <h3 className="text-sm font-bold uppercase tracking-wider text-white">Évaluations & Notes des Officiers</h3>
+      <div className="space-y-2 text-xs">
+        <div className="p-3 bg-zinc-950 border border-zinc-850 flex justify-between items-center">
+          <div>
+            <span className="font-bold text-white">Rakoto Jean</span>
+            <span className="text-zinc-500 ml-2">Arbitre MMA</span>
           </div>
-          <button className="h-7 px-3 border border-zinc-800 text-xs text-zinc-400 hover:bg-zinc-900 transition">Voir</button>
+          <span className="text-amber-500 font-mono">Note: 4.8 / 5.0</span>
         </div>
-      ))}
+      </div>
     </div>
-  ) 
+  )
 }
 
-export default function VendeurDashboard() {
-  const [active, setActive] = useState<VendorModule>("overview")
-  const [search, setSearch] = useState("")
-  const [popup, setPopup] = useState<PopupState>({ open: false, title: "", message: "", type: "info" })
-  
-  const showPopup = (o: any) => setPopup({ open: true, title: o.title || "Info", message: o.message, type: o.type || "info", confirmText: "Fermer" })
-  const showConfirm = (o: any) => setPopup({ open: true, title: o.title || "Confirmation", message: o.message, type: o.type || "confirm", confirmText: o.confirmText || "Confirmer", cancelText: o.cancelText || "Annuler", onConfirm: o.onConfirm, onCancel: o.onCancel })
-  const showDoublePrompt = (o: any) => setPopup({ open: true, title: o.title, message: o.message, type: "prompt", confirmText: "Créer", cancelText: "Annuler", showInput: true, showSecondInput: true, inputPlaceholder: o.firstPlaceholder, secondInputPlaceholder: o.secondPlaceholder, onConfirm: o.onConfirm })
+function RapportsModule() {
+  return (
+    <div className="p-6 bg-zinc-900 border border-zinc-800 space-y-4">
+      <h3 className="text-sm font-bold uppercase tracking-wider text-white">Rapports d'Incidents & Fiches Matchs</h3>
+      <p className="text-xs text-zinc-400">Soumission et consultation des rapports officiels post-combat.</p>
+      <div className="p-4 bg-zinc-950 border border-zinc-850 text-xs text-zinc-400">
+        Aucun incident majeur signalé lors des 10 derniers événements de Mahajanga.
+      </div>
+    </div>
+  )
+}
+
+function FinancesModule() {
+  return (
+    <div className="p-6 bg-zinc-900 border border-zinc-800 space-y-4">
+      <h3 className="text-sm font-bold uppercase tracking-wider text-white">Finances & Indemnisations Officielles</h3>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+        <div className="p-4 bg-zinc-950 border border-zinc-850 space-y-1">
+          <span className="text-zinc-500 uppercase font-mono text-[10px]">Budget Alloué</span>
+          <div className="text-lg font-black text-white">15 000 000 Ar</div>
+        </div>
+        <div className="p-4 bg-zinc-950 border border-zinc-850 space-y-1">
+          <span className="text-zinc-500 uppercase font-mono text-[10px]">Indemnités Versées</span>
+          <div className="text-lg font-black text-amber-500">4 750 000 Ar</div>
+        </div>
+        <div className="p-4 bg-zinc-950 border border-zinc-850 space-y-1">
+          <span className="text-zinc-500 uppercase font-mono text-[10px]">Solde Disponible</span>
+          <div className="text-lg font-black text-emerald-400">10 250 000 Ar</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function MaterielModule() {
+  return (
+    <div className="p-6 bg-zinc-900 border border-zinc-800 space-y-4">
+      <h3 className="text-sm font-bold uppercase tracking-wider text-white">Inventaire du Matériel Fédéral</h3>
+      <div className="space-y-2 text-xs">
+        {["Gants officiels MMA homologués (10 paires)", "Tatamis haute densité (100m²)", "Chronomètres officiels et sonnette", "Kits premiers secours d'urgence"].map((m, i) => (
+          <div key={i} className="p-3 bg-zinc-950 border border-zinc-850 flex justify-between items-center text-zinc-300">
+            <span>{m}</span>
+            <span className="text-emerald-500 font-mono text-[10px]">En stock / Bon état</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function MedicalModule() {
+  return (
+    <div className="p-6 bg-zinc-900 border border-zinc-800 space-y-4">
+      <h3 className="text-sm font-bold uppercase tracking-wider text-white">Suivi Médical & Suspensions</h3>
+      <p className="text-xs text-zinc-400">Registre des suspensions médicales post-KO ou blessures (Judo & MMA).</p>
+      <div className="p-4 bg-zinc-950 border border-zinc-850 text-xs text-zinc-400">
+        Aucune suspension médicale active à ce jour.
+      </div>
+    </div>
+  )
+}
+
+function FormationModule() {
+  return (
+    <div className="p-6 bg-zinc-900 border border-zinc-800 space-y-4">
+      <h3 className="text-sm font-bold uppercase tracking-wider text-white">Formations & Séminaires Continus</h3>
+      <p className="text-xs text-zinc-400">Modules de formation continue pour les entraîneurs et arbitres malagasy.</p>
+      <div className="p-4 bg-zinc-950 border border-zinc-850 text-xs space-y-1">
+        <div className="font-bold text-white">Module 1: Arbitrage Vidéo et VAR en MMA</div>
+        <div className="text-zinc-500">Statut: En ligne • 12 inscrits</div>
+      </div>
+    </div>
+  )
+}
+
+function CommunicationModule() {
+  return (
+    <div className="p-6 bg-zinc-900 border border-zinc-800 space-y-4">
+      <h3 className="text-sm font-bold uppercase tracking-wider text-white">Communication & Circulaires Fédérales</h3>
+      <p className="text-xs text-zinc-400">Diffusion des notes de service officielles aux clubs affiliés.</p>
+      <div className="p-4 bg-zinc-950 border border-zinc-850 text-xs space-y-1">
+        <div className="font-bold text-amber-500">Circulaire N° 04/2026/FMMADA</div>
+        <div className="text-zinc-300">Nouvelles dispositions relatives aux pesées officielles avant combat.</div>
+      </div>
+    </div>
+  )
+}
+
+function StatistiquesModule() {
+  return (
+    <div className="p-6 bg-zinc-900 border border-zinc-800 space-y-4">
+      <h3 className="text-sm font-bold uppercase tracking-wider text-white">Statistiques Avancées & Analytique</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+        <div className="p-4 bg-zinc-950 border border-zinc-850 space-y-2">
+          <div className="font-bold text-white uppercase">Répartition des Victoires (MMA)</div>
+          <div className="text-zinc-400 space-y-1">
+            <div>• Soumission: 42%</div>
+            <div>• KO / TKO: 38%</div>
+            <div>• Décision des Juges: 20%</div>
+          </div>
+        </div>
+        <div className="p-4 bg-zinc-950 border border-zinc-850 space-y-2">
+          <div className="font-bold text-white uppercase">Répartition des Victoires (Judo)</div>
+          <div className="text-zinc-400 space-y-1">
+            <div>• Ippon direct: 65%</div>
+            <div>• Waza-ari: 25%</div>
+            <div>• Pénalités (Shido): 10%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function JugementModule() {
+  return (
+    <div className="p-6 bg-zinc-900 border border-zinc-800 space-y-4">
+      <h3 className="text-sm font-bold uppercase tracking-wider text-white">Module Central de Jugement & Scoring en Direct</h3>
+      <p className="text-xs text-zinc-400">Interface de notation officielle connectée aux rings de compétition.</p>
+      <div className="p-4 bg-zinc-950 border border-zinc-850 text-center space-y-3">
+        <div className="text-amber-500 font-mono text-xs font-bold uppercase">Ring Principal • Connecté</div>
+        <div className="text-2xl font-black text-white">ROUGE 29 - 28 BLEU</div>
+        <div className="text-[10px] text-zinc-500 font-mono">Round 3 en cours • 01:12</div>
+      </div>
+    </div>
+  )
+}
+
+// Composant Principal
+export default function IndesyMialyPlatform() {
+  const [active, setActive] = useState("overview")
+  const [popup, setPopup] = useState<PopupState | null>(null)
+
+  const showPopup = (p: PopupState) => setPopup(p)
 
   const menu = [
-    { id: "overview" as VendorModule, label: "Vue d'ensemble", icon: <LayoutDashboard className="h-5 w-5" /> },
-    { id: "catalogue" as VendorModule, label: "Catalogue Produits", icon: <Package className="h-5 w-5" />, badge: "12" },
-    { id: "commandes" as VendorModule, label: "Commandes", icon: <ShoppingCart className="h-5 w-5" />, badge: "6" },
-    { id: "stock" as VendorModule, label: "Stock & Inventaire", icon: <Boxes className="h-5 w-5" /> },
-    { id: "ventes" as VendorModule, label: "Ventes Évènement", icon: <MapPinned className="h-5 w-5" /> },
-    { id: "finances" as VendorModule, label: "Finances & Payouts", icon: <Wallet className="h-5 w-5" /> },
-    { id: "clients" as VendorModule, label: "Clients & CRM", icon: <Users className="h-5 w-5" /> },
-    { id: "promos" as VendorModule, label: "Promos & Codes", icon: <Tag className="h-5 w-5" /> },
-    { id: "livraison" as VendorModule, label: "Livraison", icon: <Truck className="h-5 w-5" /> },
-    { id: "documents" as VendorModule, label: "Factures & KYC", icon: <FileText className="h-5 w-5" /> },
+    { id: "overview", label: "Vue d'ensemble", icon: <LayoutDashboard className="h-4 w-4" /> },
+    { id: "designations", label: "Désignations", icon: <ShieldCheck className="h-4 w-4" /> },
+    { id: "historique", label: "Historique", icon: <Calendar className="h-4 w-4" /> },
+    { id: "reglements", label: "Règlements", icon: <FileText className="h-4 w-4" /> },
+    { id: "certifs", label: "Certifications", icon: <Award className="h-4 w-4" /> },
+    { id: "dispos", label: "Disponibilités", icon: <Clock className="h-4 w-4" /> },
+    { id: "evaluations", label: "Évaluations", icon: <BarChart3 className="h-4 w-4" /> },
+    { id: "rapports", label: "Rapports", icon: <FileSpreadsheet className="h-4 w-4" /> },
+    { id: "finances", label: "Finances", icon: <Wallet className="h-4 w-4" /> },
+    { id: "materiel", label: "Matériel", icon: <Wrench className="h-4 w-4" /> },
+    { id: "medical", label: "Médical", icon: <HeartPulse className="h-4 w-4" /> },
+    { id: "formation", label: "Formation", icon: <GraduationCap className="h-4 w-4" /> },
+    { id: "communication", label: "Communication", icon: <MessageSquare className="h-4 w-4" /> },
+    { id: "stats", label: "Statistiques", icon: <PieChart className="h-4 w-4" /> },
+    { id: "jugement", label: "Jugement en Direct", icon: <Scale className="h-4 w-4" /> },
   ]
 
   return (
-    <PopupContext.Provider value={{ showPopup, showConfirm, showDoublePrompt, showPrompt: showDoublePrompt }}>
-      <div className="flex min-h-screen bg-black text-zinc-100">
+    <PopupContext.Provider value={{ showPopup }}>
+      <div className="min-h-screen bg-black text-zinc-100 flex font-sans selection:bg-amber-500 selection:text-black">
         
-        {/* Sidebar */}
-        <aside className="fixed inset-y-0 left-0 z-20 w-64 border-r border-zinc-900 bg-zinc-950 flex flex-col justify-between p-4">
-          <div>
-            <div className="flex items-center gap-3 px-2 py-3 border-b border-zinc-900">
-              <div className="h-9 w-9 bg-amber-500 text-black font-black flex items-center justify-center rounded-sm">IM</div>
-              <div>
-                <h1 className="text-sm font-black uppercase">INDESY MIALY</h1>
-                <span className="text-[10px] text-amber-500 font-bold uppercase tracking-widest block">Espace Vendeur</span>
-              </div>
+        {/* Sidebar de navigation */}
+        <aside className="w-72 border-r border-zinc-900 bg-zinc-950 flex flex-col shrink-0">
+          <div className="p-6 border-b border-zinc-900">
+            <div className="text-lg font-black tracking-tighter text-white uppercase flex items-center gap-2">
+              <span className="h-3 w-3 bg-amber-500 inline-block" />
+              INDESY MIALY
             </div>
-            
-            <div className="mt-4 flex items-center gap-3 border border-zinc-900 bg-zinc-900/30 p-3 rounded-sm">
-              <div className="h-10 w-10 bg-zinc-800 border border-zinc-700 flex items-center justify-center font-black rounded-full text-white">MV</div>
-              <div>
-                <p className="text-xs font-bold">Mahajanga Fight Shop</p>
-                <p className="text-[10px] text-zinc-500">Vendeur vérifié • Note 4.8/5</p>
-              </div>
-            </div>
-            
-            <nav className="mt-6 space-y-1">
-              {menu.map((it) => (
-                <button 
-                  key={it.id} 
-                  onClick={() => setActive(it.id)} 
-                  className={`flex w-full items-center justify-between px-4 py-2.5 text-xs font-medium border-l-2 transition-all ${
-                    active === it.id 
-                      ? "bg-amber-500/10 text-amber-400 border-amber-500" 
-                      : "text-zinc-400 border-transparent hover:bg-zinc-900 hover:text-zinc-200"
+            <p className="text-[10px] font-mono text-zinc-500 mt-1 uppercase tracking-widest">Plateforme Officielle FMMADA</p>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4 space-y-1 custom-scrollbar">
+            {menu.map((m) => {
+              const isActive = active === m.id
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => setActive(m.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 text-xs font-medium transition-colors text-left ${
+                    isActive 
+                      ? "bg-amber-500/10 text-amber-500 border-l-2 border-amber-500 font-bold" 
+                      : "text-zinc-400 hover:text-white hover:bg-zinc-900/50"
                   }`}
                 >
-                  <span className="flex items-center gap-3">{it.icon}{it.label}</span>
-                  {it.badge && (
-                    <span className={`h-4 min-w-4 px-1 text-[10px] font-black flex items-center justify-center rounded-full transition-colors ${
-                      active === it.id ? "bg-amber-500 text-black" : "bg-zinc-800 text-zinc-300"
-                    }`}>
-                      {it.badge}
-                    </span>
-                  )}
+                  {m.icon}
+                  <span className="truncate">{m.label}</span>
                 </button>
-              ))}
-            </nav>
+              )
+            })}
           </div>
-          <div className="border border-zinc-900 bg-zinc-900/20 p-3 rounded-sm">
-            <div className="flex items-center gap-2 text-xs text-zinc-400">
-              <Shield className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-              <span>Paiements sécurisés via INDESY MIALY • Payout J+2</span>
+
+          <div className="p-4 border-t border-zinc-900">
+            <div className="p-3 bg-zinc-900 border border-zinc-800 space-y-1 text-[11px]">
+              <div className="font-bold text-white uppercase">Mahajanga Hub</div>
+              <div className="text-zinc-500">Statut: Connecté au réseau central</div>
             </div>
           </div>
         </aside>
 
-        {/* Content wrap */}
-        <div className="pl-64 flex flex-col flex-1">
-          <header className="sticky top-0 z-10 h-16 border-b border-zinc-900 bg-black/80 backdrop-blur-md flex items-center justify-between px-8">
-            <div className="relative w-80">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-600" />
-              <input 
-                value={search} 
-                onChange={(e) => setSearch(e.target.value)} 
-                placeholder="Rechercher produit, commande, client..." 
-                className="w-full bg-zinc-900/30 border border-zinc-800 py-2 pl-10 pr-3 text-xs outline-none focus:border-amber-500/30 text-white" 
-              />
+        {/* Contenu Principal */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+          
+          <header className="h-16 border-b border-zinc-900 bg-zinc-950 px-8 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-4 w-96">
+              <div className="relative w-full">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-600" />
+                <input 
+                  type="text" 
+                  placeholder="Rechercher un combat, un arbitre, un règlement..." 
+                  className="w-full bg-zinc-900 border border-zinc-800 pl-9 pr-4 py-2 text-xs text-zinc-300 focus:outline-none focus:border-amber-500 transition-colors"
+                />
+              </div>
             </div>
-            
+
             <div className="flex items-center gap-3">
-              <span className="hidden md:flex items-center gap-2 text-xs text-zinc-400">
-                <Activity className="h-3.5 w-3.5 text-emerald-500" />Boutique ouverte
-              </span>
-              <div className="h-6 w-px bg-zinc-800" />
-              <button className="relative border border-zinc-800 bg-zinc-900/40 p-2 text-zinc-400 hover:text-white transition rounded-sm">
+              <button onClick={() => showPopup({ title: "Notifications Fédérales", message: "• Convocation séminaire 28 Août reçue\n• Virement indemnité MFN V validé (470 000 Ar)\n• Alerte: certif médical à renouveler dans 14j", type: "info" })} className="relative h-9 w-9 border border-zinc-800 bg-zinc-900 flex items-center justify-center text-zinc-400 hover:text-white">
                 <Bell className="h-4 w-4" />
-                <span className="absolute top-1 right-1 h-2 w-2 bg-amber-500 rounded-full" />
+                <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-amber-500 animate-ping" />
               </button>
-              <button 
-                onClick={() => showPopup({ title: "Nouveau produit", message: "Utilisez le bouton 'Ajouter produit' dans l'onglet 'Catalogue Produits' pour renseigner les informations.", type: "info" })} 
-                className="flex items-center gap-2 bg-amber-500 px-4 py-2 text-xs font-bold text-black hover:bg-amber-600 transition"
-              >
-                <Plus className="h-4 w-4" />Nouveau Produit
-              </button>
+              <div className="h-9 w-9 border border-zinc-800 bg-zinc-900 flex items-center justify-center font-bold text-xs text-amber-500">AR</div>
             </div>
           </header>
 
-          <main className="flex-1 p-8 overflow-y-auto">
-            <AnimatePresence mode="wait">
-              <motion.div 
-                key={active} 
-                initial={{ opacity: 0, y: 6 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                exit={{ opacity: 0, y: -6 }} 
-                transition={{ duration: 0.18 }}
-              >
-                {active === "overview" && <OverviewModule />}
-                {active === "catalogue" && <CatalogueModule />}
-                {active === "commandes" && <CommandesModule />}
-                {active === "stock" && <StockModule />}
-                {active === "ventes" && <VentesEventModule />}
-                {active === "finances" && <FinancesModule />}
-                {active === "clients" && <ClientsModule />}
-                {active === "promos" && <PromosModule />}
-                {active === "livraison" && <LivraisonModule />}
-                {active === "documents" && <DocsModule />}
-              </motion.div>
-            </AnimatePresence>
+          <main className="p-8 max-w-[1600px] w-full mx-auto space-y-6">
+            <div className="flex justify-between items-center pb-4 border-b border-zinc-900">
+              <div>
+                <h2 className="text-xl font-black uppercase text-white tracking-wider flex items-center gap-2">
+                  {menu.find(m => m.id === active)?.icon}
+                  {menu.find(m => m.id === active)?.label}
+                </h2>
+                <p className="text-xs text-zinc-500 mt-1">Espace Officiel Fédéral Indesy Mialy • Gestion et arbitrage de combats certifiés</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-zinc-500 font-mono">Dernière synchro: À l'instant</span>
+                <button onClick={() => showPopup({ title: "Synchronisation", message: "Toutes les données sont à jour avec la base centrale FMMADA.", type: "success" })} className="h-8 px-3 bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-300 font-bold hover:bg-zinc-850">Sync Cloud</button>
+              </div>
+            </div>
+
+            {active === "overview" && <OverviewModule />}
+            {active === "designations" && <DesignationsModule />}
+            {active === "historique" && <HistoriqueModule />}
+            {active === "reglements" && <ReglementsModule />}
+            {active === "certifs" && <CertifsModule />}
+            {active === "dispos" && <DisposModule />}
+            {active === "evaluations" && <EvaluationsModule />}
+            {active === "rapports" && <RapportsModule />}
+            {active === "finances" && <FinancesModule />}
+            {active === "materiel" && <MaterielModule />}
+            {active === "medical" && <MedicalModule />}
+            {active === "formation" && <FormationModule />}
+            {active === "communication" && <CommunicationModule />}
+            {active === "stats" && <StatistiquesModule />}
+            {active === "jugement" && <JugementModule />}
           </main>
         </div>
+
+        <BrandPopup popup={popup} setPopup={setPopup} />
       </div>
-      <BrandPopup popup={popup} setPopup={setPopup} />
     </PopupContext.Provider>
   )
 }
-

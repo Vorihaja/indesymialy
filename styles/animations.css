@@ -1,0 +1,333 @@
+/* =====================================
+   INDESY MIALY ANIMATION SYSTEM
+===================================== */
+
+
+/* =====================================
+   TRANSITIONS
+===================================== */
+
+
+.transition {
+
+  transition:
+
+    var(--transition-normal);
+
+}
+
+
+
+.hover-lift {
+
+  transition:
+
+    var(--transition-normal);
+
+}
+
+
+
+.hover-lift:hover {
+
+  transform:
+
+    translateY(-6px);
+
+}
+
+
+
+/* =====================================
+   FADE
+===================================== */
+
+
+@keyframes fadeIn {
+
+
+  from {
+
+    opacity:0;
+
+  }
+
+
+  to {
+
+    opacity:1;
+
+  }
+
+
+}
+
+
+
+.animate-fade {
+
+  animation:
+
+    fadeIn .5s ease forwards;
+
+}
+
+
+
+/* =====================================
+   SLIDE
+===================================== */
+
+
+@keyframes slideUp {
+
+
+  from {
+
+    opacity:0;
+
+    transform:
+
+      translateY(30px);
+
+  }
+
+
+  to {
+
+    opacity:1;
+
+    transform:
+
+      translateY(0);
+
+  }
+
+
+}
+
+
+
+.animate-slide-up {
+
+  animation:
+
+    slideUp .6s ease forwards;
+
+}
+
+
+
+/* =====================================
+   SCALE
+===================================== */
+
+
+@keyframes scaleIn {
+
+
+  from {
+
+    opacity:0;
+
+    transform:
+
+      scale(.95);
+
+  }
+
+
+  to {
+
+    opacity:1;
+
+    transform:
+
+      scale(1);
+
+  }
+
+
+}
+
+
+
+.animate-scale {
+
+  animation:
+
+    scaleIn .4s ease forwards;
+
+}
+
+
+
+/* =====================================
+   PULSE LIVE
+===================================== */
+
+
+@keyframes pulseLive {
+
+
+  0% {
+
+    transform:
+
+      scale(1);
+
+    opacity:1;
+
+  }
+
+
+  50% {
+
+    transform:
+
+      scale(1.15);
+
+    opacity:.6;
+
+  }
+
+
+  100% {
+
+    transform:
+
+      scale(1);
+
+    opacity:1;
+
+  }
+
+}
+
+
+
+.live-pulse {
+
+  animation:
+
+    pulseLive 1.5s infinite;
+
+}
+
+
+
+/* =====================================
+   SHIMMER LOADING
+===================================== */
+
+
+@keyframes shimmer {
+
+
+  from {
+
+    background-position:
+
+      -200% 0;
+
+  }
+
+
+  to {
+
+    background-position:
+
+      200% 0;
+
+  }
+
+
+}
+
+
+
+.skeleton {
+
+  background:
+
+    linear-gradient(
+      90deg,
+      rgba(255,255,255,.05),
+      rgba(255,255,255,.15),
+      rgba(255,255,255,.05)
+    );
+
+
+  background-size:
+
+    200% 100%;
+
+
+  animation:
+
+    shimmer 1.5s infinite;
+
+}
+
+
+
+/* =====================================
+   GLOW EFFECT
+===================================== */
+
+
+.glow-primary {
+
+
+  box-shadow:
+
+    0 0 30px rgba(251,191,36,.35);
+
+
+}
+
+
+
+.glow-danger {
+
+
+  box-shadow:
+
+    0 0 30px rgba(239,68,68,.35);
+
+
+}
+
+
+
+/* =====================================
+   REDUCED MOTION ACCESSIBILITY
+===================================== */
+
+
+@media(prefers-reduced-motion:reduce){
+
+
+  *,
+  *::before,
+  *::after {
+
+
+    animation-duration:
+
+      .01ms !important;
+
+
+    animation-iteration-count:
+
+      1 !important;
+
+
+    transition-duration:
+
+      .01ms !important;
+
+
+  }
+
+}

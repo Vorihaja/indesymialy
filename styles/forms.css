@@ -1,0 +1,336 @@
+/* =====================================
+   INDESY MIALY FORM SYSTEM
+===================================== */
+
+
+/* =====================================
+   FORM GROUP
+===================================== */
+
+
+.form-group {
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:.5rem;
+
+  margin-bottom:1.25rem;
+
+}
+
+
+
+/* =====================================
+   LABEL
+===================================== */
+
+
+.form-label {
+
+  font-size:.875rem;
+
+  font-weight:600;
+
+  color:
+
+    var(--color-text-secondary);
+
+}
+
+
+
+/* =====================================
+   INPUT BASE
+===================================== */
+
+
+.form-input,
+.form-select,
+.form-textarea {
+
+
+  width:100%;
+
+
+  background:
+
+    rgba(255,255,255,.05);
+
+
+  border:
+
+    1px solid var(--color-border);
+
+
+  color:
+
+    var(--color-text);
+
+
+  border-radius:
+
+    var(--radius-md);
+
+
+  padding:
+
+    .85rem 1rem;
+
+
+  outline:none;
+
+
+  transition:
+
+    var(--transition-fast);
+
+}
+
+
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+
+  color:
+
+    var(--color-text-muted);
+
+}
+
+
+
+/* =====================================
+   FOCUS
+===================================== */
+
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+
+
+  border-color:
+
+    var(--brand-primary);
+
+
+  box-shadow:
+
+    0 0 0 3px rgba(251,191,36,.15);
+
+}
+
+
+
+/* =====================================
+   TEXTAREA
+===================================== */
+
+
+.form-textarea {
+
+  min-height:
+
+    140px;
+
+  resize:
+
+    vertical;
+
+}
+
+
+
+/* =====================================
+   SELECT
+===================================== */
+
+
+.form-select {
+
+  cursor:pointer;
+
+}
+
+
+
+/* =====================================
+   FILE UPLOAD
+===================================== */
+
+
+.form-file {
+
+
+  border:
+
+    2px dashed var(--border-medium);
+
+
+  padding:
+
+    2rem;
+
+
+  border-radius:
+
+    var(--radius-lg);
+
+
+  text-align:center;
+
+
+  cursor:pointer;
+
+
+  transition:
+
+    var(--transition-normal);
+
+}
+
+
+
+.form-file:hover {
+
+
+  border-color:
+
+    var(--brand-primary);
+
+
+  background:
+
+    rgba(251,191,36,.05);
+
+}
+
+
+
+/* =====================================
+   CHECKBOX / RADIO
+===================================== */
+
+
+.form-check {
+
+
+  display:flex;
+
+
+  align-items:center;
+
+
+  gap:.75rem;
+
+
+}
+
+
+
+.form-check input {
+
+
+  width:18px;
+
+  height:18px;
+
+}
+
+
+
+/* =====================================
+   SEARCH INPUT
+===================================== */
+
+
+.search-input {
+
+
+  border-radius:
+
+    999px;
+
+
+  padding-inline:
+
+    1.25rem;
+
+}
+
+
+
+/* =====================================
+   FORM CARD
+===================================== */
+
+
+.form-card {
+
+
+  background:
+
+    var(--color-card);
+
+
+  border:
+
+    1px solid var(--color-border);
+
+
+  border-radius:
+
+    var(--radius-xl);
+
+
+  padding:
+
+    2rem;
+
+
+}
+
+
+
+/* =====================================
+   VALIDATION STATES
+===================================== */
+
+
+.input-success {
+
+
+  border-color:
+
+    var(--success);
+
+}
+
+
+
+.input-error {
+
+
+  border-color:
+
+    var(--danger);
+
+}
+
+
+
+.error-message {
+
+
+  color:
+
+    var(--danger);
+
+
+  font-size:
+
+    .8rem;
+
+}

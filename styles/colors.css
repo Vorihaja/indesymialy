@@ -1,0 +1,133 @@
+/* =====================================
+   INDESY MIALY COLOR SYSTEM
+===================================== */
+
+
+/* =====================================
+   DARK MODE (DEFAULT)
+===================================== */
+
+:root {
+
+  --color-background:
+    var(--bg-main);
+
+  --color-surface:
+    var(--bg-secondary);
+
+  --color-card:
+    var(--bg-card);
+
+
+  --color-text:
+    var(--text-primary);
+
+  --color-text-secondary:
+    var(--text-secondary);
+
+  --color-text-muted:
+    var(--text-muted);
+
+
+  --color-primary:
+    var(--brand-primary);
+
+  --color-secondary:
+    var(--brand-secondary);
+
+  --color-accent:
+    var(--brand-accent);
+
+
+  --color-border:
+    var(--border-light);
+
+
+  --color-shadow:
+    rgba(0,0,0,.35);
+}
+
+
+
+/* =====================================
+   LIGHT MODE
+===================================== */
+
+
+[data-theme="light"] {
+
+
+  --bg-main:
+    #f1f5f9;
+
+
+  --bg-secondary:
+    #ffffff;
+
+
+  --bg-card:
+    rgba(255,255,255,.85);
+
+
+
+  --text-primary:
+    #0f172a;
+
+
+  --text-secondary:
+    #334155;
+
+
+  --text-muted:
+    #64748b;
+
+
+
+  --border-light:
+    rgba(15,23,42,.12);
+
+
+  --border-medium:
+    rgba(15,23,42,.2);
+
+
+
+  --brand-primary:
+    #2563eb;
+
+
+  --brand-secondary:
+    #1d4ed8;
+
+
+  --brand-accent:
+    #dc2626;
+
+
+}
+
+
+
+/* =====================================
+   SEMANTIC COLORS
+===================================== */
+
+
+.color-success {
+  color: var(--success);
+}
+
+
+.color-warning {
+  color: var(--warning);
+}
+
+
+.color-danger {
+  color: var(--danger);
+}
+
+
+.color-info {
+  color: var(--info);
+}

@@ -13,7 +13,7 @@ const HERO_SLIDES = [
     tag: "GALA EXCLUSIF BOENY",
     title: "MAHAJANGA FIGHT NIGHT VOL.3",
     description: "Le plus grand événement de MMA et de Kickboxing de la province débarque au Complexe d'Ampisikina. Les ceintures nationales sont en jeu.",
-    image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1400&auto=format&fit=crop",
+    image: "https://jwoxjvrsgywmlvbzhyoi.supabase.co/storage/v1/object/public/public-images/combattant_1",
     cta: [
       { label: "Réserver vos places", href: "/events", primary: true },
       { label: "Voir la Fight Card", href: "/events", primary: false }
@@ -23,7 +23,7 @@ const HERO_SLIDES = [
     tag: "ÉQUIPEMENTS & SÉCURITÉ",
     title: "MARKETPLACE CENTRALISÉE",
     description: "Achetez ou louez votre matériel de combat certifié : gants, plastrons, protections et kimonos. Retrait rapide ou livraison locale.",
-    image: "https://images.unsplash.com/photo-1552667693-8a30343706ba?q=80&w=1400&auto=format&fit=crop",
+    image: "https://jwoxjvrsgywmlvbzhyoi.supabase.co/storage/v1/object/public/public-images/banniere_Indesy_Mialy",
     cta: [
       { label: "Louer du matériel", href: "/marketplace", primary: true },
       { label: "Boutique Vente", href: "/marketplace", primary: false }
@@ -33,9 +33,9 @@ const HERO_SLIDES = [
     tag: "ATHLÈTES DE MADAGASCAR",
     title: "PROFIL ET CARRIÈRE PRO",
     description: "Suivez l'évolution des meilleurs combattants malagasy, consultez leurs records officiels, leurs clubs d'origine et leurs prochains chocs.",
-    image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=1400&auto=format&fit=crop",
+    image: "https://jwoxjvrsgywmlvbzhyoi.supabase.co/storage/v1/object/public/public-images/combattant_1",
     cta: [
-      { label: "Découvrir les Combattants", href: "/combattants", primary: true }
+      { label: "Découvrir les Combattants", href: "/annuaire?tab=combattants", primary: true }
     ]
   },
   {
@@ -52,7 +52,7 @@ const HERO_SLIDES = [
     tag: "TRANSPARENCE FÉDÉRALE",
     title: "RÈGLEMENTS & ARBITRAGE",
     description: "Découvrez les normes et les chartes éthiques d'INDESY MIALY visant à garantir l'intégrité physique et le respect des disciplines de combat.",
-    image: "https://images.unsplash.com/photo-1555597673-b21d5c935865?q=80&w=1400&auto=format&fit=crop",
+    image: "https://jwoxjvrsgywmlvbzhyoi.supabase.co/storage/v1/object/public/public-images/affiche%201",
     cta: [
       { label: "Consulter la Charte", href: "#charte", primary: true }
     ]
@@ -74,7 +74,7 @@ const UPCOMING_GALAS = [
     date: "28 Juillet 2026",
     location: "Complexe Sportif Ampisikina, Mahajanga",
     badge: "ÉVÉNEMENT MAJEUR",
-    image: "https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=600&auto=format&fit=crop"
+    image: "https://jwoxjvrsgywmlvbzhyoi.supabase.co/storage/v1/object/public/public-images/affiche%201"
   },
   {
     id: "judo-nat-2026",
@@ -205,7 +205,7 @@ export default function HomePage() {
           {/* Panneau de Statistiques Fixe à Droite */}
           <div className="lg:col-span-5 bg-neutral-900 border border-red-500/20 p-6 md:p-8 rounded-none space-y-6 shadow-2xl z-20">
             <div className="flex items-center justify-between border-b border-neutral-800 pb-3 font-mono">
-              <h3 className="text-sm font-black text-red-500 uppercase tracking-wider flex items-center gap-2">
+              <h3 className="text-sm font-black text-white-500 uppercase tracking-wider flex items-center gap-2">
                 <TrendingUp size={16} /> Suivi de la Saison
               </h3>
               <span className="text-[10px] px-2 py-0.5 bg-neutral-800 text-neutral-400 border border-neutral-700 rounded-none">LIVE</span>
@@ -249,7 +249,7 @@ export default function HomePage() {
                 onClick={() => { setCurrentSlide(idx); setProgress(0); }}
                 className="group flex flex-col space-y-1.5 focus:outline-none text-left"
               >
-                <div className="h-[3px] w-full bg-neutral-800 rounded-none overflow-hidden relative">
+                <div className="h-[3px] w-full bg-blue-800 rounded-none overflow-hidden relative">
                   <div
                     className="h-full bg-red-600 absolute left-0 top-0 transition-all duration-100"
                     style={{
@@ -258,7 +258,7 @@ export default function HomePage() {
                   />
                 </div>
                 <span className={`font-mono text-[9px] font-bold tracking-wider transition-colors ${
-                  idx === currentSlide ? "text-red-500" : "text-neutral-600 group-hover:text-neutral-400"
+                  idx === currentSlide ? "text-white-500" : "text-neutral-600 group-hover:text-neutral-400"
                 }`}>
                   0{idx + 1}
                 </span>

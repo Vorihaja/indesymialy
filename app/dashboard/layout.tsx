@@ -1,3 +1,9 @@
+"use client";
+
+import ErpAuthGuard from "../../components/auth/ErpAuthGuard";
+import { useRoleRequest } from "../../providers/roles/RoleRequestContext";
+export { useRoleRequest };
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return <div className="min-h-screen bg-[#060a14]">{children}</div>
+  return <ErpAuthGuard>{children}</ErpAuthGuard>;
 }

@@ -264,8 +264,8 @@ export default function CoachDashboard() {
   return (
     <PopupContext.Provider value={{ showPopup, showConfirm, showPrompt: showConfirm }}>
       <div className="flex min-h-screen bg-black text-zinc-100">
-        <aside className="fixed inset-y-0 left-0 z-20 w-64 border-r border-zinc-900 bg-zinc-950 flex flex-col justify-between p-4">
-          <div>
+        <aside className="fixed bottom-0 left-0 top-[var(--platform-header-height)] z-20 w-64 overflow-hidden border-r border-zinc-900 bg-zinc-950 flex flex-col justify-between p-4">
+          <div className="flex min-h-0 flex-1 flex-col">
             <div className="flex items-center gap-3 px-2 py-3 border-b border-zinc-900">
               <div className="h-9 w-9 bg-amber-500 text-black font-black flex items-center justify-center">IM</div>
               <div><h1 className="text-sm font-black uppercase">INDESY MIALY</h1><span className="text-xs text-amber-500 font-bold uppercase tracking-widest">Espace Coach</span></div>
@@ -274,14 +274,14 @@ export default function CoachDashboard() {
               <div className="h-10 w-10 bg-zinc-800 border border-zinc-700 flex items-center justify-center font-black">CK</div>
               <div><p className="text-xs font-bold">Coach Kolo</p><p className="text-xs text-zinc-500">Alpha MMA Mahajanga • 12 ans exp.</p></div>
             </div>
-            <nav className="mt-6 space-y-1">
+            <nav className="mt-6 min-h-0 flex-1 space-y-1 overflow-y-auto pr-1">
               {menu.map((it) => (
                 <button 
                   key={it.id} 
                   onClick={() => setActive(it.id)} 
                   className={`flex w-full items-center justify-between px-4 py-2.5 text-xs font-medium border-l-2 ${active === it.id? "bg-amber-500/10 text-amber-400 border-amber-500" : "text-zinc-400 border-transparent hover:bg-zinc-900 hover:text-zinc-200"}`}
                 >
-                  <span className="flex items-center gap-3">{it.icon}{it.label}</span>
+                  <span className="flex items-center gap-3 whitespace-nowrap text-xs font-semibold tracking-wide">{it.icon}{it.label}</span>
                   {(it as any).badge && <span className="h-4 min-w-4 px-1 bg-zinc-800 text-[10px] font-bold text-zinc-300 flex items-center justify-center">{(it as any).badge}</span>}
                 </button>
               ))}

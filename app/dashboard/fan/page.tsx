@@ -1,6 +1,6 @@
 "use client";
 
-import ErpAuthGuard from "@/app/components/ErpAuthGuard";
+import ErpAuthGuard from "@/components/auth/ErpAuthGuard";
 
 export default function TemporaryFanPage() {
   return (
