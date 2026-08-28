@@ -1,0 +1,1 @@
+import { ErpManagementFeature } from "@/modules/erp-core"; import { ERP_MODULES } from "@/modules/erp-modules"; export function OrganizerManagementFeature(props: { mode?: "list" | "create" | "detail"; recordId?: string }) { return <ErpManagementFeature definition={ERP_MODULES.organizer} {...props}/>; }

@@ -1,0 +1,1 @@
+import{ManageProfessionalUseCase}from"@/modules/professional-core/use-cases";import{MedicalService}from"../services";export class ManageMedicalUseCase extends ManageProfessionalUseCase{constructor(){super(new MedicalService());}}

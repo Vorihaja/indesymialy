@@ -1,0 +1,1 @@
+"use client";import{ClubAttendancePage}from"@/modules/clubs";import{useClubActive}from"@/modules/clubs/components/ClubWorkspace";export default function Page(){const{organizationId}=useClubActive();return <ClubAttendancePage organizationId={organizationId}/>;}

@@ -1,0 +1,1 @@
+"use client";import{OnboardingFeature as CoreOnboardingFeature}from"@/modules/identity-core/features/OnboardingFeature";import type{OnboardingStep}from"@/modules/identity-core/types";export function OnboardingFeature({step}:{step:OnboardingStep}){return <CoreOnboardingFeature step={step}/>;}

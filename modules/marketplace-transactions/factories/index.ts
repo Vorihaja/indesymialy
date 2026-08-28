@@ -1,0 +1,1 @@
+import{MarketplaceTransactionRepository}from"../repositories";import{MarketplaceTransactionService}from"../services";import{ListMarketplaceTransactionsUseCase}from"../use-cases";export const createMarketplaceTransactionsUseCase=()=>new ListMarketplaceTransactionsUseCase(new MarketplaceTransactionService(new MarketplaceTransactionRepository()));

@@ -1,0 +1,1 @@
+import{ExploreDiscoveryUseCase}from"@/modules/discovery-core/use-cases/explore-discovery.use-case";import{TrendingService}from"../services";export class ExploreTrendingUseCase extends ExploreDiscoveryUseCase{constructor(){super(new TrendingService());}}

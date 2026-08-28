@@ -1,0 +1,1 @@
+import { ManageSocialUseCase } from "@/modules/social-core"; import { SocialSearchService } from "../services"; export class SearchSocialUseCase extends ManageSocialUseCase { constructor() { super(new SocialSearchService()); } }

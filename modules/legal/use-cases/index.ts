@@ -1,0 +1,1 @@
+import{ManageOperationsUseCase}from"@/modules/platform-operations-core/use-cases";import{LegalService}from"../services";export class ManageLegalUseCase extends ManageOperationsUseCase{constructor(){super(new LegalService());}}

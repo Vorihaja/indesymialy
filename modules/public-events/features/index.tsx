@@ -1,0 +1,1 @@
+"use client";import{EventPlatformFeature}from"@/modules/event-core/features/EventPlatformFeature";import type{EventSection}from"@/modules/event-core/types";export function PublicEventsFeature({eventId,section="overview"}:{eventId?:string;section?:EventSection}){return <EventPlatformFeature mode="public" eventId={eventId} section={section}/>;}

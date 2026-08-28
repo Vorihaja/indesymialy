@@ -1,0 +1,1 @@
+"use client";import{DiscoveryFeature as CoreDiscoveryFeature}from"@/modules/discovery-core/features/DiscoveryFeature";import type{DiscoveryView}from"@/modules/discovery-core/types";export function DiscoveryFeature({view="home",id}:{view?:DiscoveryView;id?:string}){return <CoreDiscoveryFeature view={view} id={id}/>;}

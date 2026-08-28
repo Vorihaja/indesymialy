@@ -1,0 +1,1 @@
+import{ExploreDiscoveryUseCase}from"@/modules/discovery-core/use-cases/explore-discovery.use-case";import{RecommendationsService}from"../services";export class ExploreRecommendationsUseCase extends ExploreDiscoveryUseCase{constructor(){super(new RecommendationsService());}}

@@ -1,0 +1,1 @@
+import{DiscoveryService}from"@/modules/discovery-core/services/discovery.service";import{PublicFightersRepository}from"../repositories";export class PublicFightersService extends DiscoveryService{constructor(){super(new PublicFightersRepository());}}

@@ -1,0 +1,1 @@
+import{ProfessionalService}from"@/modules/professional-core/services";import{LicensesRepository}from"../repositories";export class LicensesService extends ProfessionalService{constructor(){super(new LicensesRepository());}}

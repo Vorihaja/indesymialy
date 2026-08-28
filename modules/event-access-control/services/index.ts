@@ -1,0 +1,1 @@
+import{EventPlatformService}from"@/modules/event-core/services/event-platform.service";import{EventAccessControlRepository}from"../repositories";export class EventAccessControlService extends EventPlatformService{constructor(){super(new EventAccessControlRepository());}}

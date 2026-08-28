@@ -1,0 +1,1 @@
+import{DiscoveryService}from"@/modules/discovery-core/services/discovery.service";import{RecommendationsRepository}from"../repositories";export class RecommendationsService extends DiscoveryService{constructor(){super(new RecommendationsRepository());}}

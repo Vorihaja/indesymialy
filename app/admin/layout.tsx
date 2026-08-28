@@ -1,11 +1,45 @@
-"use client";
+import {
+  ReactNode
+} from "react";
 
-import ErpAuthGuard from "../../components/auth/ErpAuthGuard";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <ErpAuthGuard>
-      <div className="min-h-screen bg-[#060a14]">{children}</div>
-    </ErpAuthGuard>
-  );
+import {
+  AdminGuard
+} from "@/components/auth";
+
+
+import {
+  AdminShell
+} from "@/modules/admin";
+
+
+
+
+
+export default function AdminLayout({
+
+children
+
+}:{
+
+children:ReactNode;
+
+}){
+
+
+return (
+
+<AdminGuard>
+
+<AdminShell>
+
+{children}
+
+</AdminShell>
+
+</AdminGuard>
+
+);
+
+
 }

@@ -1,0 +1,1 @@
+import{ManageOperationsUseCase}from"@/modules/platform-operations-core/use-cases";import{MaintenanceService}from"../services";export class ManageMaintenanceUseCase extends ManageOperationsUseCase{constructor(){super(new MaintenanceService());}}

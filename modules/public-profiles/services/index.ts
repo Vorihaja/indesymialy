@@ -1,0 +1,1 @@
+import { SocialService } from "@/modules/social-core"; import { PublicProfileRepository } from "../repositories"; export class PublicProfileService extends SocialService { constructor() { super(new PublicProfileRepository()); } }

@@ -1,0 +1,1 @@
+import { ErpService } from "@/modules/erp-core"; import { OrganizerRepository } from "../repositories"; export class OrganizerService extends ErpService { constructor() { super(new OrganizerRepository()); } }

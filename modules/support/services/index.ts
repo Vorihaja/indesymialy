@@ -1,0 +1,1 @@
+import{OperationsService}from"@/modules/platform-operations-core/services";import{SupportRepository}from"../repositories";export class SupportService extends OperationsService{constructor(){super(new SupportRepository());}}

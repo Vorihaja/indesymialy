@@ -1,0 +1,1 @@
+import{OperationsService}from"@/modules/platform-operations-core/services";import{PlatformIncidentsRepository}from"../repositories";export class PlatformIncidentsService extends OperationsService{constructor(){super(new PlatformIncidentsRepository());}}

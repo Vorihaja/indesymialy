@@ -1,0 +1,22 @@
+export type SportDomain="training"|"training-programs"|"training-sessions"|"athlete-attendance"|"performance-assessments"|"sport-objectives"|"fighter-career"|"fighter-records"|"talent-scouting"|"talent-pool"|"fight-preparation"|"sport-performance"|"weight-management";
+export type SportRole="fighter"|"coach"|"club"|"federation"|"league"|"admin";
+export type SportVisibility="public"|"athlete_private"|"coach_private"|"organization"|"federation"|"admin_only";
+export type SportStatus="draft"|"planned"|"active"|"completed"|"cancelled"|"archived"|"observed"|"shortlisted"|"contacted"|"invited"|"recruited"|"rejected";
+export type TrainingKind="technique"|"sparring"|"cardio"|"strength"|"recovery"|"strategy"|"mental"|"weigh-in"|"individual"|"collective";
+export type AttendanceStatus="present"|"absent"|"late"|"excused"|"injured"|"partial";
+export interface SportRecord{id:string;domain:SportDomain;title:string;subtitle:string;status:SportStatus;visibility:SportVisibility;athleteId?:string;coachId?:string;organizationId?:string;discipline?:string;date?:string;startsAt?:string;endsAt?:string;progress:number;score?:number;details:Readonly<Record<string,string|number|boolean>>;createdAt:string;updatedAt:string;}
+export interface TrainingSession extends SportRecord{domain:"training"|"training-sessions";kind:TrainingKind;durationMinutes:number;intensity:1|2|3|4|5;location:string;objectives:readonly string[];equipment:readonly string[];}
+export interface TrainingProgram extends SportRecord{domain:"training-programs";programType:"individual"|"collective";frequencyPerWeek:number;load:"low"|"moderate"|"high";sessionIds:readonly string[];}
+export interface AthleteAttendance extends SportRecord{domain:"athlete-attendance";attendanceStatus:AttendanceStatus;arrivalAt?:string;departureAt?:string;participationRate:number;}
+export interface PerformanceAssessment extends SportRecord{domain:"performance-assessments";metrics:{technique:number;physical:number;endurance:number;strength:number;speed:number;strategy:number;mental:number;discipline:number;availability:number};}
+export interface SportObjective extends SportRecord{domain:"sport-objectives";objectiveType:"weight"|"fights"|"ranking"|"technique"|"fitness"|"attendance"|"license"|"recovery";priority:"low"|"medium"|"high";target:number;current:number;}
+export interface FightPreparation extends SportRecord{domain:"fight-preparation";fightId:string;opponent:string;targetWeight:number;medicalAvailability:"available"|"restricted"|"pending";checklist:readonly string[];}
+export interface WeightEntry extends SportRecord{domain:"weight-management";currentWeight:number;targetWeight:number;weightCategory:string;confidential:true;}
+export interface FighterCareer extends SportRecord{domain:"fighter-career";careerStatus:"amateur"|"professional"|"inactive"|"retired_prepared";record:{wins:number;losses:number;draws:number;noContests:number};elo:number;titles:readonly string[];}
+export interface FighterAchievement extends SportRecord{domain:"fighter-records";achievementType:"fight"|"podium"|"title"|"medal"|"award"|"record";verified:boolean;publicPrepared:boolean;}
+export interface TalentObservation extends SportRecord{domain:"talent-scouting"|"talent-pool";potential:number;strengths:readonly string[];developmentAreas:readonly string[];privateNotes:string;}
+export interface SportMetrics{attendanceRate:number;weeklyLoad:number;progression:number;elo:number;objectiveCompletion:number;availability:number;currentWeight?:number;targetWeight?:number;}
+export interface SportSnapshot{records:SportRecord[];metrics:SportMetrics;timeline:Array<{label:string;value:number}>;loading:boolean;}
+export interface SportQuery{domain:SportDomain;role:SportRole;scopeId?:string;search?:string;status?:SportStatus|"all";}
+export interface CreateSportRecord{title:string;subtitle:string;status?:SportStatus;visibility?:SportVisibility;discipline?:string;date?:string;progress?:number;}
+export const SPORT_LABELS:Record<SportDomain,string>={training:"Entraînements", "training-programs":"Programmes", "training-sessions":"Séances", "athlete-attendance":"Présences sportives", "performance-assessments":"Évaluations", "sport-objectives":"Objectifs sportifs", "fighter-career":"Carrière", "fighter-records":"Palmarès", "talent-scouting":"Scouting", "talent-pool":"Talent pool", "fight-preparation":"Préparation de combat", "sport-performance":"Performance", "weight-management":"Gestion du poids"};

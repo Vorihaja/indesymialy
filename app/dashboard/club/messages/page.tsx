@@ -1,0 +1,1 @@
+import { RoleGuard } from "@/modules/auth/guards"; import { MessagingFeature } from "@/modules/communication-core/features/CommunicationFeatures"; export default function Page() { return <RoleGuard role="club"><MessagingFeature role="club" basePath="/dashboard/club/messages" /></RoleGuard>; }

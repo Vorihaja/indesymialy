@@ -1,0 +1,1 @@
+import{DeliveryRepository}from"../repositories";import{DeliveryService}from"../services";import{ListDeliveriesUseCase}from"../use-cases";export const createDeliveryUseCase=()=>new ListDeliveriesUseCase(new DeliveryService(new DeliveryRepository()));

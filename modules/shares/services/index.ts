@@ -1,0 +1,1 @@
+import { SocialService } from "@/modules/social-core"; import { ShareRepository } from "../repositories"; export class ShareService extends SocialService { constructor() { super(new ShareRepository()); } }

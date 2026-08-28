@@ -1,0 +1,1 @@
+import { SharesFeature } from "@/modules/shares"; export default async function Page({ params }: { params: Promise<{ id: string }> }) { const { id } = await params; return <SharesFeature mode="detail" recordId={id}/>; }

@@ -1,0 +1,1 @@
+import{ManageIdentityUseCase}from"@/modules/identity-core/use-cases/manage-identity.use-case";import{AccountService}from"../services";export class ManageAccountUseCase extends ManageIdentityUseCase{constructor(){super(new AccountService());}}

@@ -1,0 +1,1 @@
+import{ManageSportUseCase}from"@/modules/sport-development-core/use-cases";import{WeightManagementService}from"../services";export class ManageWeightManagementUseCase extends ManageSportUseCase{constructor(){super(new WeightManagementService());}}

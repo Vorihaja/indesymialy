@@ -1,0 +1,1 @@
+import{BusinessRoleService}from"../services/business-role.service";let instance:BusinessRoleService|null=null;export function makeBusinessRoleService(){instance??=new BusinessRoleService();return instance;}

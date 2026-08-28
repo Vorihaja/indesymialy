@@ -1,0 +1,1 @@
+import { ProductRepository } from "../repositories";import{ProductService}from"../services";import{ManageProductsUseCase}from"../use-cases";export const createProductsUseCase=()=>new ManageProductsUseCase(new ProductService(new ProductRepository()));

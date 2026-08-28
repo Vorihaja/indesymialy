@@ -1,0 +1,1 @@
+"use client";import{RoleRequestsFeature as CoreRoleRequestsFeature}from"@/modules/identity-core/features/RoleRequestsFeature";export function RoleRequestsFeature(props:{mode?:"list"|"new"|"detail";requestId?:string}){return <CoreRoleRequestsFeature {...props}/>;}

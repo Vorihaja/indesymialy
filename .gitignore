@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Indesy local/generated files
+backup/
+supabase/.temp/
+.next/
+node_modules/
+*.backup-*
+/project-tree.txt
+/npx
+/.tmp-*.sql

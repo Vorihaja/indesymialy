@@ -1,0 +1,1 @@
+import{InventoryService}from"../services";export class ManageInventoryUseCase{constructor(private readonly service:InventoryService){}list(){return this.service.list()}adjust(id:string,quantity:number,reason:string){return this.service.adjust(id,quantity,reason)}}

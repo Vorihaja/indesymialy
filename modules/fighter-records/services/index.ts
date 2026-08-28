@@ -1,0 +1,1 @@
+import{SportService}from"@/modules/sport-development-core/services";import{FighterRecordsRepository}from"../repositories";export class FighterRecordsService extends SportService{constructor(){super(new FighterRecordsRepository());}}

@@ -1,0 +1,1 @@
+import{ManageEventPlatformUseCase}from"@/modules/event-core/use-cases/manage-event-platform.use-case";import{FightCardService}from"../services";export class ManageFightCardUseCase extends ManageEventPlatformUseCase{constructor(){super(new FightCardService());}}

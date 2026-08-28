@@ -1,0 +1,1 @@
+import{CartRepository}from"../repositories";import{CartService}from"../services";import{ManageCartUseCase}from"../use-cases";export const createCartUseCase=()=>new ManageCartUseCase(new CartService(new CartRepository()));

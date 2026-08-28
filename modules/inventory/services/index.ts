@@ -1,0 +1,1 @@
+import{InventoryRepository}from"../repositories";export class InventoryService{constructor(private readonly repository:InventoryRepository){}list(){return this.repository.list()}adjust(id:string,quantity:number,reason:string){if(!reason.trim())throw new Error("Motif obligatoire.");return this.repository.adjust(id,quantity,reason)}}

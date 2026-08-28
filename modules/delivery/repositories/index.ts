@@ -1,0 +1,1 @@
+﻿import{createMarketplaceRuntimeRepository}from"@/modules/marketplace-core";const marketplaceRuntimeRepository=createMarketplaceRuntimeRepository();export class DeliveryRepository{list(){return marketplaceRuntimeRepository.listDeliveries()}}

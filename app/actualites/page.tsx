@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 
 // --- TYPES & INTERFACES ---
+import { PublicHero } from '@/components/ui';
+
 interface NewsItem {
   id: string;
   category: 'Événement' | 'Licence' | 'Transfert' | 'Résultat';
@@ -174,6 +176,8 @@ export default function ActualitesPage() {
   };
 
   return (
+    <div className='public-page news-experience'>
+    <PublicHero eyebrow='Mialy Magazine' title='L’actualité au rythme du combat' description='Analyses, annonces, tendances et conversations qui façonnent la scène sportive malagasy.' compact />
     <div className="min-h-screen bg-neutral-950 text-white font-mono antialiased selection:bg-red-600 selection:text-white relative">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-8 space-y-8">
         
@@ -291,7 +295,7 @@ export default function ActualitesPage() {
                 {/* BLOC BOUTON ACTION DIRECTE (Déclencheur Modal) */}
                 <div className="bg-neutral-900 border border-neutral-800 p-5 rounded-none flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="space-y-1">
-                    <h3 className="text-sm font-black text-white uppercase tracking-wide">// Ligne tactique ouverte</h3>
+                    <h3 className="text-sm font-black text-white uppercase tracking-wide">{"// Ligne tactique ouverte"}</h3>
                     <p className="text-xs text-neutral-400 font-sans">Partagez vos analyses de combat ou questions de licence avec le réseau.</p>
                   </div>
                   <button
@@ -398,7 +402,7 @@ export default function ActualitesPage() {
             </div>
 
             <div className="bg-neutral-900 border border-neutral-800 p-4 rounded-none space-y-3">
-              <div className="text-xs font-black uppercase tracking-wider text-red-500">// Flash Info Urgent</div>
+              <div className="text-xs font-black uppercase tracking-wider text-red-500">{"// Flash Info Urgent"}</div>
               <div className="p-3 bg-neutral-950 border-l-2 border-l-amber-500 text-xs text-neutral-400 space-y-1 rounded-none">
                 <p className="font-bold text-white uppercase text-[11px]">Contrôle des licences</p>
                 <p className="font-sans">Tous les clubs doivent soumettre la mise à jour des assurances de ring avant vendredi minuit sous peine de suspension de carte.</p>
@@ -427,7 +431,7 @@ export default function ActualitesPage() {
             {/* Header Modal */}
             <div className="flex items-center justify-between border-b border-neutral-900 pb-3">
               <div className="space-y-1">
-                <span className="text-[10px] font-black text-red-600 uppercase tracking-widest">// Nouvelle transmission</span>
+                <span className="text-[10px] font-black text-red-600 uppercase tracking-widest">{"// Nouvelle transmission"}</span>
                 <h2 className="text-lg font-black uppercase tracking-tight">Ouvrir un sujet tactile</h2>
               </div>
               <button 
@@ -443,7 +447,7 @@ export default function ActualitesPage() {
               {/* Sélecteur de Catégorie Tactique */}
               <div className="space-y-2">
                 <label className="text-xs font-black text-neutral-400 uppercase tracking-wider">
-                  Sélectionner l'axe de discussion :
+                  Sélectionner l&apos;axe de discussion :
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {categories.map((cat) => (
@@ -501,6 +505,7 @@ export default function ActualitesPage() {
         </div>
       )}
 
+    </div>
     </div>
   );
 }

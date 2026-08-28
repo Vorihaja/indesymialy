@@ -1,0 +1,1 @@
+import{ManageOperationsUseCase}from"@/modules/platform-operations-core/use-cases";import{ChangelogService}from"../services";export class ManageChangelogUseCase extends ManageOperationsUseCase{constructor(){super(new ChangelogService());}}

@@ -1,0 +1,1 @@
+import { RoleGuard } from "@/modules/auth/guards"; import { FightLiveListFeature } from "@/modules/fight-live"; export default function Page() { return <RoleGuard role="referee"><FightLiveListFeature mode="referee" /></RoleGuard>; }

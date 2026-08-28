@@ -1,0 +1,1 @@
+import{ManageSportUseCase}from"@/modules/sport-development-core/use-cases";import{TalentPoolService}from"../services";export class ManageTalentPoolUseCase extends ManageSportUseCase{constructor(){super(new TalentPoolService());}}

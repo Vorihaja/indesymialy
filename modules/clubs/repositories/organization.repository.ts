@@ -1,0 +1,5 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/infrastructure/supabase/database.types";
+import type { Organization, OrganizationInsert, OrganizationMemberInsert } from "../types";
+const select = "id, city_id, created_at, deactivated_at, deactivation_reason, description, discipline, email, is_verified, logo_url, name, owner_id, phone, region_id, slug, status, type, updated_at, website";
+export class OrganizationRepository { constructor(private readonly supabase: SupabaseClient<Database>) {} async create(input: OrganizationInsert): Promise<Organization> { const { data, error } = await this.supabase.from("organizations").insert(input).select(select).single(); if (error) throw error; return data; } async createMember(input: OrganizationMemberInsert): Promise<void> { const { error } = await this.supabase.from("organization_members").insert(input); if (error) throw error; } async delete(organizationId: string): Promise<void> { const { error } = await this.supabase.from("organizations").delete().eq("id", organizationId); if (error) throw error; } }

@@ -1,0 +1,1 @@
+import{RoleGuard}from"@/modules/auth/guards";import{EventPlatformFeature}from"@/modules/event-core/features/EventPlatformFeature";export default function Page(){return <RoleGuard role="referee"><EventPlatformFeature mode="official" section="staff"/></RoleGuard>;}

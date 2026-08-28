@@ -1,0 +1,1 @@
+export function PublicStructuredData(){const payload={"@context":"https://schema.org","@type":"WebSite",name:"Indesy Mialy",url:"/",potentialAction:{"@type":"SearchAction",target:"/search?search={search_term_string}","query-input":"required name=search_term_string"}};return <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(payload)}}/>;}

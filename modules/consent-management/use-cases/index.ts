@@ -1,0 +1,1 @@
+import{ManageOperationsUseCase}from"@/modules/platform-operations-core/use-cases";import{ConsentManagementService}from"../services";export class ManageConsentManagementUseCase extends ManageOperationsUseCase{constructor(){super(new ConsentManagementService());}}

@@ -1,0 +1,1 @@
+import{ManageOperationsUseCase}from"@/modules/platform-operations-core/use-cases";import{SupportTicketsService}from"../services";export class ManageSupportTicketsUseCase extends ManageOperationsUseCase{constructor(){super(new SupportTicketsService());}}

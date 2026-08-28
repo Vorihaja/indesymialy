@@ -1,0 +1,1 @@
+import{ManageSportUseCase}from"@/modules/sport-development-core/use-cases";import{FightPreparationService}from"../services";export class ManageFightPreparationUseCase extends ManageSportUseCase{constructor(){super(new FightPreparationService());}}

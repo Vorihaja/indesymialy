@@ -1,0 +1,1 @@
+import{TrainingProgramsFeature}from"@/modules/training-programs";export default async function Page({params}:{params:Promise<{id:string}>}){const{id}=await params;return <TrainingProgramsFeature role="coach" scopeId={id}/>;}

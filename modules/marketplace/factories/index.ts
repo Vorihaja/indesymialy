@@ -1,0 +1,1 @@
+import{CatalogRepository}from"../repositories";import{CatalogService}from"../services";import{BrowseCatalogUseCase}from"../use-cases";export const createCatalogUseCase=()=>new BrowseCatalogUseCase(new CatalogService(new CatalogRepository()));

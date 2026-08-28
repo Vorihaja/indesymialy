@@ -1,0 +1,1 @@
+import{OperationsService}from"@/modules/platform-operations-core/services";import{LegalRepository}from"../repositories";export class LegalService extends OperationsService{constructor(){super(new LegalRepository());}}

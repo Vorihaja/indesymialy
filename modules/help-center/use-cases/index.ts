@@ -1,0 +1,1 @@
+import{ManageOperationsUseCase}from"@/modules/platform-operations-core/use-cases";import{HelpCenterService}from"../services";export class ManageHelpCenterUseCase extends ManageOperationsUseCase{constructor(){super(new HelpCenterService());}}

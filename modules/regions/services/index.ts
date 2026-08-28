@@ -1,0 +1,1 @@
+import{DiscoveryService}from"@/modules/discovery-core/services/discovery.service";import{RegionsRepository}from"../repositories";export class RegionsService extends DiscoveryService{constructor(){super(new RegionsRepository());}}

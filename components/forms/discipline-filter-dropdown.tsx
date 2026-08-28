@@ -1,17 +1,6 @@
-"use client"
-import { useEffect, useState } from "react"
-import { createClient } from "@/lib/client"
-
-export function DisciplineFilterDropdown({ value, onChange }: { value: string; onChange: (v: string) => void }){
-  const [items, setItems] = useState<any[]>([])
-  useEffect(()=>{
-    const supabase = createClient()
-    supabase.from("disciplines").select("id,name,slug").order("name").then(({data})=> setItems(data||[]))
-  },[])
-  return (
-    <select value={value} onChange={e=>onChange(e.target.value)} className="bg-black border border-slate-800 rounded px-3 py-2 text-sm w-full">
-      <option value="">Toutes disciplines ({items.length})</option>
-      {items.map((d:any)=> <option key={d.id} value={d.slug}>{d.name}</option>)}
-    </select>
-  )
+"use client";
+import { DisciplineSelect, useDisciplineOptions } from "@/modules/disciplines";
+export function DisciplineFilterDropdown({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const { items } = useDisciplineOptions();
+  return <DisciplineSelect value={value} valueMode="slug" emptyLabel={`Toutes les disciplines (${items.length})`} onChange={event => onChange(event.target.value)} className="w-full border border-slate-800 bg-black px-3 py-2 text-sm" />;
 }

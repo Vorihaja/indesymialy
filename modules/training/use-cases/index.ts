@@ -1,0 +1,1 @@
+import{ManageSportUseCase}from"@/modules/sport-development-core/use-cases";import{TrainingService}from"../services";export class ManageTrainingUseCase extends ManageSportUseCase{constructor(){super(new TrainingService());}}

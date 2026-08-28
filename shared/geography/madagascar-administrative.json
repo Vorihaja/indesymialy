@@ -1,0 +1,2431 @@
+{
+    "meta":  {
+                 "country":  "Madagascar",
+                 "generatedAt":  "2026-08-13",
+                 "source":  "https://github.com/julkwel/madagascar-map",
+                 "license":  "MIT",
+                 "legalUpdate":  "Loi n° 2023-012 — création de la région Ambatosoa",
+                 "scope":  "24 régions, 119 districts, communes"
+             },
+    "regions":  [
+                    {
+                        "name":  "Sofia",
+                        "districts":  [
+                                          {
+                                              "name":  "Analalava",
+                                              "communes":  [
+                                                               "Ambaliha",
+                                                               "Ambarijeby Sud",
+                                                               "Ambolobozo",
+                                                               "Analalava",
+                                                               "Andribavontsina",
+                                                               "Angoaka Sud",
+                                                               "Ankaramy",
+                                                               "Antonibe",
+                                                               "Befotaka Nord",
+                                                               "Mahadrodroka",
+                                                               "Maromandia",
+                                                               "Marovantaza",
+                                                               "Marovatolena",
+                                                               "Bejofo",
+                                                               "Andrevorevo"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Antsohihy",
+                                              "communes":  [
+                                                               "Ambodimadiro",
+                                                               "Ambodimanary",
+                                                               "Ambodimandresy",
+                                                               "Ampandriankilandy",
+                                                               "Anahidrano",
+                                                               "Andreba",
+                                                               "Anjalazala",
+                                                               "Anjiamangirana",
+                                                               "Ankerika",
+                                                               "Antsahabe",
+                                                               "Antsohihy",
+                                                               "Maroala",
+                                                               "Ambalafaminty"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Bealanana",
+                                              "communes":  [
+                                                               "Ambalaromba",
+                                                               "Ambararata Sofia",
+                                                               "Ambararatabe Nord",
+                                                               "Ambatoriha Est",
+                                                               "Ambatosia",
+                                                               "Ambodiadabo M",
+                                                               "Ambodiampana",
+                                                               "Ambodisikidy",
+                                                               "Ambovonomby",
+                                                               "Analila",
+                                                               "Anjozoromadosy",
+                                                               "Ankazotokana",
+                                                               "Antananivo Haut",
+                                                               "Antsamaka",
+                                                               "Bealalana",
+                                                               "Beandrarezona",
+                                                               "Mangindrano",
+                                                               "Marotolana",
+                                                               "Ambohimisondrotra",
+                                                               "Antsiradava"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Befandriana Nord",
+                                              "communes":  [
+                                                               "Ambararata",
+                                                               "Ambodimotso Sud",
+                                                               "Ambolidibe Est",
+                                                               "Ankarongana",
+                                                               "Antsakabary",
+                                                               "Antsakanalabe",
+                                                               "Befandriana Nord",
+                                                               "Maroamalona",
+                                                               "Matsondakana",
+                                                               "Morafeno",
+                                                               "Tsarahonenana",
+                                                               "Tsiamalao",
+                                                               "Belalona",
+                                                               "Ambodimotso-Haut"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Mampikony",
+                                              "communes":  [
+                                                               "Ambodihazoambo",
+                                                               "Ambohitoaka",
+                                                               "Ampasimatera",
+                                                               "Ankiririky",
+                                                               "Bekoratsaka",
+                                                               "Betaramahamay",
+                                                               "Komajia",
+                                                               "Malakialina",
+                                                               "Mampikony",
+                                                               "Mampikony Ii",
+                                                               "Anovilava Nord"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Mandritsara",
+                                              "communes":  [
+                                                               "Ambalakirajy",
+                                                               "Ambarikorano",
+                                                               "Ambaripaika",
+                                                               "Ambilombe",
+                                                               "Amboaboa",
+                                                               "Ambodiadabo",
+                                                               "Ambodiamontana Kianga",
+                                                               "Ambohisoa",
+                                                               "Amborondolo",
+                                                               "Ampatakamaroreny",
+                                                               "Andohajango",
+                                                               "Andratamarina",
+                                                               "Anjiabe",
+                                                               "Ankiakabe Fonoko",
+                                                               "Ankiabe Salohy",
+                                                               "Antanambaon\u0027amberina",
+                                                               "Antanandava",
+                                                               "Antsatramidola",
+                                                               "Antsiatsiaka",
+                                                               "Antsirabe Centre",
+                                                               "Antsoha",
+                                                               "Kalandy",
+                                                               "Manampaneva",
+                                                               "Mandritsara",
+                                                               "Marotandrano",
+                                                               "Pont -  Sofia",
+                                                               "Tsarajomoka",
+                                                               "Tsaratanana",
+                                                               "Ambinanifango"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Port-Berge",
+                                              "communes":  [
+                                                               "Ambanjabe",
+                                                               "Ambodimahabibo",
+                                                               "Ambodisakoana",
+                                                               "Ambodivongo",
+                                                               "Amparihy",
+                                                               "Andranomeva",
+                                                               "Leanja",
+                                                               "Maevaranohely",
+                                                               "Marovato",
+                                                               "Port Berge Ii",
+                                                               "Port-Berge",
+                                                               "Tsarahasina",
+                                                               "Tsaratanana I",
+                                                               "Tsiningia",
+                                                               "Tsinjomitondraka",
+                                                               "Ihobaka",
+                                                               "Ambatomilahatrano",
+                                                               "Andranomena I"
+                                                           ]
+                                          }
+                                      ]
+                    },
+                    {
+                        "name":  "Alaotra-Mangoro",
+                        "districts":  [
+                                          {
+                                              "name":  "Ambatondrazaka",
+                                              "communes":  [
+                                                               "Ambandrika",
+                                                               "Ambatondrazaka",
+                                                               "Ambatondrazaka Suburbain",
+                                                               "Ambatosoratra",
+                                                               "Ambohitsilaozana",
+                                                               "Amparihintsokatra",
+                                                               "Ampitatsimo",
+                                                               "Andilanatoby",
+                                                               "Andromba",
+                                                               "Antanandava",
+                                                               "Antsangasanga",
+                                                               "Bejofo",
+                                                               "Didy",
+                                                               "Feramanga Nord",
+                                                               "Ilafy",
+                                                               "Imerimandroso",
+                                                               "Manakambahiny Est",
+                                                               "Manakambahiny Ouest",
+                                                               "Soalazaina",
+                                                               "Tanambao Besakay",
+                                                               "Ambohidava",
+                                                               "Ambohiboromanga"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Amparafaravola",
+                                              "communes":  [
+                                                               "Ambatomainty",
+                                                               "Amboavory",
+                                                               "Ambodimanga",
+                                                               "Ambohijanahary",
+                                                               "Ambohimandroso",
+                                                               "Ambohitrarivo",
+                                                               "Amparafaravola",
+                                                               "Ampasikely",
+                                                               "Andilana Nord",
+                                                               "Andrebakely Sud",
+                                                               "Andrebakely Nord",
+                                                               "Anororo",
+                                                               "Beanana",
+                                                               "Bedidy",
+                                                               "Morarano Chrome",
+                                                               "Ranomainty",
+                                                               "Sahamamy",
+                                                               "Tanambe",
+                                                               "Vohimena",
+                                                               "Vohitsara",
+                                                               "Andranobe",
+                                                               "Ambodirano"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Andilamena",
+                                              "communes":  [
+                                                               "Andilamena",
+                                                               "Antanimenabaka",
+                                                               "Bemaitso",
+                                                               "Maitsokely",
+                                                               "Maroadabo",
+                                                               "Marovato",
+                                                               "Miarinarivo",
+                                                               "Tanananifololahy",
+                                                               "Ampondrabe"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Anosibe An Ala",
+                                              "communes":  [
+                                                               "Ambalaomby",
+                                                               "Ambatoharanana",
+                                                               "Ampandroantraka",
+                                                               "Ampasimaneva",
+                                                               "Anosibe An\u0027ala",
+                                                               "Antandrokomby",
+                                                               "Longozabe",
+                                                               "Niarovana",
+                                                               "Tratramarina",
+                                                               "Tsaravinany",
+                                                               "Ambodimerana"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Moramanga",
+                                              "communes":  [
+                                                               "Ambatovola",
+                                                               "Amboasary",
+                                                               "Ambohibary",
+                                                               "Ambohidronono",
+                                                               "Ampasipotsy Gare",
+                                                               "Ampasipotsy Mandialaza",
+                                                               "Andaingo",
+                                                               "Andasibe",
+                                                               "Anosibe Ifody",
+                                                               "Antanandava",
+                                                               "Antaniditra",
+                                                               "Beforona",
+                                                               "Belavabary",
+                                                               "Mangarivotra (Ex  Beparasy)",
+                                                               "Fierenana",
+                                                               "Lakato",
+                                                               "Mandialaza",
+                                                               "Moramanga",
+                                                               "Morarano Gare",
+                                                               "Sabotsy Anjiro",
+                                                               "Vodiriana",
+                                                               "Bembary",
+                                                               "Analasoa"
+                                                           ]
+                                          }
+                                      ]
+                    },
+                    {
+                        "name":  "Ambatosoa",
+                        "districts":  [
+                                          {
+                                              "name":  "Mananara-Nord",
+                                              "communes":  [
+                                                               "Ambatoharanana",
+                                                               "Ambodiampana",
+                                                               "Ambodivoanio",
+                                                               "Andasibe",
+                                                               "Antanambaobe",
+                                                               "Antanambe",
+                                                               "Antanananivo",
+                                                               "Imorona",
+                                                               "Manambolosy",
+                                                               "Mananara Nord",
+                                                               "Sandrakatsy",
+                                                               "Saromaona",
+                                                               "Tanibe",
+                                                               "Vanono",
+                                                               "Analanampotsy",
+                                                               "Mahanoro"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Maroantsetra",
+                                              "communes":  [
+                                                               "Ambanizana",
+                                                               "Ambinanitelo",
+                                                               "Ambodimanga Rantabe",
+                                                               "Anandrivola",
+                                                               "Andranofotsy",
+                                                               "Androndrona",
+                                                               "Anjahana",
+                                                               "Anjanazana",
+                                                               "Ankofa",
+                                                               "Ankofabe",
+                                                               "Antakotako",
+                                                               "Antsirabe Sahatany",
+                                                               "Mahalevona",
+                                                               "Manambolo",
+                                                               "Maroantsetra",
+                                                               "Morafeno",
+                                                               "Rantabe",
+                                                               "Voloina",
+                                                               "Mariarano",
+                                                               "Sahasindro"
+                                                           ]
+                                          }
+                                      ]
+                    },
+                    {
+                        "name":  "Betsiboka",
+                        "districts":  [
+                                          {
+                                              "name":  "Kandreho",
+                                              "communes":  [
+                                                               "Ambaliha",
+                                                               "Andasibe",
+                                                               "Antanimbaribe",
+                                                               "Behazomaty",
+                                                               "Betaimboay",
+                                                               "Kandreho",
+                                                               "Mahatsinjo Sud"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Maevatanana",
+                                              "communes":  [
+                                                               "Ambalajia",
+                                                               "Ambalanjanakomby",
+                                                               "Andriba",
+                                                               "Antanimbary",
+                                                               "Antsiafabositra",
+                                                               "Bemokotra",
+                                                               "Beratsimanina",
+                                                               "Madiromirafy",
+                                                               "Maevatanana I",
+                                                               "Maevatanana Ii",
+                                                               "Mahatsinjo",
+                                                               "Mahazoma",
+                                                               "Mangabe",
+                                                               "Maria",
+                                                               "Marokoro",
+                                                               "Morafeno",
+                                                               "Tsararano",
+                                                               "Beanana",
+                                                               "Berivotra 5/5"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Tsaratanana",
+                                              "communes":  [
+                                                               "Ambakireny",
+                                                               "Ampandrana",
+                                                               "Andriamena",
+                                                               "Bekapaika",
+                                                               "Betrandraka",
+                                                               "Brieville",
+                                                               "Keliloha",
+                                                               "Manakana",
+                                                               "Sakoamadinika",
+                                                               "Sarobaratra",
+                                                               "Tsararova",
+                                                               "Tsaratanana",
+                                                               "Isinko"
+                                                           ]
+                                          }
+                                      ]
+                    },
+                    {
+                        "name":  "Boeny",
+                        "districts":  [
+                                          {
+                                              "name":  "Ambato Boeni",
+                                              "communes":  [
+                                                               "Ambatoboeny",
+                                                               "Ambondromamy",
+                                                               "Andranofasika",
+                                                               "Andranomamy",
+                                                               "Anjiajia",
+                                                               "Ankijabe",
+                                                               "Ankirihitra",
+                                                               "Madirovalo",
+                                                               "Manerinerina",
+                                                               "Sitampiky",
+                                                               "Tsaramandroso",
+                                                               "Ambesisika"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Mahajanga I",
+                                              "communes":  [
+                                                               "Mahajanga"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Mahajanga Ii",
+                                              "communes":  [
+                                                               "Ambalabe Befanjava",
+                                                               "Ambalakida",
+                                                               "Andranoboka",
+                                                               "Bekobay Centre",
+                                                               "Belobaka",
+                                                               "Betsako",
+                                                               "Boanamary",
+                                                               "Mahajamba Usine",
+                                                               "Mariarano"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Marovoay",
+                                              "communes":  [
+                                                               "Ambolomoty",
+                                                               "Ankaraobato",
+                                                               "Ankazomborona",
+                                                               "Anosinalainolona",
+                                                               "Antanambao Andranolava",
+                                                               "Antanimasaka",
+                                                               "Bemaharivo",
+                                                               "Manaratsandry",
+                                                               "Marosakoa",
+                                                               "Marovoay",
+                                                               "Marovoay Banlieue",
+                                                               "Tsararano",
+                                                               "Ankaboka"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Mitsinjo",
+                                              "communes":  [
+                                                               "Ambarimaninga",
+                                                               "Antongomena Bevary",
+                                                               "Antseza",
+                                                               "Bekipay",
+                                                               "Katsepy",
+                                                               "Matsakabanja",
+                                                               "Mitsinjo"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Soalala",
+                                              "communes":  [
+                                                               "Ambohipaky",
+                                                               "Andranomavo",
+                                                               "Soalala",
+                                                               "Antsakoamileka"
+                                                           ]
+                                          }
+                                      ]
+                    },
+                    {
+                        "name":  "Melaky",
+                        "districts":  [
+                                          {
+                                              "name":  "Ambatomainty",
+                                              "communes":  [
+                                                               "Ambatomainty",
+                                                               "Bemarivo",
+                                                               "Marotsialeha",
+                                                               "Sarodrano",
+                                                               "Makaraingo"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Antsalova",
+                                              "communes":  [
+                                                               "Antsalova",
+                                                               "Bekopaka",
+                                                               "Masoarivo",
+                                                               "Soahany",
+                                                               "Trangahy",
+                                                               "Bemaraha Atsinanana"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Besalampy",
+                                              "communes":  [
+                                                               "Ambolodia Sud",
+                                                               "Ampako",
+                                                               "Ankasakasa Tsibiray",
+                                                               "Bekodoka",
+                                                               "Besalampy",
+                                                               "Mahabe",
+                                                               "Marovoay Sud",
+                                                               "Soanenga",
+                                                               "Antsirasira"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Maintirano",
+                                              "communes":  [
+                                                               "Andabotoka",
+                                                               "Andranovao",
+                                                               "Andrea",
+                                                               "Ankisatra",
+                                                               "Antsaidoha Bebao",
+                                                               "Antsondrodava",
+                                                               "Bebaboka Sud",
+                                                               "Belitsaky",
+                                                               "Bemokotra Sud",
+                                                               "Berevo Ranobe",
+                                                               "Betanatanana",
+                                                               "Mafaijijo",
+                                                               "Maintirano",
+                                                               "Marohazo",
+                                                               "Maromavo",
+                                                               "Tambohorano",
+                                                               "Veromanga"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Morafenobe",
+                                              "communes":  [
+                                                               "Andramy",
+                                                               "Beravina",
+                                                               "Morafenobe",
+                                                               "Antranokoaky"
+                                                           ]
+                                          }
+                                      ]
+                    },
+                    {
+                        "name":  "Anosy",
+                        "districts":  [
+                                          {
+                                              "name":  "Amboasary Sud",
+                                              "communes":  [
+                                                               "Amboasary Sud",
+                                                               "Behara",
+                                                               "Ebelo",
+                                                               "Elonty",
+                                                               "Esira",
+                                                               "Ifotaka",
+                                                               "Mahaly",
+                                                               "Manevy",
+                                                               "Maromby",
+                                                               "Marotsiraka",
+                                                               "Ranobe",
+                                                               "Sampona",
+                                                               "Tanandava Sud",
+                                                               "Tomboarivo",
+                                                               "Tranomaro",
+                                                               "Tsivory",
+                                                               "Mahabo",
+                                                               "Berano Ville"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Betroka",
+                                              "communes":  [
+                                                               "Ambalasoa",
+                                                               "Ambatomivary",
+                                                               "Analamary",
+                                                               "Andriandampy",
+                                                               "Beampombo I",
+                                                               "Beampombo Ii",
+                                                               "Bekorobo",
+                                                               "Benato Toby",
+                                                               "Betroka",
+                                                               "Iaborotra",
+                                                               "Ianabinda",
+                                                               "Ianakafy",
+                                                               "Isoanala",
+                                                               "Ivahona",
+                                                               "Jangany",
+                                                               "Mahabo",
+                                                               "Mahasoa Est",
+                                                               "Nanarena Besakoa",
+                                                               "Naninora",
+                                                               "Sakamahily",
+                                                               "Tsaraitso",
+                                                               "Kelivaho"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Taolanaro",
+                                              "communes":  [
+                                                               "Ambatoabo",
+                                                               "Ampasimena",
+                                                               "Ampasy Nahampoana",
+                                                               "Analamary",
+                                                               "Analapatsy",
+                                                               "Andranobory",
+                                                               "Ankaramena",
+                                                               "Ankariera",
+                                                               "Bevoay",
+                                                               "Emagnobo",
+                                                               "Enakara Haut",
+                                                               "Enaniliha",
+                                                               "Fenoevo Efita",
+                                                               "Iaboakoho",
+                                                               "Ifarantsa",
+                                                               "Isaka Ivondro",
+                                                               "Mahatalaky",
+                                                               "Manambaro",
+                                                               "Manantenina",
+                                                               "Mandiso",
+                                                               "Mandromodromotra",
+                                                               "Ranomafana Sud",
+                                                               "Ranopiso",
+                                                               "Sarisambo",
+                                                               "Soanierana",
+                                                               "Soavary",
+                                                               "Tolagnaro",
+                                                               "Ankilivalo",
+                                                               "Tanandava Mandrare"
+                                                           ]
+                                          }
+                                      ]
+                    },
+                    {
+                        "name":  "Atsimo-Andrefana",
+                        "districts":  [
+                                          {
+                                              "name":  "Ampanihy Ouest",
+                                              "communes":  [
+                                                               "Amboropotsy",
+                                                               "Ampanihy Centre",
+                                                               "Androka",
+                                                               "Ankiliabo",
+                                                               "Ankilimivory",
+                                                               "Ankilizato",
+                                                               "Antaly",
+                                                               "Beahitse",
+                                                               "Belafike Haut",
+                                                               "Beroy Sud",
+                                                               "Ejeda",
+                                                               "Fotadrevo",
+                                                               "Gogogogo",
+                                                               "Itampolo",
+                                                               "Maniry",
+                                                               "Vohitany",
+                                                               "Agnavoha",
+                                                               "Androimpano",
+                                                               "Beara"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Ankazoabo Sud",
+                                              "communes":  [
+                                                               "Andranomafana",
+                                                               "Ankazoabo Sud",
+                                                               "Berenty",
+                                                               "Fotivolo",
+                                                               "Ilemby",
+                                                               "Tandrano",
+                                                               "Ankilivalokely",
+                                                               "Ambatolahy",
+                                                               "Ankeriky"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Benenitra",
+                                              "communes":  [
+                                                               "Ambalavato",
+                                                               "Benenitra",
+                                                               "Ehara",
+                                                               "Ianapera",
+                                                               "Benonoky",
+                                                               "Ankilimary"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Beroroha",
+                                              "communes":  [
+                                                               "Behisatsy",
+                                                               "Bemavo",
+                                                               "Beroroha",
+                                                               "Fanjakana",
+                                                               "Mandronarivo",
+                                                               "Marerano",
+                                                               "Sakena",
+                                                               "Tanamary",
+                                                               "Tanandava"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Betioky Sud",
+                                              "communes":  [
+                                                               "Ambatry Mitsinjo",
+                                                               "Andranomangatsiaka",
+                                                               "Ankazomanga Ouest",
+                                                               "Ankazombalala",
+                                                               "Ankilivalo",
+                                                               "Antohabato",
+                                                               "Antsavoa",
+                                                               "Beantake",
+                                                               "Belamoty",
+                                                               "Besely",
+                                                               "Betioky Sud",
+                                                               "Bezaha",
+                                                               "Fenoandala",
+                                                               "Lazarivo",
+                                                               "Manalobe",
+                                                               "Maroarivo Ankazomanga",
+                                                               "Marosavoa",
+                                                               "Masiaboay",
+                                                               "Montifeno",
+                                                               "Sakamasay",
+                                                               "Salobe",
+                                                               "Soamanonga",
+                                                               "Soaserana",
+                                                               "Tanambao Haut",
+                                                               "Temeantsoa",
+                                                               "Tongobory",
+                                                               "Vatolatsaka",
+                                                               "Beora",
+                                                               "Savazy Ii",
+                                                               "Vohimary"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Morombe",
+                                              "communes":  [
+                                                               "Ambahikily",
+                                                               "Antanimieva",
+                                                               "Antongo Vaovao",
+                                                               "Basibasy",
+                                                               "Befandefa",
+                                                               "Befandriana Sud",
+                                                               "Morombe",
+                                                               "Tanandava Station",
+                                                               "Ankatsakantsa Sud"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Sakaraha",
+                                              "communes":  [
+                                                               "Ambinany",
+                                                               "Amboronabo",
+                                                               "Andamasiny Vineta",
+                                                               "Andranolava",
+                                                               "Beraketa",
+                                                               "Mahaboboka",
+                                                               "Miary Lamatihy",
+                                                               "Miary Taheza",
+                                                               "Mihavatsy",
+                                                               "Mikoboka",
+                                                               "Mitsinjo",
+                                                               "Sakaraha"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Toliary I",
+                                              "communes":  [
+                                                               "Toliara I"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Toliary Ii",
+                                              "communes":  [
+                                                               "Ambohimahavelona",
+                                                               "Ambolofoty",
+                                                               "Anakao",
+                                                               "Analamisampy",
+                                                               "Andranohinaly",
+                                                               "Andranovory",
+                                                               "Ankililoaka",
+                                                               "Ankilimalinika",
+                                                               "Antanimena",
+                                                               "Beheloka",
+                                                               "Behompy",
+                                                               "Belalanda",
+                                                               "Betsinjaka",
+                                                               "Manombo Sud",
+                                                               "Manorofify",
+                                                               "Marofoty",
+                                                               "Maromiandra",
+                                                               "Miary",
+                                                               "Milenaka",
+                                                               "Mitsinjo Betanimena",
+                                                               "Saint Augustin",
+                                                               "Soalara Sud",
+                                                               "Tsianisiha",
+                                                               "Efoetse",
+                                                               "Soahazo",
+                                                               "Tsifota"
+                                                           ]
+                                          }
+                                      ]
+                    },
+                    {
+                        "name":  "Menabe",
+                        "districts":  [
+                                          {
+                                              "name":  "Belo Sur Tsiribihina",
+                                              "communes":  [
+                                                               "Ambiky",
+                                                               "Aboalimena",
+                                                               "Andimaky Manambolo",
+                                                               "Ankalalobe",
+                                                               "Ankororoky",
+                                                               "Antsoha",
+                                                               "Belinta",
+                                                               "Belo Sur Tsiribihina",
+                                                               "Bemarivo Ankirondro",
+                                                               "Berevo",
+                                                               "Beroboka",
+                                                               "Masoarivo",
+                                                               "Tsaraotana",
+                                                               "Tsimafana",
+                                                               "Delta"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Mahabo",
+                                              "communes":  [
+                                                               "Ambia",
+                                                               "Ampanihy",
+                                                               "Analamitsivalana",
+                                                               "Ankilivalo",
+                                                               "Ankilizato",
+                                                               "Befotaka",
+                                                               "Beronono",
+                                                               "Mahabo",
+                                                               "Malaimbandy",
+                                                               "Mandabe",
+                                                               "Tsimazava",
+                                                               "Bezezika"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Manja",
+                                              "communes":  [
+                                                               "Andranopasy",
+                                                               "Ankiliabo",
+                                                               "Anontsibe Centre",
+                                                               "Beharona",
+                                                               "Manja",
+                                                               "Soaserana",
+                                                               "Betsioky"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Miandrivazo",
+                                              "communes":  [
+                                                               "Ambatolahy",
+                                                               "Ampanihy",
+                                                               "Ankavandra",
+                                                               "Ankondromena",
+                                                               "Ankotrofotsy",
+                                                               "Anosimena",
+                                                               "Bemahatazana",
+                                                               "Betsipolitra",
+                                                               "Dabolava",
+                                                               "Isalo",
+                                                               "Itondy",
+                                                               "Manambina",
+                                                               "Manandaza",
+                                                               "Miandrivazo",
+                                                               "Soaloka",
+                                                               "Andranomainty"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Morondava",
+                                              "communes":  [
+                                                               "Analaiva",
+                                                               "Befasy",
+                                                               "Belo Sur Mer",
+                                                               "Bemanonga",
+                                                               "Morondava",
+                                                               "Marofandilia"
+                                                           ]
+                                          }
+                                      ]
+                    },
+                    {
+                        "name":  "Analanjirofo",
+                        "districts":  [
+                                          {
+                                              "name":  "Fenerive Est",
+                                              "communes":  [
+                                                               "Ambatoharanana",
+                                                               "Ambodimanga Ii",
+                                                               "Ampasimbe Manantsantrana",
+                                                               "Ampasina Maningory",
+                                                               "Antsiatsiaka",
+                                                               "Fenerive Ville",
+                                                               "Mahambo",
+                                                               "Mahanoro",
+                                                               "Miorimivalana",
+                                                               "Saranambana",
+                                                               "Vohilengo",
+                                                               "Vohipeno",
+                                                               "Ambanjan \u0027I Sahalava",
+                                                               "Betampona"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Sainte Marie",
+                                              "communes":  [
+                                                               "Sainte Marie"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Soanierana Ivongo",
+                                              "communes":  [
+                                                               "Ambahoabe",
+                                                               "Ambodiampana",
+                                                               "Andapafito",
+                                                               "Antanifotsy",
+                                                               "Antenina",
+                                                               "Fotsialanana",
+                                                               "Manompana",
+                                                               "Soanierana Ivongo",
+                                                               "Ambinanisakana"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Vavatenina",
+                                              "communes":  [
+                                                               "Ambatoharanana",
+                                                               "Ambodimangavalo",
+                                                               "Ambohibe",
+                                                               "Ampasimazava",
+                                                               "Andasibe",
+                                                               "Anjahambe",
+                                                               "Maromitety",
+                                                               "Miarinarivo",
+                                                               "Sahatavy",
+                                                               "Vavatenina",
+                                                               "Tanamarina"
+                                                           ]
+                                          }
+                                      ]
+                    },
+                    {
+                        "name":  "Atsinanana",
+                        "districts":  [
+                                          {
+                                              "name":  "Antanambao Manampo",
+                                              "communes":  [
+                                                               "Atnsytanambao Manampotsy",
+                                                               "Atnsytanandehibe",
+                                                               "Mtsayhela",
+                                                               "Mtsaynakana",
+                                                               "Stasiyvaza",
+                                                               "Mtsaynaratsandry"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Brickaville",
+                                              "communes":  [
+                                                               "Ambalarondra",
+                                                               "Ambinaninony",
+                                                               "Ambohimanana",
+                                                               "Ampasimbe",
+                                                               "Andekaleka",
+                                                               "Andovoranto",
+                                                               "Anivorano Est",
+                                                               "Anjahamana",
+                                                               "Brickaville",
+                                                               "Fanasana",
+                                                               "Fetraomby",
+                                                               "Lohariandava",
+                                                               "Mahatsara",
+                                                               "Maroseranana",
+                                                               "Ranomafana Est",
+                                                               "Razanaka",
+                                                               "Vohitranivona",
+                                                               "Antsampanana"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Mahanoro",
+                                              "communes":  [
+                                                               "Ambinanidilana",
+                                                               "Ambinanindrano",
+                                                               "Ambodibonara",
+                                                               "Ambodiharina",
+                                                               "Ankazotsifantatra",
+                                                               "Befotaka",
+                                                               "Betsizaraina",
+                                                               "Mahanoro",
+                                                               "Manjakandriana",
+                                                               "Masomeloka",
+                                                               "Tsaravinany",
+                                                               "Andranambomaro"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Marolambo",
+                                              "communes":  [
+                                                               "Ambalapaiso Ii",
+                                                               "Ambatofisaka Ii",
+                                                               "Amboasary",
+                                                               "Ambodinonoka",
+                                                               "Ambodivoahangy",
+                                                               "Ambohimilanja",
+                                                               "Andonabe Sud",
+                                                               "Androrangavola",
+                                                               "Anosiarivo",
+                                                               "Betampona",
+                                                               "Lohavanana",
+                                                               "Marolambo",
+                                                               "Sahakevo",
+                                                               "Tanambao Rabemanana",
+                                                               "Maromitety I"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Toamasina I",
+                                              "communes":  [
+                                                               "Cu Toamasina",
+                                                               "Cu Toamasina Arr. Anjoma",
+                                                               "Cu Toamasina Arr. Ankirihiry",
+                                                               "Cu Toamasina Arr. Morarano",
+                                                               "Cu Toamasina Arr. Tanambao"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Toamasina Ii",
+                                              "communes":  [
+                                                               "Ambodilazana",
+                                                               "Ambodiriana",
+                                                               "Amboditandroho",
+                                                               "Ampasimadinika",
+                                                               "Ampasimbe Onibe",
+                                                               "Ampisokina",
+                                                               "Amporoforo",
+                                                               "Andondabe",
+                                                               "Andranobolaha",
+                                                               "Antenina",
+                                                               "Antetezambaro",
+                                                               "Fanandrana",
+                                                               "Fito",
+                                                               "Foulpointe",
+                                                               "Mangabe",
+                                                               "Sahambala",
+                                                               "Toamasina Suburbaine",
+                                                               "Satrandroy"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Vatomandry",
+                                              "communes":  [
+                                                               "Ambalabe",
+                                                               "Ambalavolo",
+                                                               "Amboditavolo",
+                                                               "Ambodivoananto",
+                                                               "Ampasimadinika",
+                                                               "Ampasimazava",
+                                                               "Antanambao Mahatsara",
+                                                               "Iamborano",
+                                                               "Ifasina I",
+                                                               "Ifasina Ii",
+                                                               "Ilaka Est",
+                                                               "Maintinandry",
+                                                               "Niarovana Caroline",
+                                                               "Niherenana",
+                                                               "Sahamatevina",
+                                                               "Tanambao Vahatrakaka",
+                                                               "Tsarasambo",
+                                                               "Tsivangiana",
+                                                               "Vatomandry",
+                                                               "Ifasina Iii",
+                                                               "Ambodinonoka Rangalana"
+                                                           ]
+                                          }
+                                      ]
+                    },
+                    {
+                        "name":  "Androy",
+                        "districts":  [
+                                          {
+                                              "name":  "Ambovombe Androy",
+                                              "communes":  [
+                                                               "Ambanisarika",
+                                                               "Ambazoa",
+                                                               "Ambohimalaza",
+                                                               "Ambonaivo",
+                                                               "Ambondro",
+                                                               "Ambovombe Androy",
+                                                               "Ampamata",
+                                                               "Analamary",
+                                                               "Andalatanosy",
+                                                               "Anjeky Ankilikira",
+                                                               "Antanimora Sud",
+                                                               "Erada",
+                                                               "Imanombo",
+                                                               "Jafaro",
+                                                               "Maroalomainte",
+                                                               "Maroalopoty",
+                                                               "Marovato Befeno",
+                                                               "Sihanamaro",
+                                                               "Tsimananada",
+                                                               "Andragnanivo",
+                                                               "Andoharano"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Bekily",
+                                              "communes":  [
+                                                               "Ambahita",
+                                                               "Ambatosola",
+                                                               "Anivorano Mitsinjo",
+                                                               "Anja Nord",
+                                                               "Ankaranabo Nord",
+                                                               "Antsakoamaro",
+                                                               "Bekitro",
+                                                               "Belindo Mahasoa",
+                                                               "Beraketa",
+                                                               "Besakoa",
+                                                               "Beteza",
+                                                               "Bevitiky",
+                                                               "Manakompy",
+                                                               "Maroviro",
+                                                               "Bekily Centrale",
+                                                               "Tanandava",
+                                                               "Tsikolaky",
+                                                               "Tsirandrany",
+                                                               "Vohimanga",
+                                                               "Mikaikarivo Ambatomainty"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Beloha Androy",
+                                              "communes":  [
+                                                               "Behabobo",
+                                                               "Beloha Androy",
+                                                               "Kopoky",
+                                                               "Marolinta",
+                                                               "Tranoroa",
+                                                               "Tranovaho",
+                                                               "Ambatotsivala",
+                                                               "Mahaenegne"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Tsihombe",
+                                              "communes":  [
+                                                               "Anjampaly",
+                                                               "Antaritarika",
+                                                               "Faux Cap",
+                                                               "Imongy",
+                                                               "Marovato",
+                                                               "Nikoly",
+                                                               "Tsihombe",
+                                                               "Ankilivalo",
+                                                               "Behazomanga"
+                                                           ]
+                                          }
+                                      ]
+                    },
+                    {
+                        "name":  "Vakinankaratra",
+                        "districts":  [
+                                          {
+                                              "name":  "Ambatolampy",
+                                              "communes":  [
+                                                               "Ambatolampy",
+                                                               "Ambatondrakalavao",
+                                                               "Ambodifarihy",
+                                                               "Ambohimpihaonana",
+                                                               "Andranovelona",
+                                                               "Andravola Vohipeno",
+                                                               "Andriambilany",
+                                                               "Antakasina",
+                                                               "Antanamalaza",
+                                                               "Antanimasaka",
+                                                               "Antsampandrano",
+                                                               "Behenjy",
+                                                               "Belambo Firaisana",
+                                                               "Manjakatompo",
+                                                               "Morarano",
+                                                               "Sabotsy Namatoana",
+                                                               "Tsiafajavona Ankaratra",
+                                                               "Tsinjoarivo",
+                                                               "Andriantsivalana"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Antanifotsy",
+                                              "communes":  [
+                                                               "Ambatolahy",
+                                                               "Ambatomiady",
+                                                               "Ambatotsipihana",
+                                                               "Ambodiriana",
+                                                               "Ambohimandroso",
+                                                               "Ambohitompoina",
+                                                               "Ampitatafika",
+                                                               "Andranofito",
+                                                               "Antanifotsy",
+                                                               "Antsahalava",
+                                                               "Antsampandrano",
+                                                               "Belanitra",
+                                                               "Anjamanga",
+                                                               "Soamanandrariny"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Antsirabe I",
+                                              "communes":  [
+                                                               "Antsirabe"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Antsirabe Ii",
+                                              "communes":  [
+                                                               "Alakamisy",
+                                                               "Alatsinainy Ibity",
+                                                               "Ambano",
+                                                               "Ambatomena",
+                                                               "Ambohibary",
+                                                               "Ambohidranandriana",
+                                                               "Ambohimiarivo",
+                                                               "Ambohitsimanova",
+                                                               "Andranomanelatra",
+                                                               "Antanambao",
+                                                               "Antanimandry",
+                                                               "Antsoantany",
+                                                               "Belazao",
+                                                               "Manandona",
+                                                               "Mandrosohasina",
+                                                               "Mangarano",
+                                                               "Sahanivotry Manandona",
+                                                               "Soanindrariny",
+                                                               "Tsarahonenana Sahanivotry",
+                                                               "Vinaninkarena"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Betafo",
+                                              "communes":  [
+                                                               "Alakamisy Anativato",
+                                                               "Alakamisy Marososona",
+                                                               "Alarobia Bemaha",
+                                                               "Ambatonikolahy",
+                                                               "Ambohimanambola",
+                                                               "Ambohimasina",
+                                                               "Andranomafana",
+                                                               "Andrembesoa",
+                                                               "Manohisoa",
+                                                               "Mandritsara",
+                                                               "Anosiarivo Manapa",
+                                                               "Soavina",
+                                                               "Antohobe",
+                                                               "Antsoso",
+                                                               "Betafo",
+                                                               "Tritriva",
+                                                               "Mahaiza",
+                                                               "Inanantonana"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Faratsiho",
+                                              "communes":  [
+                                                               "Ambohiborona",
+                                                               "Andranomiady",
+                                                               "Antsampanimahazo",
+                                                               "Faratsiho",
+                                                               "Miandrarivo",
+                                                               "Ramainandro",
+                                                               "Valabetokana",
+                                                               "Faravohitra",
+                                                               "Vinaninony Sud"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Mandoto",
+                                              "communes":  [
+                                                               "Mandoto",
+                                                               "Vasiana",
+                                                               "Antanambao Ambary",
+                                                               "Betsohana",
+                                                               "Ankazomiriotra",
+                                                               "Vinany",
+                                                               "Anjoma Ramartina",
+                                                               "Fidirana",
+                                                               "Maromandray"
+                                                           ]
+                                          }
+                                      ]
+                    },
+                    {
+                        "name":  "Diana",
+                        "districts":  [
+                                          {
+                                              "name":  "Ambanja",
+                                              "communes":  [
+                                                               "Ambalahonko",
+                                                               "Ambaliha",
+                                                               "Ambanja",
+                                                               "Ambodimanga Ramena",
+                                                               "Ambohimarina",
+                                                               "Ambohimena",
+                                                               "Ambohitrandriana",
+                                                               "Ankatafa",
+                                                               "Ankingameloka",
+                                                               "Anorotsangana",
+                                                               "Antafiambotry",
+                                                               "Antranokarany",
+                                                               "Antsakoamanondro",
+                                                               "Antsatsaka",
+                                                               "Antsirabe",
+                                                               "Bemanevika Haut-Sambirano",
+                                                               "Bemanevika Ouest",
+                                                               "Benavony",
+                                                               "Djangoa",
+                                                               "Maevatanana",
+                                                               "Maherivaratra",
+                                                               "Marotolana",
+                                                               "Marovato",
+                                                               "Antsahabe Centre"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Ambilobe",
+                                              "communes":  [
+                                                               "Ambakirano",
+                                                               "Ambarakaraka",
+                                                               "Ambatoben \u0027 Anjavy",
+                                                               "Ambilobe",
+                                                               "Ambodibonara",
+                                                               "Ampondralava",
+                                                               "Anaborano Ifasy",
+                                                               "Anjiabe Haut",
+                                                               "Antsaravibe",
+                                                               "Antsohimbondrona",
+                                                               "Beramanja",
+                                                               "Betsiaka",
+                                                               "Manambato",
+                                                               "Mantaly",
+                                                               "Tanambao Marivorahona",
+                                                               "Antanabe",
+                                                               "Sirama"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Antsiranana I",
+                                              "communes":  [
+                                                               "Antsiranana"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Antsiranana Ii",
+                                              "communes":  [
+                                                               "Ambondrona",
+                                                               "Andrafiabe",
+                                                               "Andranofanjava",
+                                                               "Andranovondronina",
+                                                               "Anivorano Nord",
+                                                               "Ankarongana",
+                                                               "Anketrakabe",
+                                                               "Antanamitarana",
+                                                               "Antsahampano",
+                                                               "Antsalaka",
+                                                               "Antsoha",
+                                                               "Bobakilandy",
+                                                               "Bobasakoa",
+                                                               "Joffre-Ville",
+                                                               "Mahalina",
+                                                               "Mahavanona",
+                                                               "Mangaoka",
+                                                               "Mosorolava",
+                                                               "Ramena",
+                                                               "Sadjoavato",
+                                                               "Sakaramy",
+                                                               "Antsakoabe",
+                                                               "Ambolobozobe"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Nosy-Be",
+                                              "communes":  [
+                                                               "Cu Nosy-Be"
+                                                           ]
+                                          }
+                                      ]
+                    },
+                    {
+                        "name":  "Sava",
+                        "districts":  [
+                                          {
+                                              "name":  "Andapa",
+                                              "communes":  [
+                                                               "Ambalamanasy Ii",
+                                                               "Ambodiangezoka",
+                                                               "Ambodimanga I",
+                                                               "Andapa",
+                                                               "Andrakata",
+                                                               "Andranomena",
+                                                               "Anjialavabe",
+                                                               "Ankiakabe Nord",
+                                                               "Anoviara",
+                                                               "Antsahamena",
+                                                               "Bealampona",
+                                                               "Belaoka Lokoho",
+                                                               "Belaoka Marovato",
+                                                               "Betsakotsako Andranotsara",
+                                                               "Doany",
+                                                               "Marovato",
+                                                               "Matsohely",
+                                                               "Tanandava",
+                                                               "Ambodidivaina",
+                                                               "Andasibe Kobahina",
+                                                               "Ambalavelona"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Antalaha",
+                                              "communes":  [
+                                                               "Ambalabe",
+                                                               "Ambinanifaho",
+                                                               "Ambohitralanana",
+                                                               "Ampahana",
+                                                               "Ampanavoana",
+                                                               "Ampohibe",
+                                                               "Andampy",
+                                                               "Antalaha",
+                                                               "Antananambo",
+                                                               "Antombana",
+                                                               "Antsahanoro",
+                                                               "Antsambalahy",
+                                                               "Lanjarivo",
+                                                               "Marofinaritra",
+                                                               "Sarahandrano",
+                                                               "Vinanivao",
+                                                               "Sahantaha",
+                                                               "Manakambahiny Ankavia"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Sambava",
+                                              "communes":  [
+                                                               "Ambatoafo",
+                                                               "Amboangibe",
+                                                               "Ambodiampana",
+                                                               "Ambodivoara",
+                                                               "Ambohimalaza",
+                                                               "Ambohimitsinjo",
+                                                               "Analamaho",
+                                                               "Andrahanjo",
+                                                               "Andratamarina",
+                                                               "Andrembona",
+                                                               "Anjangoveratra",
+                                                               "Anjialava",
+                                                               "Anjinjaomby",
+                                                               "Antindra",
+                                                               "Antsahavaribe",
+                                                               "Antsambaharo",
+                                                               "Bemanevika",
+                                                               "Bevonotra",
+                                                               "Farahalana",
+                                                               "Maroambihy",
+                                                               "Marogaona",
+                                                               "Marojala",
+                                                               "Morafeno",
+                                                               "Nosiarina",
+                                                               "Sambava",
+                                                               "Tanambao Daoud",
+                                                               "Andapabe",
+                                                               "Mahasoa Antindra"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Vohemar",
+                                              "communes":  [
+                                                               "Ambalasatrana",
+                                                               "Ambinanin \u0027 Andravory",
+                                                               "Amboriala",
+                                                               "Ampanefena",
+                                                               "Ampisikinana",
+                                                               "Ampondra",
+                                                               "Andrafainkona",
+                                                               "Andravory",
+                                                               "Ambodisambalahy",
+                                                               "Antsirabe Nord",
+                                                               "Belambo",
+                                                               "Bobakindro",
+                                                               "Daraina",
+                                                               "Fanambana",
+                                                               "Maromokotra Loky",
+                                                               "Milanoa",
+                                                               "Nosibe",
+                                                               "Tsarabaria",
+                                                               "Vohemar"
+                                                           ]
+                                          }
+                                      ]
+                    },
+                    {
+                        "name":  "Analamanga",
+                        "districts":  [
+                                          {
+                                              "name":  "Ambohidratrimo",
+                                              "communes":  [
+                                                               "Ambato",
+                                                               "Ambatolampy",
+                                                               "Antehiroka",
+                                                               "Ambohidratrimo",
+                                                               "Ambohimanjaka",
+                                                               "Ambohipihaonana",
+                                                               "Ambohitrimanjaka",
+                                                               "Ampangabe",
+                                                               "Ampanotokana",
+                                                               "Anjanadoria",
+                                                               "Anosiala",
+                                                               "Antanetibe",
+                                                               "Antsahafilo",
+                                                               "Avaratsena",
+                                                               "Fiadanana",
+                                                               "Iarinarivo",
+                                                               "Ivato",
+                                                               "Mahabo",
+                                                               "Mahereza",
+                                                               "Mahitsy",
+                                                               "Mananjara",
+                                                               "Manjakavaradrano",
+                                                               "Merimandroso",
+                                                               "Talatamaty"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Andramasina",
+                                              "communes":  [
+                                                               "Alarobia Vatosola",
+                                                               "Alatsinainy Bakaro",
+                                                               "Ambohimiadana",
+                                                               "Andohariana",
+                                                               "Andramasina",
+                                                               "Anjoma Faliarivo",
+                                                               "Anosibe Trimoloharano",
+                                                               "Antotohazo",
+                                                               "Fitsinjovana Bakaro",
+                                                               "Mandrosoa",
+                                                               "Morarano Soa Firaisana",
+                                                               "Sabotsy Ambohitromby",
+                                                               "Sabotsy Manjakavahoaka",
+                                                               "Tankafatra"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Anjozorobe",
+                                              "communes":  [
+                                                               "Alakamisy",
+                                                               "Ambatomanoina",
+                                                               "Amboasary Nord",
+                                                               "Ambohibary Vohilena",
+                                                               "Ambohimarina Marovazaha",
+                                                               "Ambohimirary",
+                                                               "Ambongamarina",
+                                                               "Amparatanjona",
+                                                               "Analaroa",
+                                                               "Andranomisa",
+                                                               "Androvakely",
+                                                               "Anjozorobe",
+                                                               "Antanetibe",
+                                                               "Belanitra",
+                                                               "Beronono",
+                                                               "Betatao",
+                                                               "Mangamila",
+                                                               "Marotsipoy",
+                                                               "Tsarasaotra Andona"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Ankazobe",
+                                              "communes":  [
+                                                               "Ambohitromby",
+                                                               "Ambolotarakely",
+                                                               "Andranomiely",
+                                                               "Ankazobe",
+                                                               "Antakavana",
+                                                               "Antotohazo",
+                                                               "Fiadanana",
+                                                               "Fihaonana",
+                                                               "Kiangara",
+                                                               "Mahavelona",
+                                                               "Mangasoavina",
+                                                               "Marondry",
+                                                               "Miantso",
+                                                               "Talata-Angavo",
+                                                               "Tsaramasoandro"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Antananarivo Atsimondrano",
+                                              "communes":  [
+                                                               "Alakamisy Fenoarivo",
+                                                               "Alatsinainy Ambazaha",
+                                                               "Ambalavao",
+                                                               "Ambatofahavalo",
+                                                               "Ambavahaditokana",
+                                                               "Ambohidrapeto",
+                                                               "Ambohijanaka",
+                                                               "Ampahitrosy",
+                                                               "Ampanefy",
+                                                               "Ampitatafika",
+                                                               "Andoharanofotsy",
+                                                               "Andranonahoatra",
+                                                               "Androhibe",
+                                                               "Ankadimanga",
+                                                               "Ankaraobato",
+                                                               "Anosizato Andrefana",
+                                                               "Antanetikely",
+                                                               "Bemasoandro",
+                                                               "Bongatsara",
+                                                               "Fenoarivo",
+                                                               "Fiombonana",
+                                                               "Itaosy",
+                                                               "Soalandy",
+                                                               "Soavina",
+                                                               "Tanjombato",
+                                                               "Tsiafahy"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Antananarivo Avaradrano",
+                                              "communes":  [
+                                                               "Alasora",
+                                                               "Ambohimalaza Miray",
+                                                               "Ambohimanambola",
+                                                               "Ambohimanga Rova",
+                                                               "Ambohimangakely",
+                                                               "Ambohidrabiby",
+                                                               "Anjeva Gara",
+                                                               "Ankadikely Ilafy",
+                                                               "Ankadinandriana",
+                                                               "Anosy Avaratra",
+                                                               "Fieferana",
+                                                               "Manandriana",
+                                                               "Masindray",
+                                                               "Sabotsy Namehana",
+                                                               "Talata Volonondry",
+                                                               "Vilihazo"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Manjakandriana",
+                                              "communes":  [
+                                                               "Alarobia",
+                                                               "Ambanitsena",
+                                                               "Ambatolaona",
+                                                               "Ambatomanga",
+                                                               "Ambatomena",
+                                                               "Ambohibao Sud",
+                                                               "Ambohibary",
+                                                               "Ambohitrandriamanitra",
+                                                               "Ambohitrolomahitsy",
+                                                               "Ambohitrony",
+                                                               "Ambohitseheno",
+                                                               "Ampaneva",
+                                                               "Anjepy",
+                                                               "Anjoma Betoho",
+                                                               "Ankazodandy",
+                                                               "Antsahalalina",
+                                                               "Manjakandriana",
+                                                               "Mantasoa",
+                                                               "Merikanjaka",
+                                                               "Miadanandriana",
+                                                               "Nandihizana Carion",
+                                                               "Ranovao",
+                                                               "Sadabe",
+                                                               "Sambaina",
+                                                               "Soavinandriana (Ambohidratrimoanala)"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Antananarivo-I",
+                                              "communes":  [
+                                                               "Commune Urbaine D\u0027antananarivo"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Antananarivo-Ii",
+                                              "communes":  [
+                                                               "Commune Urbaine D\u0027antananarivo"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Antananarivo-Iii",
+                                              "communes":  [
+                                                               "Commune Urbaine D\u0027antananarivo"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Antananarivo-Iv",
+                                              "communes":  [
+                                                               "Commune Urbaine D\u0027antananarivo"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Antananarivo-V",
+                                              "communes":  [
+                                                               "Commune Urbaine D\u0027antananarivo"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Antananarivo-Vi",
+                                              "communes":  [
+                                                               "Commune Urbaine D\u0027antananarivo"
+                                                           ]
+                                          }
+                                      ]
+                    },
+                    {
+                        "name":  "Bongolava",
+                        "districts":  [
+                                          {
+                                              "name":  "Fenoarivobe",
+                                              "communes":  [
+                                                               "Ambatomainty Sud",
+                                                               "Ambohitromby",
+                                                               "Fenoarivobe",
+                                                               "Firavahana",
+                                                               "Kiranomena",
+                                                               "Mahajeby",
+                                                               "Morarano Maritampona",
+                                                               "Tsinjoarivo 22",
+                                                               "Mangatany",
+                                                               "Andriampotsy"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Tsiroanomandidy",
+                                              "communes":  [
+                                                               "Ambalanirana",
+                                                               "Ambararatabe",
+                                                               "Ambatolampy",
+                                                               "Ankadinondry Sakay",
+                                                               "Ankerana Nord",
+                                                               "Anosy",
+                                                               "Belobaka",
+                                                               "Bemahatazana",
+                                                               "Bevato",
+                                                               "Fierenana",
+                                                               "Mahasolo",
+                                                               "Maroharona",
+                                                               "Maritampona",
+                                                               "Miandrarivo",
+                                                               "Soanierana",
+                                                               "Tsinjoarivo-Imanga",
+                                                               "Tsiroanomandidy Fihaonana",
+                                                               "Tsiroanomandidy Ville",
+                                                               "Antsahalava",
+                                                               "Fiadanantsoa"
+                                                           ]
+                                          }
+                                      ]
+                    },
+                    {
+                        "name":  "Itasy",
+                        "districts":  [
+                                          {
+                                              "name":  "Arivonimamo",
+                                              "communes":  [
+                                                               "Alakamisikely",
+                                                               "Ambatomanga",
+                                                               "Ambatomirahavavy",
+                                                               "Amboanana",
+                                                               "Ambohimandry",
+                                                               "Ambohimasina",
+                                                               "Ambohipandrano",
+                                                               "Ambohitrambo",
+                                                               "Ampahimanga",
+                                                               "Andranomiely",
+                                                               "Antambolo",
+                                                               "Antenimbe",
+                                                               "Arivonimamo",
+                                                               "Arivonimamo Ii",
+                                                               "Imerintsiatosika",
+                                                               "Mahatsinjo Est",
+                                                               "Manalalondo",
+                                                               "Marofangady",
+                                                               "Miandrandra",
+                                                               "Miantsoarivo",
+                                                               "Morafeno",
+                                                               "Morarano",
+                                                               "Talata Tsimadilo"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Miarinarivo",
+                                              "communes":  [
+                                                               "Alatsinainikely",
+                                                               "Ambatomanjaka",
+                                                               "Analavory",
+                                                               "Andolofotsy",
+                                                               "Anosibe-Ifanja",
+                                                               "Antoby Est",
+                                                               "Manazary",
+                                                               "Mandiavato",
+                                                               "Miarinarivo",
+                                                               "Miarinarivo Ii",
+                                                               "Sarobaratra",
+                                                               "Soamahamanina",
+                                                               "Soavimbazaha",
+                                                               "Zoma Bealoka"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Soavinandriana",
+                                              "communes":  [
+                                                               "Ambatoasana Centre",
+                                                               "Amberomanga",
+                                                               "Amparaky",
+                                                               "Amparibohitra",
+                                                               "Ampary",
+                                                               "Ampefy",
+                                                               "Ankaranana",
+                                                               "Ankisabe",
+                                                               "Antanetibe",
+                                                               "Dondona",
+                                                               "Mahavelona",
+                                                               "Mananasy",
+                                                               "Masindray",
+                                                               "Soavinandriana",
+                                                               "Tamponala",
+                                                               "Ambohidanerana"
+                                                           ]
+                                          }
+                                      ]
+                    },
+                    {
+                        "name":  "Ihorombe",
+                        "districts":  [
+                                          {
+                                              "name":  "Iakora",
+                                              "communes":  [
+                                                               "Begogo",
+                                                               "Iakora",
+                                                               "Ranotsara Nord",
+                                                               "Andranombao",
+                                                               "Volambita"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Ihosy",
+                                              "communes":  [
+                                                               "Ambatolahy",
+                                                               "Ambia",
+                                                               "Analaliry",
+                                                               "Analavoka",
+                                                               "Andiolava",
+                                                               "Ankily",
+                                                               "Antsoha",
+                                                               "Ihosy",
+                                                               "Ilakaka-Be",
+                                                               "Menamaty-Iloto",
+                                                               "Irina",
+                                                               "Mahasoa",
+                                                               "Ranohira",
+                                                               "Sahambano",
+                                                               "Sakalalina",
+                                                               "Satrokala",
+                                                               "Soamatasy",
+                                                               "Tolohomiady",
+                                                               "Zazafotsy",
+                                                               "Andohan\u0027ilakaka"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Ivohibe",
+                                              "communes":  [
+                                                               "Antambohobe",
+                                                               "Ivohibe",
+                                                               "Ivongo",
+                                                               "Maropaika",
+                                                               "Kotipa",
+                                                               "Antaramena"
+                                                           ]
+                                          }
+                                      ]
+                    },
+                    {
+                        "name":  "Fitovinany",
+                        "districts":  [
+                                          {
+                                              "name":  "Ikongo",
+                                              "communes":  [
+                                                               "Ambatofotsy",
+                                                               "Ambinanitromby",
+                                                               "Ambohimisafy",
+                                                               "Ambolomadinika",
+                                                               "Ankarimbelo",
+                                                               "Antodinga",
+                                                               "Belemoka",
+                                                               "Ifanirea",
+                                                               "Ikongo",
+                                                               "Kalafotsy",
+                                                               "Manampatrana",
+                                                               "Maromiandra",
+                                                               "Sahalanona",
+                                                               "Tanakambana",
+                                                               "Tolongoina",
+                                                               "Tsifenokataka",
+                                                               "Andefampony"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Manakara",
+                                              "communes":  [
+                                                               "Ambahatrazo",
+                                                               "Ambahive",
+                                                               "Ambalaroka",
+                                                               "Ambalavero",
+                                                               "Ambandrika",
+                                                               "Ambila",
+                                                               "Amboanjo",
+                                                               "Ambohitsara-M",
+                                                               "Amborondra",
+                                                               "Ambotaka",
+                                                               "Ampasimanjeva",
+                                                               "Ampasimboraka",
+                                                               "Ampasipotsy Sud",
+                                                               "Analavory",
+                                                               "Anorombato",
+                                                               "Anteza",
+                                                               "Bekatra",
+                                                               "Betampona",
+                                                               "Fenomby",
+                                                               "Kianjanomby",
+                                                               "Lokomby",
+                                                               "Mahabako",
+                                                               "Mahamaibe",
+                                                               "Manakara",
+                                                               "Mangatsiotra",
+                                                               "Marofarihy",
+                                                               "Mavorano",
+                                                               "Mitanty",
+                                                               "Mizilo Gare",
+                                                               "Nihaonana Ambany",
+                                                               "Nosiala",
+                                                               "Onilahy",
+                                                               "Sahanambohitra",
+                                                               "Saharefo",
+                                                               "Sahasinaka",
+                                                               "Sakoana",
+                                                               "Sorombo",
+                                                               "Tataho",
+                                                               "Vatana",
+                                                               "Vinanitelo",
+                                                               "Vohilava Sahasondry",
+                                                               "Vohimanitra",
+                                                               "Vohimasina Nord",
+                                                               "Vohimasina Sud",
+                                                               "Vohimasy",
+                                                               "Ambohitrova",
+                                                               "Manjarivo",
+                                                               "Namorona"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Vohipeno",
+                                              "communes":  [
+                                                               "Andemaka",
+                                                               "Ankarimbary",
+                                                               "Anoloka",
+                                                               "Antananabo",
+                                                               "Ifatsy",
+                                                               "Ilakatra",
+                                                               "Ivato",
+                                                               "Lanivo",
+                                                               "Mahabo",
+                                                               "Mahasoabe",
+                                                               "Mahazoarivo",
+                                                               "Nato",
+                                                               "Onjatsy",
+                                                               "Sahalava",
+                                                               "Savana",
+                                                               "Vohilany",
+                                                               "Vohindava",
+                                                               "Vohipeno",
+                                                               "Vohitrindry",
+                                                               "Zafindrafady",
+                                                               "Amborobe"
+                                                           ]
+                                          }
+                                      ]
+                    },
+                    {
+                        "name":  "Vatovavy",
+                        "districts":  [
+                                          {
+                                              "name":  "Ifanadiana",
+                                              "communes":  [
+                                                               "Ambohimanga Sud",
+                                                               "Ambohimiera",
+                                                               "Analampasina",
+                                                               "Androrangavola",
+                                                               "Antaretra",
+                                                               "Antsindra",
+                                                               "Fasintsara",
+                                                               "Ifanadiana",
+                                                               "Kelilalina",
+                                                               "Maroharatra",
+                                                               "Marotoko",
+                                                               "Ranomafana",
+                                                               "Tsaratanana",
+                                                               "Ampasinambo",
+                                                               "Ambiabe"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Mananjary",
+                                              "communes":  [
+                                                               "Ambalahosy Nord",
+                                                               "Ambodinonoka",
+                                                               "Ambohimiarina Ii",
+                                                               "Ambohinihaonana",
+                                                               "Ambohitsara Est",
+                                                               "Andonabe",
+                                                               "Andranambolava",
+                                                               "Andranomavo",
+                                                               "Ankatafana",
+                                                               "Anosimparihy",
+                                                               "Antaretra",
+                                                               "Antsenavolo",
+                                                               "Kianjavato",
+                                                               "Mahatsara Iefaka",
+                                                               "Mahatsara Sud",
+                                                               "Mahavoky Nord",
+                                                               "Mahela",
+                                                               "Manakana Nord",
+                                                               "Mananjary",
+                                                               "Marofototra",
+                                                               "Marokarima",
+                                                               "Marosangy",
+                                                               "Morafeno",
+                                                               "Sandrohy",
+                                                               "Tsaravary",
+                                                               "Tsiatosika",
+                                                               "Vatohandrina",
+                                                               "Vohilava",
+                                                               "Tsarahafatra",
+                                                               "Marofody"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Nosy Varika",
+                                              "communes":  [
+                                                               "Ambahy",
+                                                               "Ambakobe",
+                                                               "Ambodiara",
+                                                               "Ambodilafa",
+                                                               "Ambodirian\u0027i Sahafary",
+                                                               "Ampasinambo",
+                                                               "Andara",
+                                                               "Androrangavola",
+                                                               "Angodongodona",
+                                                               "Antanambao",
+                                                               "Befody",
+                                                               "Fiadanana",
+                                                               "Nosy Varika",
+                                                               "Sahavato",
+                                                               "Soavina",
+                                                               "Vohidroa",
+                                                               "Vohilava",
+                                                               "Vohitrandriana",
+                                                               "Fanivelona"
+                                                           ]
+                                          }
+                                      ]
+                    },
+                    {
+                        "name":  "Amoron\u0027i Mania",
+                        "districts":  [
+                                          {
+                                              "name":  "Ambatofinandrahana",
+                                              "communes":  [
+                                                               "Ambatofinandrahana",
+                                                               "Ambatomifanongoa",
+                                                               "Ambondromisotra",
+                                                               "Amborompotsy",
+                                                               "Fenoarivo",
+                                                               "Itremo",
+                                                               "Mandrosonoro",
+                                                               "Mangataboahangy",
+                                                               "Soavina"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Ambositra",
+                                              "communes":  [
+                                                               "Alakamisy Ambohijato",
+                                                               "Ambalamanakana",
+                                                               "Ambatofitorahana",
+                                                               "Ambinanindrano",
+                                                               "Ambohimitombo I",
+                                                               "Ambohimitombo Ii",
+                                                               "Ambositra",
+                                                               "Ambositra Banlieue",
+                                                               "Andina",
+                                                               "Ankazoambo",
+                                                               "Antoetra",
+                                                               "Fahizay",
+                                                               "Ihadilanana Ambohinamboa",
+                                                               "Ilaka Centre",
+                                                               "Imerina Imady",
+                                                               "Ivato Centre",
+                                                               "Ivony Miaramiasa",
+                                                               "Kianjandrakefina",
+                                                               "Mahazina Ambohipierenana",
+                                                               "Marosoa",
+                                                               "Sahatsiho Ambohimanjaka",
+                                                               "Tsarasaotra",
+                                                               "Vohidahy",
+                                                               "Ambohiperivoana",
+                                                               "Ankazotsararavina"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Fandriana",
+                                              "communes":  [
+                                                               "Alakamisy Ambohimahazo",
+                                                               "Ankarinoro",
+                                                               "Betsimisotra",
+                                                               "Fandriana",
+                                                               "Fiadanana",
+                                                               "Imito",
+                                                               "Mahazoarivo",
+                                                               "Miarinavaratra",
+                                                               "Milamaina",
+                                                               "Sahamadio Fisakana",
+                                                               "Sandrandahy",
+                                                               "Tatamalaza",
+                                                               "Tsarazaza",
+                                                               "Soanakambana",
+                                                               "Isandrandahy Ambony"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Manandriana",
+                                              "communes":  [
+                                                               "Ambatomarina",
+                                                               "Ambohimahazo",
+                                                               "Ambohimilanja",
+                                                               "Ambohipo",
+                                                               "Ambovombe Centre",
+                                                               "Andakatany",
+                                                               "Anjoma Nandihizana",
+                                                               "Anjoman \u0027 Ankona",
+                                                               "Talata Vohimena",
+                                                               "Vinany Andakatanikely",
+                                                               "Soatanana",
+                                                               "Ilanjana"
+                                                           ]
+                                          }
+                                      ]
+                    },
+                    {
+                        "name":  "Atsimo-Atsinanana",
+                        "districts":  [
+                                          {
+                                              "name":  "Befotaka Atsimo",
+                                              "communes":  [
+                                                               "Antaninarenina",
+                                                               "Antondabe",
+                                                               "Befotaka Sud",
+                                                               "Beharena",
+                                                               "Bekofafa Sud",
+                                                               "Marovitsika Sud",
+                                                               "Ranotsara Sud",
+                                                               "Antokoboritelo",
+                                                               "Inosy"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Farafangana",
+                                              "communes":  [
+                                                               "Ambalatany",
+                                                               "Ambalavato Nord",
+                                                               "Ambalavato/Antevato",
+                                                               "Ambohigogo",
+                                                               "Ambohimandroso",
+                                                               "Amporoforo",
+                                                               "Ankarana Miraihina",
+                                                               "Anosivelo",
+                                                               "Anosy Tsararafa",
+                                                               "Antseranambe",
+                                                               "Bevoay Beretra",
+                                                               "Efatsy Anandroza",
+                                                               "Etrotroka",
+                                                               "Evato",
+                                                               "Farafangana",
+                                                               "Fenoarivo",
+                                                               "Iabohazo",
+                                                               "Ihorombe",
+                                                               "Ivandrika",
+                                                               "Mahabo Mananivo",
+                                                               "Mahafasa Centre",
+                                                               "Mahavelo",
+                                                               "Maheriraty",
+                                                               "Manambotra Sud",
+                                                               "Marovandrika",
+                                                               "Namohora Iaborano",
+                                                               "Sahamadio",
+                                                               "Tangainony",
+                                                               "Tovona",
+                                                               "Vohilengo",
+                                                               "Vohimasy",
+                                                               "Vohitromby",
+                                                               "Vohilavan\u0027i Manampatrana"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Midongy Sud",
+                                              "communes":  [
+                                                               "Andranolalina",
+                                                               "Ankazovelo",
+                                                               "Ivondro Ex-Lavaraty",
+                                                               "Nosifeno",
+                                                               "Soakibany",
+                                                               "Zara Ex-Maliorano",
+                                                               "Bevaho"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Vangaindrano",
+                                              "communes":  [
+                                                               "Ambatolava",
+                                                               "Ambongo",
+                                                               "Amparihy Est",
+                                                               "Ampasimalemy",
+                                                               "Ampataka",
+                                                               "Anilobe",
+                                                               "Bekaraoky",
+                                                               "Bema",
+                                                               "Bevata",
+                                                               "Vohipaho",
+                                                               "Fenoambany",
+                                                               "Iara",
+                                                               "Isahara",
+                                                               "Karimbary",
+                                                               "Lohafary",
+                                                               "Lopary",
+                                                               "Manambondro",
+                                                               "Marokibo",
+                                                               "Masianaka",
+                                                               "Matanga",
+                                                               "Ranomena",
+                                                               "Sandravinany",
+                                                               "Soamanova",
+                                                               "Tsianofana",
+                                                               "Tsiately",
+                                                               "Vangaindrano",
+                                                               "Vatanato",
+                                                               "Vohimalaza",
+                                                               "Vohitrambo",
+                                                               "Mahabe",
+                                                               "Fonilaza"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Vondrozo",
+                                              "communes":  [
+                                                               "Ambohimana",
+                                                               "Anandravy",
+                                                               "Andakana",
+                                                               "Antokonala",
+                                                               "Iamonta",
+                                                               "Ivato",
+                                                               "Karianga",
+                                                               "Mahatsinjo",
+                                                               "Mahavelo",
+                                                               "Mahazoarivo",
+                                                               "Manambidala",
+                                                               "Manato",
+                                                               "Moroteza",
+                                                               "Vohiboreka",
+                                                               "Vohimary",
+                                                               "Vondrozo",
+                                                               "Ambodirano",
+                                                               "Andoharano"
+                                                           ]
+                                          }
+                                      ]
+                    },
+                    {
+                        "name":  "Matsiatra Ambony",
+                        "districts":  [
+                                          {
+                                              "name":  "Ambalavao",
+                                              "communes":  [
+                                                               "Ambalavao",
+                                                               "Ambinanindovoka",
+                                                               "Ambinaniroa",
+                                                               "Ambohimahamasina",
+                                                               "Ambohimandroso",
+                                                               "Andrainjato",
+                                                               "Anjoma",
+                                                               "Ankaramena",
+                                                               "Besoa",
+                                                               "Fenoarivo",
+                                                               "Iarintsena",
+                                                               "Kirano",
+                                                               "Mahazony",
+                                                               "Manamisoa",
+                                                               "Miarinarivo",
+                                                               "Sendrisoa",
+                                                               "Vohitsaoka",
+                                                               "Namoly",
+                                                               "Volamena"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Ambohimahasoa",
+                                              "communes":  [
+                                                               "Ambalakindresy",
+                                                               "Ambatosoa",
+                                                               "Ambohimahasoa",
+                                                               "Ambohinamboarina",
+                                                               "Ampitana",
+                                                               "Ankafina Tsarafidy",
+                                                               "Ankerana",
+                                                               "Befeta",
+                                                               "Camp Robin",
+                                                               "Fiadanana",
+                                                               "Isaka",
+                                                               "Ikalalao",
+                                                               "Manandroy",
+                                                               "Morafeno",
+                                                               "Sahatona",
+                                                               "Sahave",
+                                                               "Vohiposa",
+                                                               "Vohitrarivo"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Fianarantsoa",
+                                              "communes":  [
+                                                               "Cu Fianarantsoa"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Isandra",
+                                              "communes":  [
+                                                               "Ambalamidera Ii",
+                                                               "Ambondrona",
+                                                               "Andoharanomaitso",
+                                                               "Anjoma Itsara",
+                                                               "Ankarinarivo Manirisoa",
+                                                               "Fanjakana",
+                                                               "Iavinomby Vohibola",
+                                                               "Isorana",
+                                                               "Mahazoarivo",
+                                                               "Nasandratrony",
+                                                               "Soatanana",
+                                                               "Andreamalama",
+                                                               "Ambalamidera Ambohimana"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Ikalamavony",
+                                              "communes":  [
+                                                               "Ambatomainty",
+                                                               "Fitampito",
+                                                               "Ikalamavony",
+                                                               "Mangidy",
+                                                               "Tanamarina Sakay",
+                                                               "Solila",
+                                                               "Tanamarina Bekisopa",
+                                                               "Tsitondroina"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Vohibato",
+                                              "communes":  [
+                                                               "Alakamisy Itenina",
+                                                               "Andranomiditra",
+                                                               "Andranovorivato",
+                                                               "Mahaditra",
+                                                               "Mahasoabe",
+                                                               "Maneva",
+                                                               "Soaindrana",
+                                                               "Talata Ampano",
+                                                               "Vinanitelo",
+                                                               "Vohimarina",
+                                                               "Vohitrafeno",
+                                                               "Ihazoara",
+                                                               "Ankaromalaza Mifanasoa",
+                                                               "Vohibato Ouest",
+                                                               "Lamosina",
+                                                               "Anjanomanona Tsimiavaka"
+                                                           ]
+                                          },
+                                          {
+                                              "name":  "Lalangina",
+                                              "communes":  [
+                                                               "Alakamisy Ambohimaha",
+                                                               "Alatsinainy Ialamarina",
+                                                               "Ambalakely",
+                                                               "Ambalamahasoa",
+                                                               "Andrainjato Centre",
+                                                               "Andrainjato Est",
+                                                               "Androy",
+                                                               "Fandrandava",
+                                                               "Ialananindro",
+                                                               "Ivoamba",
+                                                               "Mahatsinjony",
+                                                               "Sahambavy",
+                                                               "Taindambo",
+                                                               "Sahafata",
+                                                               "Ampatsy Ampangabe",
+                                                               "Vinaninoro Andrefana"
+                                                           ]
+                                          }
+                                      ]
+                    }
+                ]
+}

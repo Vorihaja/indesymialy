@@ -1,0 +1,1 @@
+import { ManageSocialUseCase } from "@/modules/social-core"; import { PublicProfileService } from "../services"; export class ManagePublicProfilesUseCase extends ManageSocialUseCase { constructor() { super(new PublicProfileService()); } }

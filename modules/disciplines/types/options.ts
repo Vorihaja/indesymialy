@@ -1,0 +1,1 @@
+export type DisciplineOption = { id: string; name: string; slug: string };

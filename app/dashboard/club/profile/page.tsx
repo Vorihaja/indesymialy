@@ -1,0 +1,2 @@
+"use client"; import { ClubProfilePage } from "@/modules/clubs"; import { useClubActive } from "@/modules/clubs/components/ClubWorkspace";
+export default function Page() { const { clubId } = useClubActive(); return <ClubProfilePage clubId={clubId} />; }

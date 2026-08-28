@@ -1,6 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/client";
+import type { RealtimeChannel } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
+
+const CHANNEL_NAME = "breaking_news_live_home";
 
 const FALLBACK = [
   "Gala Open MMA Mahajanga : Inscriptions ouvertes jusqu'au 15 juillet.",
@@ -11,23 +14,49 @@ const FALLBACK = [
 
 export default function BreakingNews() {
   const [items, setItems] = useState<string[]>(FALLBACK);
-  const supabase = createClient();
-
   useEffect(() => {
-    (async () => {
+    let isMounted = true;
+    let channel: RealtimeChannel | null = null;
+
+    const loadBreakingNews = async () => {
       const { data } = await supabase.from("breaking_news").select("text").order("created_at", { ascending: false }).limit(20);
-      if (data && data.length > 0) {
-        setItems(data.map((d: any) => d.text));
+      if (isMounted && data && data.length > 0) {
+        setItems(data.map((item) => item.text));
       }
-    })();
+    };
 
-    // temps réel : dès que tu ajoutes une news dans Supabase, ça update sans refresh
-    const channel = supabase.channel("breaking_news_live").on("postgres_changes", { event: "*", schema: "public", table: "breaking_news" }, async () => {
-      const { data } = await supabase.from("breaking_news").select("text").order("created_at", { ascending: false }).limit(20);
-      if (data?.length) setItems(data.map((d: any) => d.text));
-    }).subscribe();
+    // temps réel : mise à jour en temps réel sans rechargement
+    const setupRealtime = async () => {
+      await loadBreakingNews();
 
-    return () => { supabase.removeChannel(channel); };
+      const topic = `realtime:${CHANNEL_NAME}`;
+      const existingChannel = supabase.getChannels().find((candidate) => candidate.topic === topic);
+      if (existingChannel) {
+        await supabase.removeChannel(existingChannel);
+      }
+
+      if (!isMounted) return;
+
+      channel = supabase
+        .channel(CHANNEL_NAME)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "breaking_news" },
+          () => {
+            void loadBreakingNews();
+          },
+        )
+        .subscribe();
+    };
+
+    void setupRealtime();
+
+    return () => {
+      isMounted = false;
+      if (channel) {
+        void supabase.removeChannel(channel);
+      }
+    };
   }, []);
 
   const scrollingText = items.join(" • ");

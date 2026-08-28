@@ -1,0 +1,1 @@
+import{SportService}from"@/modules/sport-development-core/services";import{SportObjectivesRepository}from"../repositories";export class SportObjectivesService extends SportService{constructor(){super(new SportObjectivesRepository());}}

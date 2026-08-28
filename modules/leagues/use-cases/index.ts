@@ -1,0 +1,1 @@
+import { ManageErpRecordsUseCase } from "@/modules/erp-core"; import { LeagueService } from "../services"; export class ManageLeagueClubsUseCase extends ManageErpRecordsUseCase { constructor() { super(new LeagueService()); } }

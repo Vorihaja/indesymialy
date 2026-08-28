@@ -1,0 +1,1 @@
+import{ExploreDiscoveryUseCase}from"@/modules/discovery-core/use-cases/explore-discovery.use-case";import{GalleriesService}from"../services";export class ExploreGalleriesUseCase extends ExploreDiscoveryUseCase{constructor(){super(new GalleriesService());}}

@@ -1,0 +1,1 @@
+import { SocialManagementFeature } from "@/modules/social-core"; import { SOCIAL_MODULES } from "@/modules/social-modules"; export function DiscussionsFeature(props: { mode?: "list" | "create" | "detail"; recordId?: string }) { return <SocialManagementFeature definition={SOCIAL_MODULES.discussions} {...props}/>; }

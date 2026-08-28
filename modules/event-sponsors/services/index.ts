@@ -1,0 +1,1 @@
+import{EventPlatformService}from"@/modules/event-core/services/event-platform.service";import{EventSponsorsRepository}from"../repositories";export class EventSponsorsService extends EventPlatformService{constructor(){super(new EventSponsorsRepository());}}

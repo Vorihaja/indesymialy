@@ -1,0 +1,1 @@
+import { ManageSocialUseCase } from "@/modules/social-core"; import { ShareService } from "../services"; export class ManageSharesUseCase extends ManageSocialUseCase { constructor() { super(new ShareService()); } }

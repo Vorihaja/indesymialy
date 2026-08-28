@@ -1,0 +1,1 @@
+import { MediaFeature } from "@/modules/media"; export default async function Page({ params }: { params: Promise<{ id: string }> }) { const { id } = await params; return <MediaFeature mode="detail" recordId={id}/>; }

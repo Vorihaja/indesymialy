@@ -1,0 +1,1 @@
+import{MarketplaceTransactionService}from"../services";export class ListMarketplaceTransactionsUseCase{constructor(private readonly service:MarketplaceTransactionService){}execute(){return this.service.list()}}

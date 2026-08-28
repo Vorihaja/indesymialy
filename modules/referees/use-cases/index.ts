@@ -1,0 +1,1 @@
+import { ManageErpRecordsUseCase } from "@/modules/erp-core"; import { RefereeService } from "../services"; export class ManageRefereeAssignmentsUseCase extends ManageErpRecordsUseCase { constructor() { super(new RefereeService()); } }

@@ -1,0 +1,1 @@
+import{InventoryRepository}from"../repositories";import{InventoryService}from"../services";import{ManageInventoryUseCase}from"../use-cases";export const createInventoryUseCase=()=>new ManageInventoryUseCase(new InventoryService(new InventoryRepository()));

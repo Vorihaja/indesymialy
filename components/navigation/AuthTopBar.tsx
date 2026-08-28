@@ -1,266 +1,924 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
-import { ChevronDown, LayoutDashboard, LogOut, User, PlusCircle, Clock } from "lucide-react";
-import type { Session } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabase";
-import { ROLE_DASHBOARD_PATHS, getRoleDashboardPath } from "@/lib/role-routing";
-import { useRoleRequest } from "@/providers/roles/RoleRequestContext";
 
-interface AuthTopBarProps {
-  isLightMode?: boolean;
-}
+import {
+  usePathname,
+  useRouter,
+} from "next/navigation";
 
-interface RoleOption {
+import {
+  Briefcase,
+  Check,
+  ChevronDown,
+  LayoutDashboard,
+  LogOut,
+  Plus,
+  Settings,
+  Shield,
+  UserRound,
+} from "lucide-react";
+
+import {
+  Avatar,
+  Button,
+} from "@/components/ui";
+
+import {
+  getWorkspaceDashboardPath,
+  getWorkspaceLabel,
+} from "@/modules/workspace-registry";
+
+import {
+  useRoleRequest,
+} from "@/providers/roles/RoleRequestContext";
+
+import {
+  useAuth,
+  useLogout,
+  useRole,
+} from "@/modules/auth";
+
+
+interface WorkspaceOption {
   slug: string;
+
   label: string;
+
+  kind:
+    | "business"
+    | "system";
 }
 
-const ROLE_LABELS: Record<string, string> = {
-  super_admin: "Super Admin",
-  federation: "Fédération",
-  ligue: "Ligue",
-  club: "Club / Dojo",
-  coach: "Coach",
-  combattant: "Combattant",
-  arbitre: "Arbitre / Juge",
-  juge: "Arbitre / Juge",
-  organisateur: "Organisateur",
-  sponsor: "Sponsor",
-  vendeur: "Vendeur",
-  fan: "Fan",
-};
 
-export default function AuthTopBar({ isLightMode = false }: AuthTopBarProps) {
-  const [session, setSession] = useState<Session | null>(null);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [userRoles, setUserRoles] = useState<RoleOption[]>([]);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
-  const pathname = usePathname();
-  const { openModal, hasPendingRequest } = useRoleRequest();
+function pathMatchesWorkspace(
+  pathname: string,
+  roleSlug: string,
+) {
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session?.user) {
-        void fetchUserRoles(session.user.id, session.user.email);
-      }
-    });
+  const dashboardPath =
+    getWorkspaceDashboardPath(
+      roleSlug,
+    );
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
-      if (nextSession?.user) {
-        void fetchUserRoles(nextSession.user.id, nextSession.user.email);
-      } else {
-        setIsMenuOpen(false);
-        setUserRoles([]);
-      }
-    });
 
-    return () => subscription.unsubscribe();
-  }, []);
+  if (
+    !dashboardPath ||
+    dashboardPath === "/dashboard"
+  ) {
 
-  const fetchUserRoles = async (userId: string, email?: string) => {
-    if (email === "jayaherve@proton.me") {
-      setUserRoles([
-        { slug: "super_admin", label: "Super Admin" },
-        { slug: "fan", label: "Fan" },
-      ]);
-      return;
-    }
+    return false;
+  }
 
-    const { data } = await supabase
-      .from("user_roles")
-      .select("roles(slug, label)")
-      .eq("user_id", userId);
 
-    if (data && data.length > 0) {
-      const rolesList: RoleOption[] = [];
-      data.forEach((item: any) => {
-        const r = Array.isArray(item.roles) ? item.roles[0] : item.roles;
-        if (r?.slug) {
-          rolesList.push({
-            slug: r.slug,
-            label: r.label || ROLE_LABELS[r.slug] || r.slug,
-          });
+  return (
+    pathname === dashboardPath ||
+    pathname.startsWith(
+      `${dashboardPath}/`,
+    )
+  );
+}
+
+
+export default function AuthTopBar() {
+
+  const [
+    open,
+    setOpen,
+  ] =
+    useState(false);
+
+
+  const ref =
+    useRef<HTMLDivElement>(
+      null,
+    );
+
+
+  const router =
+    useRouter();
+
+
+  const pathname =
+    usePathname();
+
+
+  const {
+    user,
+    profile,
+  } =
+    useAuth();
+
+
+  const {
+    roles,
+    systemRoles,
+  } =
+    useRole();
+
+
+  const {
+    logout,
+  } =
+    useLogout();
+
+
+  const {
+    openModal,
+  } =
+    useRoleRequest();
+
+
+  // =========================================================
+  // BUSINESS WORKSPACES
+  // =========================================================
+
+  const businessOptions =
+    useMemo<WorkspaceOption[]>(
+      () =>
+        roles.map(
+          (role) => ({
+            slug:
+              role.slug,
+
+            label:
+              getWorkspaceLabel(
+                role.slug,
+              ) ??
+              role.label ??
+              role.slug,
+
+            kind:
+              "business",
+          }),
+        ),
+      [
+        roles,
+      ],
+    );
+
+
+  // =========================================================
+  // SYSTEM WORKSPACES
+  // =========================================================
+
+  const systemOptions =
+    useMemo<WorkspaceOption[]>(
+      () =>
+        systemRoles.map(
+          (role) => ({
+            slug:
+              role.code,
+
+            label:
+              getWorkspaceLabel(
+                role.code,
+              ) ??
+              role.label ??
+              role.code,
+
+            kind:
+              "system",
+          }),
+        ),
+      [
+        systemRoles,
+      ],
+    );
+
+
+  const options =
+    useMemo(
+      () => [
+        ...businessOptions,
+        ...systemOptions,
+      ],
+      [
+        businessOptions,
+        systemOptions,
+      ],
+    );
+
+
+  // =========================================================
+  // ACTIVE WORKSPACE
+  //
+  // L'URL reste la source de vérité.
+  // =========================================================
+
+  const active =
+    useMemo(
+      () => {
+
+        const matched =
+          options
+            .filter(
+              (option) =>
+                pathMatchesWorkspace(
+                  pathname,
+                  option.slug,
+                ),
+            )
+            .sort(
+              (
+                left,
+                right,
+              ) => {
+
+                const leftPath =
+                  getWorkspaceDashboardPath(
+                    left.slug,
+                  );
+
+
+                const rightPath =
+                  getWorkspaceDashboardPath(
+                    right.slug,
+                  );
+
+
+                return (
+                  rightPath.length -
+                  leftPath.length
+                );
+              },
+            )[0];
+
+
+        if (
+          matched
+        ) {
+
+          return matched;
         }
-      });
-      setUserRoles(rolesList.length ? rolesList : [{ slug: "fan", label: "Fan" }]);
-    } else {
-      setUserRoles([{ slug: "fan", label: "Fan" }]);
-    }
-  };
+
+
+        return (
+          businessOptions[0] ??
+          systemOptions[0]
+        );
+
+      },
+      [
+        businessOptions,
+        options,
+        pathname,
+        systemOptions,
+      ],
+    );
+
+
+  // =========================================================
+  // CLOSE MENU
+  // =========================================================
 
   useEffect(() => {
-    const closeMenu = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsMenuOpen(false);
+
+    const pointer = (
+      event: MouseEvent,
+    ) => {
+
+      if (
+        ref.current &&
+        !ref.current.contains(
+          event.target as Node,
+        )
+      ) {
+
+        setOpen(
+          false,
+        );
       }
     };
 
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsMenuOpen(false);
+
+    const key = (
+      event: KeyboardEvent,
+    ) => {
+
+      if (
+        event.key === "Escape"
+      ) {
+
+        setOpen(
+          false,
+        );
+      }
     };
 
-    document.addEventListener("mousedown", closeMenu);
-    document.addEventListener("keydown", closeOnEscape);
+
+    document.addEventListener(
+      "mousedown",
+      pointer,
+    );
+
+
+    document.addEventListener(
+      "keydown",
+      key,
+    );
+
+
     return () => {
-      document.removeEventListener("mousedown", closeMenu);
-      document.removeEventListener("keydown", closeOnEscape);
+
+      document.removeEventListener(
+        "mousedown",
+        pointer,
+      );
+
+
+      document.removeEventListener(
+        "keydown",
+        key,
+      );
     };
+
   }, []);
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push("/auth");
-    router.refresh();
-  };
 
-  const handleGoToMySpace = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      router.push("/auth");
-      return;
-    }
-    if (user.email === "jayaherve@proton.me") {
-      router.push("/admin");
-      return;
-    }
+  useEffect(() => {
 
-    const { data: userRole } = await supabase
-      .from("user_roles")
-      .select("roles(slug)")
-      .eq("user_id", user.id)
-      .limit(1)
-      .maybeSingle();
-    const role = userRole?.roles as { slug?: string } | { slug?: string }[] | null;
-    router.push(getRoleDashboardPath(Array.isArray(role) ? role[0]?.slug : role?.slug));
-  };
+    setOpen(
+      false,
+    );
 
-  const handleSelectRoleERP = (slug: string) => {
-    setIsMenuOpen(false);
-    const targetPath = ROLE_DASHBOARD_PATHS[slug] || "/dashboard";
-    router.push(targetPath);
-  };
+  }, [
+    pathname,
+  ]);
 
-  if (session) {
-    const displayName = session.user?.email?.split("@")[0] || "Compte";
+
+  // =========================================================
+  // GUEST
+  // =========================================================
+
+  if (
+    !user
+  ) {
 
     return (
-      <div ref={menuRef} className="relative flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setIsMenuOpen((isOpen) => !isOpen)}
-          aria-expanded={isMenuOpen}
-          aria-haspopup="menu"
-          className={`flex items-center gap-1.5 rounded-none border px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-wider transition-colors ${
-            isLightMode
-              ? "border-blue-600 bg-blue-600 text-white hover:border-blue-500 hover:bg-blue-500"
-              : "border-blue-600/50 bg-blue-900/40 text-blue-100 hover:border-blue-500 hover:bg-blue-800/60"
-          }`}
-        >
-          <User size={13} className="text-blue-300" />
-          <span className="max-w-[110px] truncate">{displayName}</span>
-          <ChevronDown size={14} className={`text-blue-300 transition-transform ${isMenuOpen ? "rotate-180" : ""}`} />
-        </button>
-
-        {isMenuOpen && (
-          <div
-            role="menu"
-            className={`absolute right-0 top-full z-[200] mt-2 w-56 border p-1 shadow-2xl backdrop-blur-md ${
-              isLightMode ? "border-slate-200 bg-white" : "border-neutral-800 bg-neutral-950/95"
-            }`}
-          >
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => {
-                setIsMenuOpen(false);
-                void handleGoToMySpace();
-              }}
-              className={`flex w-full items-center gap-2 px-3 py-2 text-left font-mono text-xs font-bold uppercase tracking-wider transition-colors ${
-                isLightMode ? "text-slate-700 hover:bg-blue-50 hover:text-blue-700" : "text-neutral-200 hover:bg-blue-500/15 hover:text-blue-300"
-              }`}
-            >
-              <LayoutDashboard size={14} />
-              Mon ESPACE
-            </button>
-
-            {/* BOUTON DE DEMANDE DE RÔLE OU STATUT AMBER DANS LE MENU DROPDOWN */}
-            <div className="border-t border-neutral-800 my-1 pt-1">
-              {hasPendingRequest ? (
-                <div className="flex items-center gap-1.5 px-3 py-2 font-mono text-xs font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 border border-amber-500/30">
-                  <Clock size={13} className="animate-spin shrink-0" />
-                  <span className="text-[10px]">En attente de validation</span>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    openModal();
-                  }}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left font-mono text-xs font-bold uppercase tracking-wider text-amber-400 hover:bg-amber-500/15 transition-colors"
-                >
-                  <PlusCircle size={14} />
-                  Demander un rôle
-                </button>
-              )}
-            </div>
-
-            {userRoles.length > 0 && (
-              <div className="border-t border-neutral-800 my-1 pt-1">
-                <div className="px-3 py-1 text-[10px] font-mono text-zinc-400 uppercase tracking-widest flex items-center justify-between">
-                  <span>Basculer d'ERP</span>
-                  <ChevronDown size={10} />
-                </div>
-                {userRoles.map((r) => (
-                  <button
-                    key={r.slug}
-                    type="button"
-                    onClick={() => handleSelectRoleERP(r.slug)}
-                    className={`flex w-full items-center justify-between px-3 py-1.5 text-left font-mono text-xs transition-colors ${
-                      isLightMode ? "text-slate-700 hover:bg-slate-100" : "text-zinc-300 hover:bg-neutral-900 hover:text-white"
-                    }`}
-                  >
-                    <span>{r.label}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <div className="border-t border-neutral-800 pt-1">
-              <button
-                type="button"
-                role="menuitem"
-                onClick={handleSignOut}
-                className={`flex w-full items-center gap-2 px-3 py-2 text-left font-mono text-xs font-bold uppercase tracking-wider transition-colors ${
-                  isLightMode ? "text-red-600 hover:bg-red-50" : "text-red-400 hover:bg-red-500/10"
-                }`}
-              >
-                <LogOut size={14} />
-                Se déconnecter
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+      <Button
+        onClick={() =>
+          router.push(
+            "/auth",
+          )
+        }
+        size="sm"
+      >
+        Connexion
+      </Button>
     );
   }
 
+
+  const email =
+    user.email ??
+    "";
+
+
+  const name =
+    email
+      .split("@")[0] ||
+    "Compte";
+
+
+  const initials =
+    name
+      .replace(
+        /[^a-zA-Z0-9]/g,
+        "",
+      )
+      .slice(
+        0,
+        2,
+      )
+      .toUpperCase() ||
+    "IM";
+
+
+  const activeLabel =
+    active?.label ??
+    "Membre";
+
+  const displayName =
+    profile?.fullName?.trim() ||
+    name;
+
+
+  const photoUrl =
+    profile?.photoUrl?.trim() ||
+    undefined;
+
+
+  const displayInitials =
+    displayName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(
+        (part) =>
+          part
+            .charAt(0)
+            .toUpperCase(),
+      )
+      .join("") ||
+    initials;
+
+
+  // =========================================================
+  // NAVIGATION
+  // =========================================================
+
+  function openWorkspace(
+    slug: string,
+  ) {
+
+    setOpen(
+      false,
+    );
+
+
+    router.push(
+      getWorkspaceDashboardPath(
+        slug,
+      ),
+    );
+  }
+
+
+  const signOut =
+    async () => {
+
+      setOpen(
+        false,
+      );
+
+
+      await logout();
+
+
+      router.push(
+        "/auth",
+      );
+
+
+      router.refresh();
+    };
+
+
+  // =========================================================
+  // UI
+  // =========================================================
+
+  const menuItemClass =
+    "flex min-h-9 w-full items-center gap-2.5 px-2.5 text-left text-[10px] font-semibold text-zinc-400 transition hover:bg-white/[0.045] hover:text-zinc-100";
+
+
+  const sectionLabelClass =
+    "px-2.5 pb-1 pt-2 text-[7px] font-black uppercase tracking-[0.16em] text-zinc-700";
+
+
   return (
-    <Link
-      href="/auth"
-      className={`rounded-none border px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-wider transition-colors ${
-        isLightMode
-          ? "border-red-600 bg-red-600 text-white hover:border-red-500 hover:bg-red-500"
-          : "border-red-700 bg-red-700 text-white hover:border-red-600 hover:bg-red-600"
-      }`}
+    <div
+      ref={
+        ref
+      }
+      className="relative"
     >
-      Se connecter
-    </Link>
+
+      {/* =====================================================
+          TOPBAR TRIGGER
+      ===================================================== */}
+
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={
+          open
+        }
+        onClick={() =>
+          setOpen(
+            (value) =>
+              !value,
+          )
+        }
+        className={[
+          "group",
+          "flex",
+          "h-9",
+          "items-center",
+          "gap-2",
+          "border",
+          "px-2",
+          "transition",
+          open
+            ? "border-white/[0.14] bg-white/[0.055]"
+            : "border-transparent hover:border-white/[0.08] hover:bg-white/[0.03]",
+        ].join(" ")}
+      >
+
+        <Avatar
+          size="sm"
+          src={photoUrl}
+          alt={displayName}
+          fallback={displayInitials}
+          className="shrink-0"
+        />
+
+
+        {/* AUTH-TOPBAR-ACTIVE-ROLE-TAG */}
+        <span className="hidden min-w-0 flex-col items-start sm:flex">
+
+          <span className="max-w-[138px] truncate text-[10px] font-black leading-none text-zinc-200">
+            {displayName}
+          </span>
+
+          <span
+            className="mt-1 inline-flex max-w-[138px] truncate border border-[#ff1638]/35 bg-[#ff1638]/10 px-1.5 py-[2px] text-[7px] font-black uppercase leading-none tracking-[0.10em] text-[#ff536b]"
+            title={activeLabel}
+          >
+            {activeLabel}
+          </span>
+
+        </span>
+
+
+        <ChevronDown
+          size={13}
+          className={[
+            "text-zinc-600",
+            "transition-transform",
+            open
+              ? "rotate-180"
+              : "",
+          ].join(" ")}
+        />
+
+      </button>
+
+
+      {/* =====================================================
+          MINIMAL ACCOUNT MENU
+      ===================================================== */}
+
+      {open ? (
+
+        <div
+          role="menu"
+          className="
+            absolute
+            right-0
+            top-[calc(100%+7px)]
+            z-[300]
+            w-[248px]
+            overflow-hidden
+            border
+            border-white/[0.09]
+            bg-[#0b0d11]/[0.98]
+            shadow-[0_22px_65px_rgba(0,0,0,0.58)]
+            backdrop-blur-xl
+          "
+        >
+
+          {/* =================================================
+              ACCOUNT ACTIONS
+          ================================================= */}
+
+          <div className="p-1.5">
+
+            {active ? (
+
+              <Link
+                role="menuitem"
+                href={
+                  getWorkspaceDashboardPath(
+                    active.slug,
+                  )
+                }
+                onClick={() =>
+                  setOpen(
+                    false,
+                  )
+                }
+                className={
+                  menuItemClass
+                }
+              >
+
+                <LayoutDashboard
+                  size={13}
+                  className="text-zinc-600"
+                />
+
+                <span className="flex-1">
+                  Mon espace
+                </span>
+
+              </Link>
+
+            ) : null}
+
+
+            <Link
+              role="menuitem"
+              href="/account"
+              onClick={() =>
+                setOpen(
+                  false,
+                )
+              }
+              className={
+                menuItemClass
+              }
+            >
+
+              <UserRound
+                size={13}
+                className="text-zinc-600"
+              />
+
+              <span className="flex-1">
+                Mon compte
+              </span>
+
+            </Link>
+
+
+            <Link
+              role="menuitem"
+              href="/account/preferences"
+              onClick={() =>
+                setOpen(
+                  false,
+                )
+              }
+              className={
+                menuItemClass
+              }
+            >
+
+              <Settings
+                size={13}
+                className="text-zinc-600"
+              />
+
+              <span className="flex-1">
+                Paramètres
+              </span>
+
+            </Link>
+
+          </div>
+
+
+          {/* =================================================
+              BUSINESS WORKSPACES
+          ================================================= */}
+
+          {businessOptions.length >
+          0 ? (
+
+            <div className="border-t border-white/[0.06] px-1.5 pb-1.5">
+
+              <div className={
+                sectionLabelClass
+              }>
+                Espaces
+              </div>
+
+
+              {businessOptions.map(
+                (role) => {
+
+                  const selected =
+                    active?.slug ===
+                      role.slug &&
+                    active?.kind ===
+                      "business";
+
+
+                  return (
+                    <button
+                      key={
+                        role.slug
+                      }
+                      type="button"
+                      role="menuitem"
+                      onClick={() =>
+                        openWorkspace(
+                          role.slug,
+                        )
+                      }
+                      className={[
+                        menuItemClass,
+                        selected
+                          ? "bg-[#2588ff]/[0.055] text-zinc-100"
+                          : "",
+                      ].join(" ")}
+                    >
+
+                      <Briefcase
+                        size={12}
+                        className={
+                          selected
+                            ? "text-[#4b9cff]"
+                            : "text-zinc-700"
+                        }
+                      />
+
+
+                      <span className="min-w-0 flex-1 truncate">
+                        {role.label}
+                      </span>
+
+
+                      {selected ? (
+
+                        <Check
+                          size={12}
+                          className="text-[#4b9cff]"
+                        />
+
+                      ) : null}
+
+                    </button>
+                  );
+                },
+              )}
+
+            </div>
+
+          ) : null}
+
+
+          {/* =================================================
+              SYSTEM ACCESS
+          ================================================= */}
+
+          {systemOptions.length >
+          0 ? (
+
+            <div className="border-t border-white/[0.06] px-1.5 pb-1.5">
+
+              <div className={
+                sectionLabelClass
+              }>
+                Système
+              </div>
+
+
+              {systemOptions.map(
+                (role) => {
+
+                  const selected =
+                    active?.slug ===
+                      role.slug &&
+                    active?.kind ===
+                      "system";
+
+
+                  return (
+                    <button
+                      key={
+                        role.slug
+                      }
+                      type="button"
+                      role="menuitem"
+                      onClick={() =>
+                        openWorkspace(
+                          role.slug,
+                        )
+                      }
+                      className={[
+                        menuItemClass,
+                        selected
+                          ? "bg-[#ff1638]/[0.055] text-zinc-100"
+                          : "",
+                      ].join(" ")}
+                    >
+
+                      <Shield
+                        size={12}
+                        className={
+                          selected
+                            ? "text-[#ff4058]"
+                            : "text-zinc-700"
+                        }
+                      />
+
+
+                      <span className="min-w-0 flex-1 truncate">
+                        {role.label}
+                      </span>
+
+
+                      {selected ? (
+
+                        <Check
+                          size={12}
+                          className="text-[#ff4058]"
+                        />
+
+                      ) : null}
+
+                    </button>
+                  );
+                },
+              )}
+
+            </div>
+
+          ) : null}
+
+
+          {/* =================================================
+              ROLE REQUEST
+          ================================================= */}
+
+          <div className="border-t border-white/[0.06] p-1.5">
+
+            <button
+              role="menuitem"
+              type="button"
+              onClick={() => {
+
+                setOpen(
+                  false,
+                );
+
+
+                openModal();
+              }}
+              className={
+                menuItemClass
+              }
+            >
+
+              <Plus
+                size={13}
+                className="text-zinc-600"
+              />
+
+              <span className="flex-1">
+                Ajouter ou demander un rôle
+              </span>
+
+            </button>
+
+          </div>
+
+
+          {/* =================================================
+              LOGOUT
+          ================================================= */}
+
+          <div className="border-t border-white/[0.06] bg-black/20 p-1.5">
+
+            <button
+              role="menuitem"
+              type="button"
+              onClick={() =>
+                void signOut()
+              }
+              className="
+                flex
+                min-h-9
+                w-full
+                items-center
+                gap-2.5
+                px-2.5
+                text-left
+                text-[10px]
+                font-semibold
+                text-zinc-600
+                transition
+                hover:bg-[#ff1638]/[0.06]
+                hover:text-[#ff4058]
+              "
+            >
+
+              <LogOut
+                size={13}
+              />
+
+              <span>
+                Déconnexion
+              </span>
+
+            </button>
+
+          </div>
+
+        </div>
+
+      ) : null}
+
+    </div>
   );
 }

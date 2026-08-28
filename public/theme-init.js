@@ -1,0 +1,1 @@
+try{var theme=localStorage.getItem('indesy-theme')||'system';var resolved=theme==='system'?(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):theme;document.documentElement.dataset.theme=resolved}catch{}

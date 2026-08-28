@@ -1,0 +1,1 @@
+import { ManageErpRecordsUseCase } from "@/modules/erp-core"; import { SponsorService } from "../services"; export class ManageSponsorCampaignsUseCase extends ManageErpRecordsUseCase { constructor() { super(new SponsorService()); } }

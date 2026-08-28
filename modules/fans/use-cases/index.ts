@@ -1,0 +1,1 @@
+import { ManageErpRecordsUseCase } from "@/modules/erp-core"; import { FanService } from "../services"; export class ManageFanFavoritesUseCase extends ManageErpRecordsUseCase { constructor() { super(new FanService()); } }

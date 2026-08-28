@@ -1,0 +1,1 @@
+import{ProfessionalService}from"@/modules/professional-core/services";import{SponsorshipContractsRepository}from"../repositories";export class SponsorshipContractsService extends ProfessionalService{constructor(){super(new SponsorshipContractsRepository());}}

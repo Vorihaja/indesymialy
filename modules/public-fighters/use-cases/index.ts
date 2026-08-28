@@ -1,0 +1,1 @@
+import{ExploreDiscoveryUseCase}from"@/modules/discovery-core/use-cases/explore-discovery.use-case";import{PublicFightersService}from"../services";export class ExplorePublicFightersUseCase extends ExploreDiscoveryUseCase{constructor(){super(new PublicFightersService());}}

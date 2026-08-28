@@ -1,0 +1,1 @@
+"use client";import{OperationsFeature,type OperationsView}from"@/modules/platform-operations-core/features";export function FeedbackFeature({view="list",detailId,createMode=false}:{view?:OperationsView;detailId?:string;createMode?:boolean}){return <OperationsFeature domain="feedback" view={view} detailId={detailId} createMode={createMode}/>;}

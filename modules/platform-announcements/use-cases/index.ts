@@ -1,0 +1,1 @@
+import{ManageOperationsUseCase}from"@/modules/platform-operations-core/use-cases";import{PlatformAnnouncementsService}from"../services";export class ManagePlatformAnnouncementsUseCase extends ManageOperationsUseCase{constructor(){super(new PlatformAnnouncementsService());}}

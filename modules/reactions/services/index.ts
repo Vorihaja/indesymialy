@@ -1,0 +1,1 @@
+import { SocialService } from "@/modules/social-core"; import { ReactionRepository } from "../repositories"; export class ReactionService extends SocialService { constructor() { super(new ReactionRepository()); } }

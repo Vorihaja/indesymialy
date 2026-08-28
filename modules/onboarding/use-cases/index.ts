@@ -1,0 +1,1 @@
+import{ManageIdentityUseCase}from"@/modules/identity-core/use-cases/manage-identity.use-case";import{OnboardingService}from"../services";export class ManageOnboardingUseCase extends ManageIdentityUseCase{constructor(){super(new OnboardingService());}}

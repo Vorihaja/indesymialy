@@ -1,0 +1,3 @@
+import type { ActiveClub } from "../types";
+import { ActiveClubRepository } from "../repositories/active-club.repository";
+export class ActiveClubService { constructor(private readonly repository: ActiveClubRepository) {} async resolve(profileId: string): Promise<ActiveClub | null> { const clubs = await this.repository.findByProfileId(profileId); const club = clubs.find((candidate) => candidate.organization_id !== null); if (!club || !club.organization_id) { if (clubs.length > 0) throw new Error("Le club associe au profil n'est relie a aucune organisation."); return null; } return { club, clubs, clubId: club.id, organizationId: club.organization_id }; } }

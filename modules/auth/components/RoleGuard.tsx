@@ -1,55 +1,81 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
 
-import { getUserRoles } from "../services/permissions.service";
+import {
+  ReactNode
+} from "react";
 
-import { supabase } from "@/lib/supabase";
+
+import {
+  useRole
+} from "../hooks/useRole";
+
+
+import type {
+  BusinessRole
+} from "../types";
+
+
 
 interface RoleGuardProps {
-  role: string;
+
+
+  role: BusinessRole;
+
+
   children: ReactNode;
+
+
   fallback?: ReactNode;
+
 }
 
+
+
+
 export default function RoleGuard({
+
   role,
+
   children,
+
   fallback = null,
-}: RoleGuardProps) {
-  const [allowed, setAllowed] = useState(false);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function checkRole() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+}: RoleGuardProps){
 
-      if (!user) {
-        setAllowed(false);
-        setLoading(false);
-        return;
-      }
 
-      const roles = await getUserRoles(user.id);
 
-      const hasRole = roles.some(
-        (item) => item.slug === role
-      );
+const {
+  hasRole,
+  loading
+}=useRole();
 
-      setAllowed(hasRole);
-      setLoading(false);
-    }
 
-    checkRole();
-  }, [role]);
 
-  if (loading) return null;
 
-  if (!allowed) {
-    return <>{fallback}</>;
-  }
 
-  return <>{children}</>;
+if(loading){
+
+return null;
+
+}
+
+
+
+
+
+if(!hasRole(role)){
+
+return <>{fallback}</>;
+
+}
+
+
+
+
+
+return <>{children}</>;
+
+
+
 }

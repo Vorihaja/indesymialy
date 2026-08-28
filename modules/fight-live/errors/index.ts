@@ -1,0 +1,1 @@
+export class FightLiveError extends Error { constructor(message: string, readonly code: "NOT_FOUND" | "FORBIDDEN" | "VALIDATION" | "LOCKED" | "UNEXPECTED") { super(message); this.name = "FightLiveError"; } }

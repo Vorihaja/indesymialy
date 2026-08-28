@@ -1,0 +1,1 @@
+import { createSupabaseBrowserClient } from "@/infrastructure/supabase/client";import{AttendanceRepository}from"../repositories/attendance.repository";import{AttendanceService}from"../services/attendance.service";export function createAttendanceService(){return new AttendanceService(new AttendanceRepository(createSupabaseBrowserClient()))}

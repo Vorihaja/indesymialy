@@ -1,0 +1,1 @@
+import{EventPlatformService}from"@/modules/event-core/services/event-platform.service";import{FightCardRepository}from"../repositories";export class FightCardService extends EventPlatformService{constructor(){super(new FightCardRepository());}}

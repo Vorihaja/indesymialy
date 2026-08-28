@@ -1,50 +1,206 @@
-import { supabase } from "@/lib/supabase";
-import type { Fighter } from "@/modules/fighters/types";
+import { FighterRepository } from "@/modules/fighters/repositories/fighter.repository";
+
+import type {
+  Fighter,
+  FighterDashboardData,
+  FighterStats,
+  FighterRecord,
+} from "@/modules/fighters/types";
 
 
-export async function getFighters(): Promise<Fighter[]> {
+export class FighterService {
+
+  constructor(
+    private readonly repository: FighterRepository =
+      new FighterRepository()
+  ) {}
 
 
-  const { data, error } = await supabase
-    .from("fighters")
-    .select("*");
 
+  async getFighters(): Promise<Fighter[]> {
 
-  if (error) {
-
-    throw error;
+    return this.repository.getAll();
 
   }
 
 
-  return data as Fighter[];
+
+  async getFighterById(
+    id: string
+  ): Promise<Fighter | null> {
+
+    return this.repository.getById(id);
+
+  }
+
+
+
+  async getProfileByUserId(
+    userId: string
+  ): Promise<Fighter | null> {
+
+    return this.repository.getByUserId(userId);
+
+  }
+
+
+
+  async getStats(
+    fighterId: string
+  ): Promise<FighterStats> {
+
+    return this.repository.getStats(fighterId);
+
+  }
+
+
+
+  async getRecords(
+    fighterId: string
+  ): Promise<FighterRecord[]> {
+
+    return this.repository.getRecords(fighterId);
+
+  }
+
+
+
+  async getDashboardData(
+    userId: string
+  ): Promise<FighterDashboardData | null> {
+
+
+    const fighter =
+      await this.repository.getByUserId(userId);
+
+
+
+    if (!fighter) {
+
+      return null;
+
+    }
+
+
+
+    const [
+      stats,
+      nextFight,
+    ] = await Promise.all([
+
+      this.repository.getStats(fighter.id),
+
+      this.repository.getNextFight(fighter.id),
+
+    ]);
+
+
+
+    const [
+      contractsCount,
+      sponsorsCount,
+      documentsCount,
+    ] = await Promise.all([
+
+      this.repository.countContracts(fighter.id),
+
+      this.repository.countSponsors(fighter.id),
+
+      this.repository.countDocuments(fighter.id),
+
+    ]);
+
+
+
+    return {
+
+      fighter,
+
+      stats,
+
+      nextFight,
+
+      contractsCount,
+
+      sponsorsCount,
+
+      documentsCount,
+
+    };
+
+  }
+
+
+
+
+  /**
+   * Mise à jour ancienne conservée
+   */
+  async updateProfile(
+    fighterId: string,
+    updates: Partial<Fighter>
+  ): Promise<Fighter | null> {
+
+
+    return this.repository.updateProfile(
+
+      fighterId,
+
+      updates
+
+    );
+
+  }
+
+
+
+
+  /**
+   * Mise à jour standard utilisée par FighterEditor
+   */
+  async updateFighter(
+    fighterId: string,
+    updates: Partial<Fighter>
+  ): Promise<Fighter | null> {
+
+
+    return this.repository.updateProfile(
+
+      fighterId,
+
+      updates
+
+    );
+
+  }
+
+
+
+
+  /**
+   * Création d'un combattant
+   * utilisée par FighterRegistration
+   */
+  async createFighter(
+    data: Partial<Fighter>
+  ): Promise<Fighter | null> {
+
+
+    return this.repository.create(
+
+      data
+
+    );
+
+  }
+
 
 }
 
 
 
+export function makeFighterService() {
 
-export async function getFighterById(
-  id:string
-):Promise<Fighter | null>{
-
-
-  const { data,error } = await supabase
-    .from("fighters")
-    .select("*")
-    .eq("id",id)
-    .single();
-
-
-
-  if(error){
-
-    return null;
-
-  }
-
-
-  return data as Fighter;
-
+  return new FighterService();
 
 }

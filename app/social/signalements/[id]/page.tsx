@@ -1,0 +1,1 @@
+import { ReportsFeature } from "@/modules/reports"; export default async function Page({ params }: { params: Promise<{ id: string }> }) { const { id } = await params; return <ReportsFeature mode="detail" recordId={id}/>; }

@@ -1,0 +1,1 @@
+import{ExploreDiscoveryUseCase}from"@/modules/discovery-core/use-cases/explore-discovery.use-case";import{DisciplinesService}from"../services";export class ExploreDisciplinesUseCase extends ExploreDiscoveryUseCase{constructor(){super(new DisciplinesService());}}

@@ -1,0 +1,1 @@
+import{OperationsService}from"@/modules/platform-operations-core/services";import{FeedbackRepository}from"../repositories";export class FeedbackService extends OperationsService{constructor(){super(new FeedbackRepository());}}

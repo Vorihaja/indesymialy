@@ -1,0 +1,1 @@
+import{ManageOperationsUseCase}from"@/modules/platform-operations-core/use-cases";import{FeedbackService}from"../services";export class ManageFeedbackUseCase extends ManageOperationsUseCase{constructor(){super(new FeedbackService());}}

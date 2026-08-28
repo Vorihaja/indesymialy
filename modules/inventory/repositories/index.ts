@@ -1,0 +1,1 @@
+﻿import{createMarketplaceRuntimeRepository}from"@/modules/marketplace-core";const marketplaceRuntimeRepository=createMarketplaceRuntimeRepository();export class InventoryRepository{list(){return marketplaceRuntimeRepository.listInventory()}adjust(id:string,quantity:number,reason:string){return marketplaceRuntimeRepository.adjustStock(id,quantity,reason)}}

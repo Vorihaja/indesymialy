@@ -1,0 +1,1 @@
+import{TrainingFeature}from"@/modules/training";export default async function Page({params}:{params:Promise<{id:string}>}){const{id}=await params;return <TrainingFeature role="fighter" scopeId={id}/>;}

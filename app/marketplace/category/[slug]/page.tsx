@@ -1,0 +1,1 @@
+﻿import { CatalogFeature } from "@/modules/marketplace"; export default async function Page({ params }: { params: Promise<{ slug: string }> }) { const { slug } = await params; return <CatalogFeature category={slug} />; }

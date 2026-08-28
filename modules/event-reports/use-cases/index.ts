@@ -1,0 +1,1 @@
+import{ManageEventPlatformUseCase}from"@/modules/event-core/use-cases/manage-event-platform.use-case";import{EventReportsService}from"../services";export class ManageEventReportsUseCase extends ManageEventPlatformUseCase{constructor(){super(new EventReportsService());}}

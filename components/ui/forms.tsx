@@ -1,0 +1,12 @@
+'use client';
+import { useId, useState, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
+const cx=(...v:Array<string|undefined|false>)=>v.filter(Boolean).join(' ');
+export function Field({ label, error, hint, children }: { label?:ReactNode; error?:ReactNode; hint?:ReactNode; children:ReactNode }) { return <label className='ds-field'>{label && <span className='ds-label'>{label}</span>}{children}{error ? <span className='ds-danger-text' role='alert'>{error}</span> : hint && <span className='ds-caption'>{hint}</span>}</label>; }
+export const Input=({className,...props}:InputHTMLAttributes<HTMLInputElement>)=><input className={cx('ds-input',className)} {...props}/>;
+export const SearchBar=({className,...props}:InputHTMLAttributes<HTMLInputElement>)=><input type='search' className={cx('ds-input',className)} {...props}/>;
+export const Checkbox=(props:InputHTMLAttributes<HTMLInputElement>)=><input type='checkbox' {...props}/>;
+export const Radio=(props:InputHTMLAttributes<HTMLInputElement>)=><input type='radio' {...props}/>;
+export const Switch=({checked,onChange,label='Activer',...props}:InputHTMLAttributes<HTMLInputElement> & {label?:string})=><label className='ds-actions'><input type='checkbox' role='switch' checked={checked} onChange={onChange} {...props}/><span>{label}</span></label>;
+export const Select=({className,...props}:SelectHTMLAttributes<HTMLSelectElement>)=><select className={cx('ds-input',className)} {...props}/>;
+export function Tabs({ items, defaultValue }: { items:Array<{value:string;label:ReactNode;content:ReactNode}>; defaultValue?:string }) { const [active,setActive]=useState(defaultValue ?? items[0]?.value); const id=useId(); return <div><div className='ds-tabs-list' role='tablist'>{items.map(item=><button key={item.value} id={id+'-tab-'+item.value} className='ds-tab' role='tab' aria-selected={active===item.value} aria-controls={id+'-panel-'+item.value} onClick={()=>setActive(item.value)}>{item.label}</button>)}</div>{items.map(item=>active===item.value && <div key={item.value} id={id+'-panel-'+item.value} role='tabpanel' aria-labelledby={id+'-tab-'+item.value}>{item.content}</div>)}</div>; }
+export function Accordion({ items }: { items:Array<{title:ReactNode;content:ReactNode}> }) { return <div>{items.map((item,index)=><details className='ds-panel' key={index}><summary className='ds-label'>{item.title}</summary><div className='ds-caption'>{item.content}</div></details>)}</div>; }

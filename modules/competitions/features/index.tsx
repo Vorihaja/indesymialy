@@ -1,0 +1,1 @@
+"use client";import{EventPlatformFeature}from"@/modules/event-core/features/EventPlatformFeature";import type{EventMode,EventSection}from"@/modules/event-core/types";export function CompetitionsFeature(props:{mode?:EventMode;section?:EventSection;eventId?:string;create?:boolean;edit?:boolean}){return <EventPlatformFeature {...props}/>;}

@@ -1,0 +1,2 @@
+﻿import { createMarketplaceRuntimeRepository } from "../repositories/marketplace-runtime.repository"; import { MarketplaceService } from "../services/marketplace.service"; import { MarketplaceUseCase } from "../use-cases/marketplace.use-case";
+let instance: MarketplaceUseCase | undefined; export const createMarketplaceUseCase=()=>{instance??=new MarketplaceUseCase(new MarketplaceService(createMarketplaceRuntimeRepository()));return instance};

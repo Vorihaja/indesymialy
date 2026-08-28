@@ -1,9 +1,13 @@
 "use client";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, Filter, MapPin, X, Check, CalendarRange, ChevronDown } from "lucide-react";
-import { createClient } from "@/lib/client";
-import { DISCIPLINES, useDisciplineFilter } from "../../providers/search/discipline-filter-context";
+import { useGeography } from "@/modules/geography";
+import { useDisciplineFilter } from "../../providers/search/discipline-filter-context";
+import { useDiscovery } from "@/modules/discovery-core/hooks/useDiscovery";
+import { includesSearchValue } from "@/providers/search/global-search-filters";
+import type { DiscoveryResult } from "@/modules/discovery-core/types";
 
 const DATE_PRESETS = [
   { label: "Aujourd'hui",  days: 0,   key: "today"   },
@@ -14,15 +18,19 @@ const DATE_PRESETS = [
 ];
 
 function toInputDate(d: Date) {
-  return d.toISOString().slice(0, 10);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 export default function GlobalSearchBar() {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const supabase = createClient();
-  const { selectedDisciplines, toggleDiscipline, isAllSelected, clearAll, selectAll } = useDisciplineFilter();
+  const geography = useGeography();
+  const { disciplines, selectedDisciplines, setSelectedDisciplines, toggleDiscipline, isAllSelected, clearAll, selectAll } = useDisciplineFilter();
+  const discovery = useDiscovery();
 
   // ── États filtres ──────────────────────────────────────────────
   const [q, setQ] = useState(searchParams?.get("search") || "");
@@ -31,16 +39,21 @@ export default function GlobalSearchBar() {
   const [dateFrom, setDateFrom] = useState(searchParams?.get("dateFrom") || "");
   const [dateTo, setDateTo] = useState(searchParams?.get("dateTo") || "");
 
-  // ── Données géo depuis Supabase ────────────────────────────────
-  const [allGeo, setAllGeo] = useState<{ region: string; ville: string }[]>([]);
-  const [regionsDB, setRegionsDB] = useState<string[]>([]);
-  const [villesDB, setVillesDB] = useState<string[]>([]);
-
+  // Référentiel administratif partagé
+  const regionsDB = geography.data?.regions ?? [];
+  const selectedRegionId = regionsDB.find((item) => item.name === region)?.id ?? "";
+  const villesDB = useMemo(() => {
+    if (!selectedRegionId || !geography.data) return [];
+    const unique = new Map<string, string>();
+    geography.data.cities.filter((item) => item.regionId === selectedRegionId).forEach((item) => unique.set(item.name, item.name));
+    return [...unique.values()].sort((a, b) => a.localeCompare(b, "fr"));
+  }, [geography.data, selectedRegionId]);
   // ── UI toggles ─────────────────────────────────────────────────
   const [showResults, setShowResults] = useState(false);
+  const [searching, setSearching] = useState(false);
   const [showDisc, setShowDisc] = useState(false);
   const [showDate, setShowDate] = useState(false);
-  const [results, setResults] = useState<any>({ orgs: [], events: [] });
+  const [results, setResults] = useState<DiscoveryResult[]>([]);
 
   const discRef = useRef<HTMLDivElement>(null);
   const dateRef = useRef<HTMLDivElement>(null);
@@ -57,40 +70,12 @@ export default function GlobalSearchBar() {
     return () => document.removeEventListener("mousedown", handle);
   }, []);
 
-  // Charger Régions & Villes
-  useEffect(() => {
-    (async () => {
-      const { data } = await supabase
-        .from("organizations")
-        .select("region, ville")
-        .not("region", "is", null);
-
-      if (data && data.length > 0) {
-        setAllGeo(data as { region: string; ville: string }[]);
-        const regs = [...new Set(data.map((d: any) => d.region).filter(Boolean))].sort() as string[];
-        setRegionsDB(regs);
-        const vills = [...new Set(data.map((d: any) => d.ville).filter(Boolean))].sort() as string[];
-        setVillesDB(vills);
-      }
-    })();
-  }, []);
-
   // Filtrer les villes selon la région
-  useEffect(() => {
-    if (!allGeo.length) return;
-    if (!region) {
-      const vills = [...new Set(allGeo.map((d) => d.ville).filter(Boolean))].sort() as string[];
-      setVillesDB(vills);
-    } else {
-      const vills = [...new Set(allGeo.filter((d) => d.region === region).map((d) => d.ville).filter(Boolean))].sort() as string[];
-      setVillesDB(vills);
-    }
-  }, [region, allGeo]);
-
   // ── CENTRALISATION ET SYNCHRONISATION DE L'URL ─────────────────
   // Un seul effet global master gère l'URL pour éviter les conflits de push concurrents
   useEffect(() => {
-    const params = new URLSearchParams();
+    const params = new URLSearchParams(searchParams.toString());
+    ["search", "region", "ville", "dateFrom", "dateTo", "disciplines"].forEach((key) => params.delete(key));
     
     if (q) params.set("search", q);
     if (region) params.set("region", region);
@@ -105,11 +90,25 @@ export default function GlobalSearchBar() {
 
     // Le debounce est appliqué indirectement via le délai du texte ou des sélections
     const handler = setTimeout(() => {
-      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      const query = params.toString();
+      if (query !== searchParams.toString()) router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
     }, 150);
 
     return () => clearTimeout(handler);
-  }, [q, region, ville, dateFrom, dateTo, selectedDisciplines, isAllSelected, pathname, router]);
+  }, [q, region, ville, dateFrom, dateTo, selectedDisciplines, isAllSelected, pathname, router, searchParams]);
+
+  useEffect(() => {
+    const nextQ = searchParams.get("search") ?? "";
+    const nextRegion = searchParams.get("region") ?? "";
+    const nextVille = searchParams.get("ville") ?? "";
+    const nextDateFrom = searchParams.get("dateFrom") ?? "";
+    const nextDateTo = searchParams.get("dateTo") ?? "";
+    const rawDisciplines = searchParams.get("disciplines");
+    queueMicrotask(() => {
+      setQ(nextQ); setRegion(nextRegion); setVille(nextVille); setDateFrom(nextDateFrom); setDateTo(nextDateTo);
+      setSelectedDisciplines(rawDisciplines === null ? [...disciplines] : rawDisciplines.split(",").filter((value) => disciplines.includes(value)));
+    });
+  }, [disciplines, searchParams, setSelectedDisciplines]);
 
   // Réinitialiser la ville si la région change
   const handleRegionChange = (newRegion: string) => {
@@ -119,18 +118,22 @@ export default function GlobalSearchBar() {
 
   // ── Autocomplete live search ───────────────────────────────────
   useEffect(() => {
-    if (q.length < 2) { setResults({ orgs: [], events: [] }); return; }
+    if (q.length < 2) {
+      queueMicrotask(() => setResults([]));
+      queueMicrotask(() => setSearching(false));
+      return;
+    }
     const t = setTimeout(async () => {
-      const like = `%${q}%`;
-      const [orgsRes, eventsRes] = await Promise.all([
-        supabase.from("organizations").select("id,name,type,discipline,region,ville").ilike("name", like).limit(5),
-        supabase.from("events").select("id,title,date").ilike("title", like).limit(5),
-      ]);
-      setResults({ orgs: orgsRes.data || [], events: eventsRes.data || [] });
+      setSearching(discovery.loading);
+      const matches = (discovery.snapshot?.search ?? [])
+        .filter((item) => includesSearchValue([item.title, item.description, ...item.tags], q))
+        .slice(0, 12);
+      setResults(matches);
       setShowResults(true);
+      setSearching(false);
     }, 250);
     return () => clearTimeout(t);
-  }, [q]);
+  }, [q, discovery.loading, discovery.snapshot]);
 
   // ── Helpers ───────────────────────────────────────────────────
   const applyPreset = (days: number) => {
@@ -161,6 +164,7 @@ export default function GlobalSearchBar() {
         <div id="global-search-input" className="flex items-center flex-1 px-4 gap-2.5 relative min-w-[180px]">
           <Search size={12} className="text-neutral-600 shrink-0" />
           <input
+            aria-label='Recherche globale'
             value={q}
             onChange={e => setQ(e.target.value)}
             onFocus={() => q.length >= 2 && setShowResults(true)}
@@ -172,30 +176,16 @@ export default function GlobalSearchBar() {
               <X size={10} />
             </button>
           )}
-          {showResults && (results.orgs.length > 0 || results.events.length > 0) && (
+          {showResults && (
             <div className="absolute top-full left-0 right-0 bg-[#0a0a0a] border border-neutral-800 rounded-b-xl p-2 z-[300] flex flex-col gap-1 shadow-2xl">
-              {results.orgs.length > 0 && (
-                <>
-                  <div className="text-[9px] text-neutral-600 px-1 pt-1 pb-0.5 font-bold">CLUBS / ORGS</div>
-                  {results.orgs.map((o: any) => (
-                    <div key={o.id} className="text-xs px-2 py-1.5 bg-neutral-900 rounded hover:bg-neutral-800 cursor-pointer flex justify-between gap-2">
-                      <span className="text-white truncate">{o.name}</span>
-                      <span className="text-neutral-500 shrink-0">{o.ville || o.region}</span>
-                    </div>
-                  ))}
-                </>
-              )}
-              {results.events.length > 0 && (
-                <>
-                  <div className="text-[9px] text-neutral-600 px-1 pt-1 pb-0.5 font-bold">ÉVÈNEMENTS</div>
-                  {results.events.map((ev: any) => (
-                    <div key={ev.id} className="text-xs px-2 py-1.5 bg-neutral-900/60 rounded hover:bg-neutral-800 cursor-pointer flex justify-between gap-2">
-                      <span className="text-white truncate">{ev.title}</span>
-                      {ev.date && <span className="text-neutral-500 shrink-0">{new Date(ev.date).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })}</span>}
-                    </div>
-                  ))}
-                </>
-              )}
+              {searching && <div className='ds-caption ds-pad' role='status'>Recherche en cours…</div>}
+              {!searching && results.length === 0 && <div className='ds-caption ds-pad'>Aucun résultat pour « {q} ».</div>}
+              {results.map((item) => (
+                <Link key={`${item.kind}-${item.id}`} href={item.href} onClick={() => setShowResults(false)} className="flex items-center justify-between gap-3 rounded bg-neutral-900 px-2 py-2 text-xs hover:bg-neutral-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
+                  <span className="min-w-0"><span className="block truncate text-white">{item.title}</span><span className="block truncate text-[9px] normal-case text-neutral-500">{item.description}</span></span>
+                  <span className="shrink-0 text-[9px] font-bold text-neutral-500">{item.kind}</span>
+                </Link>
+              ))}
             </div>
           )}
         </div>
@@ -217,11 +207,11 @@ export default function GlobalSearchBar() {
             <div className="absolute top-full left-0 w-64 bg-[#0f0f0f] border border-neutral-800 rounded-xl shadow-[0_20px_60px_rgba(0,0,0,0.9)] z-[300] overflow-hidden">
               <div className="flex justify-between p-2 border-b border-neutral-800 bg-[#0a0a0a]">
                 <button onClick={selectAll} className="text-[10px] bg-white text-black px-2.5 py-1 rounded-full font-black hover:bg-neutral-200 transition-colors">TOUT</button>
-                <span className="text-[10px] text-neutral-500 self-center">{selectedDisciplines.length}/{DISCIPLINES.length}</span>
+                <span className="text-[10px] text-neutral-500 self-center">{selectedDisciplines.length}/{disciplines.length}</span>
                 <button onClick={clearAll} className="text-[10px] bg-neutral-800 text-neutral-400 px-2.5 py-1 rounded-full font-bold hover:bg-neutral-700 transition-colors">VIDER</button>
               </div>
               <div className="max-h-56 overflow-auto flex flex-col divide-y divide-neutral-900/60">
-                {DISCIPLINES.map((d: string) => {
+                {disciplines.map((d) => {
                   const active = selectedDisciplines.includes(d);
                   return (
                     <label key={d} className="flex items-center gap-2.5 px-3 py-2 hover:bg-neutral-900 cursor-pointer group">
@@ -229,7 +219,7 @@ export default function GlobalSearchBar() {
                         {active && <Check size={10} className="text-black" strokeWidth={3} />}
                       </div>
                       <span className={`text-xs leading-none tracking-wide ${active ? "text-white font-bold" : "text-neutral-400"}`}>{d}</span>
-                      <input type="checkbox" checked={active} onChange={() => toggleDiscipline(d as any)} className="hidden" />
+                      <input type="checkbox" checked={active} onChange={() => toggleDiscipline(d)} className="hidden" />
                     </label>
                   );
                 })}
@@ -246,11 +236,7 @@ export default function GlobalSearchBar() {
           >
             <CalendarRange size={10} className={hasDateFilter ? "text-amber-400" : "text-neutral-600"} />
             <span className={hasDateFilter ? "text-amber-400" : "text-neutral-400"}>{dateBtnLabel}</span>
-            {hasDateFilter && (
-              <button onClick={e => { e.stopPropagation(); clearDates(); }} className="text-neutral-600 hover:text-white transition-colors">
-                <X size={8} />
-              </button>
-            )}
+            {hasDateFilter && <X size={8} aria-hidden="true" />}
             <ChevronDown size={8} className={`text-neutral-600 transition-transform ${showDate ? "rotate-180" : ""}`} />
           </button>
 
@@ -311,8 +297,8 @@ export default function GlobalSearchBar() {
             className={`bg-transparent font-bold text-[10px] focus:outline-none cursor-pointer max-w-[130px] transition-colors ${region ? "text-blue-300" : "text-neutral-400"}`}
           >
             <option value="" className="bg-neutral-950 text-neutral-300">Toutes Régions</option>
-            {regionsDB.map(r => (
-              <option key={r} value={r} className="bg-neutral-950 text-white">{r}</option>
+            {regionsDB.map(item => (
+              <option key={item.id} value={item.name} className="bg-neutral-950 text-white">{item.name}</option>
             ))}
           </select>
 
@@ -354,9 +340,9 @@ export default function GlobalSearchBar() {
               <button onClick={clearDates}><X size={10} /></button>
             </span>
           )}
-          {!isAllSelected && selectedDisciplines.slice(0, 3).map((d: string) => (
+          {!isAllSelected && selectedDisciplines.slice(0, 3).map((d) => (
             <span key={d} className="h-5 px-2 rounded-full bg-red-700 text-white text-[10px] font-bold flex items-center gap-1">
-              {d}<button onClick={() => toggleDiscipline(d as any)}><X size={10} /></button>
+              {d}<button onClick={() => toggleDiscipline(d)}><X size={10} /></button>
             </span>
           ))}
           {!isAllSelected && selectedDisciplines.length > 3 && (

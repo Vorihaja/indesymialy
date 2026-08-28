@@ -1,0 +1,1 @@
+import { FederationManagementFeature } from "@/modules/federations"; export default async function Page({ params }: { params: Promise<{ id: string }> }) { const { id } = await params; return <FederationManagementFeature mode="detail" recordId={id}/>; }

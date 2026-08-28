@@ -1,0 +1,162 @@
+import type { UniversalRoleDefinition } from '../types';
+
+export const ecosystemRoleDefinitions: UniversalRoleDefinition[] = [
+  {
+    id: 'sponsor', label: 'Sponsor', guardRole: 'sponsor', workspaceStatus: 'Partenariats actifs',
+    modules: [
+      { id: 'overview', label: 'Vue d’ensemble', tabs: [], icon: 'overview' },
+      { id: 'portfolio', label: 'Portfolio', tabs: ['Athlètes', 'Événements', 'Clubs', 'Organisations'], icon: 'organizations' },
+      { id: 'opportunities', label: 'Opportunités', tabs: ['Découverte', 'Reçues', 'Présélection', 'Négociation'], icon: 'sport' },
+      { id: 'contracts', label: 'Contrats', tabs: ['Actifs', 'À signer', 'Renouvellements', 'Archives'], icon: 'contracts' },
+      { id: 'campaigns', label: 'Campagnes', tabs: ['Actives', 'Planning', 'Contenus', 'Validations'], icon: 'communication' },
+      { id: 'deliverables', label: 'Livrables', tabs: ['À produire', 'À valider', 'Livrés', 'Preuves'], icon: 'documents' },
+      { id: 'activations', label: 'Activations', tabs: ['Événements', 'Digital', 'Terrain', 'Hospitalité'], icon: 'events' },
+      { id: 'finance', label: 'Budget & paiements', tabs: ['Synthèse', 'Budgets', 'Engagements', 'Paiements', 'Factures'], icon: 'finance' },
+      { id: 'performance', label: 'Performance', tabs: ['Audience', 'Visibilité', 'Engagement', 'ROI', 'Rapports'], icon: 'performance' },
+      { id: 'settings', label: 'Paramètres', tabs: ['Marque', 'Équipe', 'Droits', 'Notifications'], icon: 'settings' },
+      { id: 'live', label: 'Activation Live', tabs: ['Direct'], icon: 'live', live: true },
+    ],
+    overview: {
+      kpis: [
+        { label: 'Partenariats actifs', value: '14', detail: '8 athlètes · 6 événements', tone: 'blue' },
+        { label: 'Budget engagé', value: '84,6 M Ar', detail: '70,5 % du budget', tone: 'amber' },
+        { label: 'Audience cumulée', value: '2,8 M', detail: '+22 % ce trimestre', tone: 'green' },
+        { label: 'Livrables', value: '42 / 48', detail: '6 à confirmer', tone: 'red' },
+        { label: 'ROI moyen', value: '3,4×', detail: '+0,6 vs objectif', tone: 'green' },
+        { label: 'Opportunités', value: '18', detail: '5 présélectionnées', tone: 'blue' },
+      ],
+      focusLabel: 'Activation prioritaire', focusTitle: 'Mahajanga Fight Night Vol.3', focusDetail: 'Naming zone VIP · stand · contenu digital', readiness: 84,
+      alerts: [
+        { label: 'BAT cage à valider aujourd’hui', detail: 'Livrable MFN Vol.3', severity: 'critical' },
+        { label: 'Contrat Tiana Rakoto à renouveler', detail: 'Échéance dans 18 jours', severity: 'warning' },
+        { label: 'Rapport audience juillet prêt', detail: 'ROI consolidé disponible', severity: 'info' },
+      ],
+      activity: [
+        { label: 'Publication Tiana validée', detail: 'Il y a 11 min' },
+        { label: 'Facture MFN reçue', detail: 'Il y a 39 min' },
+        { label: 'Nouvelle opportunité club', detail: 'Il y a 1 h' },
+      ],
+      quickActions: [
+        { label: 'Valider les livrables', moduleId: 'deliverables', tab: 'À valider' },
+        { label: 'Voir les opportunités', moduleId: 'opportunities', tab: 'Découverte' },
+        { label: 'Gérer les campagnes', moduleId: 'campaigns', tab: 'Actives' },
+      ],
+    },
+    live: {
+      title: 'Activation Live · MFN Vol.3', subtitle: 'Boeny Nutrition · Stade Rabemananjara', metric: '184 200', metricLabel: 'Impressions temps réel',
+      secondary: [
+        { label: 'Stand VIP', value: 'Ouvert', tone: 'green' },
+        { label: 'Invités', value: '86 / 100', tone: 'blue' },
+        { label: 'Contenus publiés', value: '8 / 10', tone: 'blue' },
+        { label: 'Mentions', value: '4 218', tone: 'green' },
+        { label: 'Livrables', value: '12 / 13', tone: 'red' },
+        { label: 'Incidents', value: '0', tone: 'green' },
+      ],
+    },
+  },
+  {
+    id: 'seller', label: 'Vendeur', guardRole: 'seller', workspaceStatus: 'Boutique opérationnelle',
+    modules: [
+      { id: 'overview', label: 'Vue d’ensemble', tabs: [], icon: 'overview' },
+      { id: 'catalog', label: 'Catalogue', tabs: ['Produits', 'Catégories', 'Variantes', 'Médias', 'Tarifs'], icon: 'commerce' },
+      { id: 'orders', label: 'Commandes', tabs: ['Toutes', 'À préparer', 'Expédiées', 'Livrées', 'Annulées'], icon: 'commerce' },
+      { id: 'inventory', label: 'Stock', tabs: ['Inventaire', 'Mouvements', 'Alertes', 'Approvisionnement'], icon: 'documents' },
+      { id: 'customers', label: 'Clients', tabs: ['Tous', 'Segments', 'Fidélité', 'Litiges'], icon: 'users' },
+      { id: 'delivery', label: 'Livraison', tabs: ['Expéditions', 'Transporteurs', 'Zones', 'Retours'], icon: 'events' },
+      { id: 'promotions', label: 'Promotions', tabs: ['Campagnes', 'Codes promo', 'Bundles', 'Partenariats'], icon: 'communication' },
+      { id: 'finance', label: 'Finances', tabs: ['Synthèse', 'Revenus', 'Transactions', 'Commissions', 'Versements'], icon: 'finance' },
+      { id: 'performance', label: 'Performance', tabs: ['Ventes', 'Produits', 'Clients', 'Conversion', 'Rapports'], icon: 'performance' },
+      { id: 'settings', label: 'Paramètres', tabs: ['Boutique', 'Paiements', 'Livraison', 'Notifications'], icon: 'settings' },
+      { id: 'live', label: 'Sales Live', tabs: ['Direct'], icon: 'live', live: true },
+    ],
+    overview: {
+      kpis: [
+        { label: 'CA du mois', value: '28,4 M Ar', detail: '+16,8 %', tone: 'green' },
+        { label: 'Commandes', value: '642', detail: '38 à préparer', tone: 'blue' },
+        { label: 'Panier moyen', value: '44 240 Ar', detail: '+2 800 Ar', tone: 'green' },
+        { label: 'Produits actifs', value: '184', detail: '12 stocks faibles', tone: 'amber' },
+        { label: 'Livraison à temps', value: '92 %', detail: 'objectif 95 %', tone: 'red' },
+        { label: 'Conversion', value: '4,8 %', detail: '+0,7 point', tone: 'blue' },
+      ],
+      focusLabel: 'Campagne active', focusTitle: 'Fight Week · MFN Vol.3', focusDetail: 'Équipements officiels · remise de 15 %', readiness: 88,
+      alerts: [
+        { label: '12 produits en stock faible', detail: '4 best-sellers concernés', severity: 'critical' },
+        { label: '8 livraisons en retard', detail: 'Région Boeny', severity: 'warning' },
+        { label: 'Versement hebdomadaire programmé', detail: '6 840 000 Ar', severity: 'info' },
+      ],
+      activity: [
+        { label: 'Commande IM-8421 payée', detail: 'Il y a 4 min' },
+        { label: 'Stock gants MMA mis à jour', detail: 'Il y a 18 min' },
+        { label: 'Retour client accepté', detail: 'Il y a 51 min' },
+      ],
+      quickActions: [
+        { label: 'Préparer les commandes', moduleId: 'orders', tab: 'À préparer' },
+        { label: 'Gérer les stocks', moduleId: 'inventory', tab: 'Alertes' },
+        { label: 'Créer une promotion', moduleId: 'promotions', tab: 'Campagnes' },
+      ],
+    },
+    live: {
+      title: 'Sales Live · Fight Week', subtitle: 'Boutique officielle Indesy Mialy', metric: '1 842 000 Ar', metricLabel: 'Chiffre d’affaires aujourd’hui',
+      secondary: [
+        { label: 'Commandes', value: '48', tone: 'blue' },
+        { label: 'Paiements', value: '46 / 48', tone: 'green' },
+        { label: 'À préparer', value: '18', tone: 'red' },
+        { label: 'Expédiées', value: '22', tone: 'blue' },
+        { label: 'Stock critique', value: '4', tone: 'red' },
+        { label: 'Conversion', value: '6,2 %', tone: 'green' },
+      ],
+    },
+  },
+  {
+    id: 'fan', label: 'Fan', guardRole: 'fan', workspaceStatus: 'Expérience personnalisée',
+    modules: [
+      { id: 'overview', label: 'Vue d’ensemble', tabs: [], icon: 'overview' },
+      { id: 'following', label: 'Mes suivis', tabs: ['Combattants', 'Clubs', 'Événements', 'Disciplines'], icon: 'users' },
+      { id: 'events', label: 'Événements', tabs: ['À venir', 'Mes billets', 'Calendrier', 'Résultats'], icon: 'events' },
+      { id: 'live', label: 'Live Center', tabs: ['Direct'], icon: 'live', live: true },
+      { id: 'content', label: 'Actualités', tabs: ['Pour vous', 'Vidéos', 'Interviews', 'Résumés'], icon: 'communication' },
+      { id: 'community', label: 'Communauté', tabs: ['Discussions', 'Pronostics', 'Classements', 'Activité'], icon: 'communication' },
+      { id: 'tickets', label: 'Billetterie', tabs: ['Mes billets', 'Invitations', 'Transferts', 'Historique'], icon: 'tickets' },
+      { id: 'marketplace', label: 'Marketplace', tabs: ['Favoris', 'Commandes', 'Offres', 'Avis'], icon: 'commerce' },
+      { id: 'rewards', label: 'Récompenses', tabs: ['Points', 'Niveaux', 'Avantages', 'Historique'], icon: 'performance' },
+      { id: 'settings', label: 'Paramètres', tabs: ['Profil', 'Préférences', 'Notifications', 'Confidentialité'], icon: 'settings' },
+    ],
+    overview: {
+      kpis: [
+        { label: 'Combattants suivis', value: '18', detail: '4 combattent ce mois', tone: 'blue' },
+        { label: 'Événements à venir', value: '6', detail: '2 billets réservés', tone: 'red' },
+        { label: 'Pronostics réussis', value: '68 %', detail: '34 sur 50', tone: 'green' },
+        { label: 'Points supporter', value: '8 420', detail: 'niveau Or', tone: 'amber' },
+        { label: 'Contenus sauvés', value: '42', detail: '8 nouvelles vidéos', tone: 'blue' },
+        { label: 'Commandes', value: '7', detail: '1 en livraison', tone: 'green' },
+      ],
+      focusLabel: 'Prochain événement', focusTitle: 'Mahajanga Fight Night Vol.3', focusDetail: '30 août 2026 · billet Zone Premium', readiness: 92,
+      alerts: [
+        { label: 'Ton billet est disponible', detail: 'Ajouter au portefeuille', severity: 'critical' },
+        { label: 'Pronostics ouverts', detail: 'Main card MFN Vol.3', severity: 'warning' },
+        { label: 'Nouvelle vidéo de Tiana Rakoto', detail: 'Road to MFN · épisode 3', severity: 'info' },
+      ],
+      activity: [
+        { label: 'Tiana Rakoto a publié une actualité', detail: 'Il y a 7 min' },
+        { label: 'Ton pronostic a été enregistré', detail: 'Il y a 32 min' },
+        { label: 'Commande expédiée', detail: 'Il y a 2 h' },
+      ],
+      quickActions: [
+        { label: 'Voir mon billet', moduleId: 'tickets', tab: 'Mes billets' },
+        { label: 'Faire un pronostic', moduleId: 'community', tab: 'Pronostics' },
+        { label: 'Suivre le direct', moduleId: 'live' },
+      ],
+    },
+    live: {
+      title: 'Mahajanga Fight Night Vol.3', subtitle: 'Live Center · Main card', metric: '02:48', metricLabel: 'Round 2 · combat actuel',
+      secondary: [
+        { label: 'Combat', value: 'Rakoto vs Nomena', tone: 'red' },
+        { label: 'Spectateurs', value: '1 842', tone: 'blue' },
+        { label: 'Pronostics', value: '12 486', tone: 'blue' },
+        { label: 'Score communauté', value: '54 / 46', tone: 'red' },
+        { label: 'Prochain combat', value: 'T-18 min', tone: 'blue' },
+        { label: 'Flux', value: 'HD actif', tone: 'green' },
+      ],
+    },
+  },
+];

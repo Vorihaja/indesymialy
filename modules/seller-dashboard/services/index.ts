@@ -1,0 +1,1 @@
+import{SellerDashboardRepository}from"../repositories";export class SellerDashboardService{constructor(private readonly repository:SellerDashboardRepository){}statistics(){return this.repository.statistics()}customers(){return this.repository.customers()}transactions(){return this.repository.transactions()}}

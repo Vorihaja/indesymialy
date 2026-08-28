@@ -1,0 +1,1 @@
+import{SellerDashboardRepository}from"../repositories";import{SellerDashboardService}from"../services";import{GetSellerDashboardUseCase}from"../use-cases";export const createSellerDashboardUseCase=()=>new GetSellerDashboardUseCase(new SellerDashboardService(new SellerDashboardRepository()));

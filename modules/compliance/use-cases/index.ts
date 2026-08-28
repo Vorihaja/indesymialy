@@ -1,0 +1,1 @@
+import{ManageProfessionalUseCase}from"@/modules/professional-core/use-cases";import{ComplianceService}from"../services";export class ManageComplianceUseCase extends ManageProfessionalUseCase{constructor(){super(new ComplianceService());}}

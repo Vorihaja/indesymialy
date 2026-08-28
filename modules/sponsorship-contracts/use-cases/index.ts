@@ -1,0 +1,1 @@
+import{ManageProfessionalUseCase}from"@/modules/professional-core/use-cases";import{SponsorshipContractsService}from"../services";export class ManageSponsorshipContractsUseCase extends ManageProfessionalUseCase{constructor(){super(new SponsorshipContractsService());}}

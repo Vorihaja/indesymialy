@@ -1,0 +1,1 @@
+import{ManageOperationsUseCase}from"@/modules/platform-operations-core/use-cases";import{CmsService}from"../services";export class ManageCmsUseCase extends ManageOperationsUseCase{constructor(){super(new CmsService());}}

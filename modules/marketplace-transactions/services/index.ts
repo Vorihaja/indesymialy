@@ -1,0 +1,1 @@
+import{MarketplaceTransactionRepository}from"../repositories";export class MarketplaceTransactionService{constructor(private readonly repository:MarketplaceTransactionRepository){}list(){return this.repository.list()}}

@@ -1,0 +1,1 @@
+import { ManageSocialUseCase } from "@/modules/social-core"; import { DiscussionService } from "../services"; export class ManageDiscussionsUseCase extends ManageSocialUseCase { constructor() { super(new DiscussionService()); } }

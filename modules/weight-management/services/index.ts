@@ -1,0 +1,1 @@
+import{SportService}from"@/modules/sport-development-core/services";import{WeightManagementRepository}from"../repositories";export class WeightManagementService extends SportService{constructor(){super(new WeightManagementRepository());}}

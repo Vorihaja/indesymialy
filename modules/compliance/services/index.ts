@@ -1,0 +1,1 @@
+import{ProfessionalService}from"@/modules/professional-core/services";import{ComplianceRepository}from"../repositories";export class ComplianceService extends ProfessionalService{constructor(){super(new ComplianceRepository());}}

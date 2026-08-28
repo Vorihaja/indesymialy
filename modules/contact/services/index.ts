@@ -1,0 +1,1 @@
+import{OperationsService}from"@/modules/platform-operations-core/services";import{ContactRepository}from"../repositories";export class ContactService extends OperationsService{constructor(){super(new ContactRepository());}}

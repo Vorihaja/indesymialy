@@ -1,0 +1,1 @@
+import{ExploreDiscoveryUseCase}from"@/modules/discovery-core/use-cases/explore-discovery.use-case";import{PublicClubsService}from"../services";export class ExplorePublicClubsUseCase extends ExploreDiscoveryUseCase{constructor(){super(new PublicClubsService());}}

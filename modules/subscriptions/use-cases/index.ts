@@ -1,0 +1,1 @@
+import{ManageProfessionalUseCase}from"@/modules/professional-core/use-cases";import{SubscriptionsService}from"../services";export class ManageSubscriptionsUseCase extends ManageProfessionalUseCase{constructor(){super(new SubscriptionsService());}}

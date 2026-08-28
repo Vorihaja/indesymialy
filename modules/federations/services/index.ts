@@ -1,0 +1,1 @@
+import { ErpService } from "@/modules/erp-core"; import { FederationRepository } from "../repositories"; export class FederationService extends ErpService { constructor() { super(new FederationRepository()); } }

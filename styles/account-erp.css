@@ -1,0 +1,1390 @@
+/* =========================================================
+   INDESY MIALY
+   ACCOUNT ERP WORKSPACE
+   =========================================================
+
+   Règles :
+   - aucun positionnement global .erp-* ;
+   - topbar Account toujours visible ;
+   - sidebar et workspace scrollent indépendamment ;
+   - typographie compacte type ERP ;
+   - contraste renforcé pour les textes secondaires.
+========================================================= */
+
+
+/* =========================================================
+   ROOT
+========================================================= */
+
+.account-erp-shell {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  min-width: 0;
+  min-height: 0;
+
+  overflow: hidden;
+
+  background: #07090d;
+  color: #f3f6fa;
+
+  font-family:
+    "Segoe UI",
+    Arial,
+    Helvetica,
+    Roboto,
+    sans-serif;
+}
+
+
+/* =========================================================
+   TOPBAR
+========================================================= */
+
+.account-erp-topbar {
+  position: absolute;
+
+  top: 0;
+  right: 0;
+  left: 0;
+
+  z-index: 90;
+
+  height: 64px;
+  min-height: 64px;
+
+  border-bottom:
+    1px solid
+    rgba(255, 255, 255, 0.075);
+
+  background:
+    linear-gradient(
+      180deg,
+      #0b0e13 0%,
+      #090b10 100%
+    );
+}
+
+
+.account-erp-topbar-inner {
+  display: flex;
+
+  width: 100%;
+  height: 100%;
+
+  min-width: 0;
+
+  align-items: center;
+
+  padding:
+    0
+    14px;
+}
+
+
+.account-erp-collapse-trigger,
+.account-erp-mobile-trigger {
+  display: grid;
+
+  width: 34px;
+  height: 34px;
+
+  flex: none;
+  place-items: center;
+
+  margin-right: 12px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.09);
+
+  background:
+    rgba(255, 255, 255, 0.02);
+
+  color: #8995a5;
+
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease;
+}
+
+
+.account-erp-collapse-trigger:hover,
+.account-erp-mobile-trigger:hover {
+  border-color:
+    rgba(255, 255, 255, 0.17);
+
+  background:
+    rgba(255, 255, 255, 0.045);
+
+  color: #f3f6fa;
+}
+
+
+.account-erp-mobile-trigger {
+  display: none;
+}
+
+
+.account-erp-topbar-eyebrow {
+  display: block;
+
+  font-size: 8px;
+  line-height: 1;
+
+  font-weight: 800;
+
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+
+  color: #778392;
+}
+
+
+.account-erp-topbar-title-row {
+  display: flex;
+
+  min-width: 0;
+
+  align-items: center;
+  gap: 8px;
+
+  margin-top: 5px;
+}
+
+
+.account-erp-topbar-title {
+  overflow: hidden;
+
+  font-size: 12px;
+  line-height: 1;
+
+  font-weight: 700;
+
+  color: #fbfcfe;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+.account-erp-topbar-separator {
+  width: 4px;
+  height: 4px;
+
+  flex: none;
+
+  border-radius: 999px;
+
+  background: #ff1638;
+}
+
+
+.account-erp-topbar-context {
+  overflow: hidden;
+
+  font-size: 9px;
+  line-height: 1;
+
+  font-weight: 600;
+
+  color: #8995a5;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+.account-erp-topbar-status {
+  display: inline-flex;
+
+  flex: none;
+
+  align-items: center;
+  gap: 6px;
+
+  margin-left: auto;
+
+  border:
+    1px solid
+    rgba(61, 146, 255, 0.22);
+
+  padding:
+    6px
+    9px;
+
+  background:
+    rgba(61, 146, 255, 0.055);
+
+  font-size: 8px;
+  line-height: 1;
+
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  color: #6aafff;
+}
+
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.account-erp-sidebar {
+  position: absolute;
+
+  top: 64px;
+  bottom: 0;
+  left: 0;
+
+  z-index: 80;
+
+  display: flex;
+
+  width: 272px;
+  min-width: 272px;
+  min-height: 0;
+
+  flex-direction: column;
+
+  overflow: hidden;
+
+  border-right:
+    1px solid
+    rgba(255, 255, 255, 0.075);
+
+  background:
+    linear-gradient(
+      180deg,
+      #090b10 0%,
+      #080a0e 100%
+    );
+
+  transition:
+    width 180ms ease,
+    transform 180ms ease;
+}
+
+
+.account-erp-sidebar[data-collapsed="true"] {
+  width: 76px;
+  min-width: 76px;
+}
+
+
+.account-erp-sidebar-head {
+  display: flex;
+
+  min-height: 56px;
+  height: 56px;
+
+  flex: none;
+
+  align-items: center;
+
+  padding:
+    0
+    12px;
+
+  border-bottom:
+    1px solid
+    rgba(255, 255, 255, 0.06);
+}
+
+
+.account-erp-sidebar-symbol {
+  display: grid;
+
+  width: 32px;
+  height: 32px;
+
+  flex: none;
+  place-items: center;
+
+  border:
+    1px solid
+    rgba(255, 22, 56, 0.20);
+
+  background:
+    rgba(255, 22, 56, 0.055);
+
+  color: #ff4058;
+}
+
+
+.account-erp-sidebar-identity {
+  min-width: 0;
+
+  margin-left: 10px;
+}
+
+
+.account-erp-sidebar-identity span {
+  display: block;
+
+  font-size: 7px;
+  line-height: 1;
+
+  font-weight: 800;
+
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+
+  color: #778392;
+}
+
+
+.account-erp-sidebar-identity strong {
+  display: block;
+
+  overflow: hidden;
+
+  margin-top: 5px;
+
+  font-size: 10px;
+  line-height: 1;
+
+  font-weight: 700;
+
+  color: #dce4ee;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   SIDEBAR SCROLL
+========================================================= */
+
+.account-erp-sidebar-scroll {
+  flex:
+    1
+    1
+    auto;
+
+  min-height: 0;
+
+  overflow-x: hidden;
+  overflow-y: scroll;
+
+  overscroll-behavior: contain;
+
+  padding:
+    10px
+    8px
+    16px;
+
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    #4b5563
+    transparent;
+
+  scrollbar-gutter: stable;
+}
+
+
+.account-erp-sidebar-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+
+.account-erp-sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+
+.account-erp-sidebar-scroll::-webkit-scrollbar-thumb {
+  background: #414a57;
+
+  border-radius: 99px;
+}
+
+
+.account-erp-sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: #667281;
+}
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+.account-erp-nav-group {
+  margin: 0;
+}
+
+
+.account-erp-nav-group-separated {
+  margin-top: 14px;
+
+  padding-top: 12px;
+
+  border-top:
+    1px solid
+    rgba(255, 255, 255, 0.055);
+}
+
+
+.account-erp-nav-group-label {
+  margin:
+    0
+    0
+    5px;
+
+  padding:
+    0
+    8px;
+
+  font-size: 7px;
+  line-height: 1.3;
+
+  font-weight: 800;
+
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+
+  color: #778392;
+}
+
+
+.account-erp-nav-items {
+  display: grid;
+
+  gap: 1px;
+}
+
+
+.account-erp-nav-link {
+  position: relative;
+
+  display: flex;
+
+  min-height: 38px;
+
+  align-items: center;
+  gap: 10px;
+
+  border-left:
+    2px solid
+    transparent;
+
+  padding:
+    0
+    10px;
+
+  color: #8995a5;
+
+  transition:
+    background 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease;
+}
+
+
+.account-erp-nav-link:hover {
+  background:
+    rgba(255, 255, 255, 0.03);
+
+  color: #dce4ee;
+}
+
+
+.account-erp-nav-link-active {
+  border-left-color: #ff1638;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 22, 56, 0.09),
+      rgba(255, 22, 56, 0.015)
+    );
+
+  color: #fbfcfe;
+}
+
+
+.account-erp-nav-icon {
+  flex: none;
+
+  color: #778392;
+}
+
+
+.account-erp-nav-link:hover
+.account-erp-nav-icon {
+  color: #b8c1cc;
+}
+
+
+.account-erp-nav-link-active
+.account-erp-nav-icon {
+  color: #6aafff;
+}
+
+
+.account-erp-nav-label {
+  min-width: 0;
+
+  overflow: hidden;
+
+  font-size: 10px;
+  line-height: 1;
+
+  font-weight: 650;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+.account-erp-nav-active-dot {
+  width: 5px;
+  height: 5px;
+
+  flex: none;
+
+  margin-left: auto;
+
+  border-radius: 999px;
+
+  background: #ff1638;
+
+  box-shadow:
+    0
+    0
+    8px
+    rgba(255, 22, 56, 0.55);
+}
+
+
+/* =========================================================
+   SIDEBAR BOTTOM
+========================================================= */
+
+.account-erp-sidebar-bottom {
+  flex: none;
+
+  border-top:
+    1px solid
+    rgba(255, 255, 255, 0.065);
+
+  padding: 7px;
+}
+
+
+.account-erp-return-link {
+  display: flex;
+
+  min-height: 36px;
+
+  align-items: center;
+  gap: 10px;
+
+  padding:
+    0
+    9px;
+
+  font-size: 9px;
+
+  font-weight: 650;
+
+  color: #8995a5;
+
+  transition:
+    background 150ms ease,
+    color 150ms ease;
+}
+
+
+.account-erp-return-link:hover {
+  background:
+    rgba(255, 255, 255, 0.03);
+
+  color: #dce4ee;
+}
+
+
+.account-erp-return-symbol {
+  display: grid;
+
+  width: 20px;
+
+  flex: none;
+
+  place-items: center;
+
+  color: #778392;
+}
+
+
+/* =========================================================
+   COLLAPSED
+========================================================= */
+
+@media (min-width: 901px) {
+
+  .account-erp-sidebar[data-collapsed="true"]
+  .account-erp-collapsible-label {
+    display: none !important;
+  }
+
+
+  .account-erp-sidebar[data-collapsed="true"]
+  .account-erp-sidebar-head {
+    justify-content: center;
+
+    padding-inline: 0;
+  }
+
+
+  .account-erp-sidebar[data-collapsed="true"]
+  .account-erp-nav-group-separated {
+    margin-top: 8px;
+
+    padding-top: 8px;
+  }
+
+
+  .account-erp-sidebar[data-collapsed="true"]
+  .account-erp-nav-link {
+    justify-content: center;
+
+    gap: 0;
+
+    padding-inline: 0;
+  }
+
+
+  .account-erp-sidebar[data-collapsed="true"]
+  .account-erp-return-link {
+    justify-content: center;
+
+    gap: 0;
+
+    padding-inline: 0;
+  }
+
+}
+
+
+/* =========================================================
+   WORKSPACE
+========================================================= */
+
+.account-erp-workspace {
+  position: absolute;
+
+  top: 64px;
+  right: 0;
+  bottom: 0;
+  left: 272px;
+
+  min-width: 0;
+  min-height: 0;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  overscroll-behavior: contain;
+
+  padding:
+    18px
+    clamp(16px, 2.2vw, 28px)
+    28px;
+
+  background: #07090d;
+
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    #46505e
+    transparent;
+
+  scrollbar-gutter: stable;
+
+  transition:
+    left 180ms ease;
+}
+
+
+.account-erp-workspace[data-collapsed="true"] {
+  left: 76px;
+}
+
+
+.account-erp-workspace::-webkit-scrollbar {
+  width: 7px;
+}
+
+
+.account-erp-workspace::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+
+.account-erp-workspace::-webkit-scrollbar-thumb {
+  background: #414a57;
+
+  border-radius: 99px;
+}
+
+
+.account-erp-workspace-inner {
+  width: 100%;
+  max-width: 1540px;
+
+  min-width: 0;
+  min-height: 0;
+
+  margin-inline: auto;
+}
+
+
+/* =========================================================
+   ACCOUNT CONTENT
+   Neutralisation des anciens styles "page publique"
+========================================================= */
+
+.account-erp-content {
+  width: 100%;
+
+  min-width: 0;
+}
+
+
+.account-erp-content > main {
+  width: 100% !important;
+
+  min-width: 0 !important;
+  min-height: 0 !important;
+
+  padding: 0 !important;
+
+  background: transparent !important;
+
+  color: #f3f6fa !important;
+}
+
+
+.account-erp-content
+> main
+> div {
+  width: 100% !important;
+
+  max-width: none !important;
+
+  margin-inline: 0 !important;
+}
+
+
+.account-erp-content
+> main
+> div
+> :not([hidden])
+~ :not([hidden]) {
+  margin-top: 12px !important;
+}
+
+
+/* =========================================================
+   TYPOGRAPHIE ACCOUNT
+   Échelle ERP compacte
+========================================================= */
+
+.account-erp-content h1 {
+  font-size: 22px !important;
+  line-height: 1.12 !important;
+
+  font-weight: 750 !important;
+
+  letter-spacing: -0.025em !important;
+
+  color: #fbfcfe !important;
+}
+
+
+.account-erp-content h2 {
+  font-size: 13px !important;
+  line-height: 1.25 !important;
+
+  font-weight: 700 !important;
+
+  letter-spacing: -0.01em !important;
+
+  color: #f3f6fa !important;
+}
+
+
+.account-erp-content h3 {
+  font-size: 12px !important;
+  line-height: 1.3 !important;
+
+  font-weight: 700 !important;
+
+  color: #e7edf5 !important;
+}
+
+
+.account-erp-content
+.text-sm {
+  font-size: 11px !important;
+  line-height: 1.55 !important;
+}
+
+
+.account-erp-content
+.text-xs {
+  font-size: 10px !important;
+  line-height: 1.5 !important;
+}
+
+
+/* =========================================================
+   CONTRASTE
+========================================================= */
+
+.account-erp-content
+.text-zinc-700 {
+  color: #778392 !important;
+}
+
+
+.account-erp-content
+.text-zinc-600 {
+  color: #8995a5 !important;
+}
+
+
+.account-erp-content
+.text-zinc-500 {
+  color: #a5b0bf !important;
+}
+
+
+.account-erp-content
+.text-zinc-400 {
+  color: #b8c1cc !important;
+}
+
+
+.account-erp-content
+.text-neutral-600 {
+  color: #8995a5 !important;
+}
+
+
+.account-erp-content
+.text-neutral-500 {
+  color: #a5b0bf !important;
+}
+
+
+.account-erp-content
+.text-neutral-400 {
+  color: #b8c1cc !important;
+}
+
+
+/* Labels / micro-informations */
+
+.account-erp-content label {
+  color: #c4ccd6;
+}
+
+
+.account-erp-content small {
+  color: #a5b0bf;
+}
+
+
+/* =========================================================
+   PANELS
+========================================================= */
+
+.account-erp-content
+section.border,
+.account-erp-content
+article.border {
+  border-color: #303640;
+}
+
+
+.account-erp-content
+.bg-\[\#151619\] {
+  background: #11151b !important;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+.account-erp-backdrop {
+  display: none;
+}
+
+
+@media (max-width: 900px) {
+
+  .account-erp-collapse-trigger {
+    display: none;
+  }
+
+
+  .account-erp-mobile-trigger {
+    display: grid;
+  }
+
+
+  .account-erp-topbar-status {
+    display: none;
+  }
+
+
+  .account-erp-topbar-context,
+  .account-erp-topbar-separator {
+    display: none;
+  }
+
+
+  .account-erp-sidebar,
+  .account-erp-sidebar[data-collapsed="true"] {
+    width:
+      min(
+        320px,
+        88vw
+      );
+
+    min-width: 0;
+
+    transform:
+      translateX(
+        -105%
+      );
+  }
+
+
+  .account-erp-sidebar[data-open="true"] {
+    transform:
+      translateX(
+        0
+      );
+  }
+
+
+  .account-erp-sidebar[data-collapsed="true"]
+  .account-erp-collapsible-label {
+    display: initial;
+  }
+
+
+  .account-erp-backdrop {
+    position: absolute;
+
+    top: 64px;
+    right: 0;
+    bottom: 0;
+    left: 0;
+
+    z-index: 75;
+
+    display: block;
+
+    border: 0;
+
+    background:
+      rgba(
+        0,
+        0,
+        0,
+        0.68
+      );
+  }
+
+
+  .account-erp-workspace,
+  .account-erp-workspace[data-collapsed="true"] {
+    left: 0;
+
+    padding:
+      14px
+      12px
+      22px;
+  }
+
+}
+
+
+@media (max-width: 600px) {
+
+  .account-erp-topbar {
+    height: 58px;
+    min-height: 58px;
+  }
+
+
+  .account-erp-sidebar {
+    top: 58px;
+  }
+
+
+  .account-erp-backdrop {
+    top: 58px;
+  }
+
+
+  .account-erp-workspace,
+  .account-erp-workspace[data-collapsed="true"] {
+    top: 58px;
+
+    padding:
+      12px
+      10px
+      20px;
+  }
+
+
+  .account-erp-content h1 {
+    font-size: 19px !important;
+  }
+
+}
+
+
+/* =========================================================
+   PETITS ÉCRANS EN HAUTEUR
+========================================================= */
+
+@media (max-height: 700px) {
+
+  .account-erp-sidebar-scroll {
+    scrollbar-gutter: stable;
+  }
+
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .account-erp-sidebar,
+  .account-erp-workspace,
+  .account-erp-nav-link,
+  .account-erp-collapse-trigger,
+  .account-erp-mobile-trigger {
+    transition: none !important;
+  }
+
+}
+
+/* ACCOUNT SIDEBAR UX OVERRIDES - START */
+
+
+/* =========================================================
+   SHELL SANS TOPBAR INTERNE
+========================================================= */
+
+.account-erp-sidebar {
+  top: 0 !important;
+}
+
+
+.account-erp-workspace,
+.account-erp-workspace[data-collapsed="false"] {
+  top: 0 !important;
+}
+
+
+.account-erp-backdrop {
+  top: 0 !important;
+}
+
+
+/* =========================================================
+   EN-TETE SIDEBAR
+========================================================= */
+
+.account-erp-sidebar-head {
+  min-height: 64px !important;
+  height: 64px !important;
+
+  padding:
+    0
+    12px !important;
+
+  background: #0b0e13 !important;
+
+  border-bottom:
+    1px solid
+    rgba(255, 255, 255, 0.075) !important;
+}
+
+
+.account-erp-sidebar-symbol {
+  width: 34px !important;
+  height: 34px !important;
+}
+
+
+.account-erp-sidebar-identity {
+  margin-left: 11px !important;
+}
+
+
+.account-erp-sidebar-identity span {
+  font-size: 9px !important;
+  line-height: 1 !important;
+
+  font-weight: 800 !important;
+
+  letter-spacing: 0.12em !important;
+
+  color: #a5b0bf !important;
+}
+
+
+.account-erp-sidebar-identity strong {
+  margin-top: 5px !important;
+
+  font-size: 12px !important;
+  line-height: 1.1 !important;
+
+  font-weight: 700 !important;
+
+  color: #f3f6fa !important;
+}
+
+
+/* =========================================================
+   BOUTON COMPACTER
+========================================================= */
+
+.account-erp-sidebar-collapse {
+  display: grid;
+
+  width: 32px;
+  height: 32px;
+
+  flex: none;
+
+  place-items: center;
+
+  margin-left: auto;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.11);
+
+  background:
+    rgba(255, 255, 255, 0.025);
+
+  color: #a5b0bf;
+
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease;
+}
+
+
+.account-erp-sidebar-collapse:hover {
+  border-color:
+    rgba(61, 146, 255, 0.48);
+
+  background:
+    rgba(61, 146, 255, 0.08);
+
+  color: #6aafff;
+}
+
+
+/* =========================================================
+   GROUPES SIDEBAR
+========================================================= */
+
+.account-erp-nav-group-label {
+  margin-bottom: 7px !important;
+
+  font-size: 9px !important;
+  line-height: 1.3 !important;
+
+  font-weight: 800 !important;
+
+  letter-spacing: 0.11em !important;
+
+  color: #8995a5 !important;
+}
+
+
+/* =========================================================
+   LIENS SIDEBAR
+========================================================= */
+
+.account-erp-nav-link {
+  min-height: 43px !important;
+
+  gap: 11px !important;
+
+  color: #a5b0bf !important;
+}
+
+
+.account-erp-nav-link:hover {
+  color: #e0e7f0 !important;
+}
+
+
+.account-erp-nav-link-active {
+  color: #fbfcfe !important;
+}
+
+
+.account-erp-nav-icon {
+  width: 17px !important;
+  height: 17px !important;
+
+  color: #8995a5 !important;
+}
+
+
+.account-erp-nav-link-active
+.account-erp-nav-icon {
+  color: #6aafff !important;
+}
+
+
+.account-erp-nav-label {
+  font-size: 12px !important;
+  line-height: 1.15 !important;
+
+  font-weight: 650 !important;
+}
+
+
+/* =========================================================
+   RETOUR INDESY
+========================================================= */
+
+.account-erp-return-link {
+  min-height: 40px !important;
+
+  font-size: 11px !important;
+
+  color: #a5b0bf !important;
+}
+
+
+/* =========================================================
+   SIDEBAR REPLIEE
+========================================================= */
+
+@media (min-width: 901px) {
+
+  .account-erp-sidebar[data-collapsed="true"]
+  .account-erp-sidebar-symbol {
+    display: none !important;
+  }
+
+
+  .account-erp-sidebar[data-collapsed="true"]
+  .account-erp-sidebar-head {
+    justify-content: center !important;
+
+    padding-inline: 0 !important;
+  }
+
+
+  .account-erp-sidebar[data-collapsed="true"]
+  .account-erp-sidebar-collapse {
+    margin-left: 0 !important;
+  }
+
+
+  .account-erp-sidebar[data-collapsed="true"]
+  .account-erp-collapsible-label {
+    display: none !important;
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+.account-erp-mobile-trigger {
+  display: none;
+}
+
+
+@media (max-width: 900px) {
+
+  .account-erp-mobile-trigger {
+    position: absolute;
+
+    top: 10px;
+    left: 10px;
+
+    z-index: 95;
+
+    display: grid;
+
+    width: 38px;
+    height: 38px;
+
+    place-items: center;
+
+    border:
+      1px solid
+      rgba(255, 255, 255, 0.12);
+
+    background: #0b0e13;
+
+    color: #dce4ee;
+
+    box-shadow:
+      0
+      8px
+      24px
+      rgba(0, 0, 0, 0.35);
+  }
+
+
+  .account-erp-sidebar-collapse {
+    display: none !important;
+  }
+
+
+  .account-erp-sidebar,
+  .account-erp-sidebar[data-collapsed="true"] {
+    top: 0 !important;
+  }
+
+
+  .account-erp-workspace,
+  .account-erp-workspace[data-collapsed="true"] {
+    top: 0 !important;
+
+    padding-top: 60px !important;
+  }
+
+
+  .account-erp-backdrop {
+    top: 0 !important;
+  }
+
+}
+
+
+/* ACCOUNT SIDEBAR UX OVERRIDES - END */

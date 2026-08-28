@@ -6,12 +6,15 @@ export default function DatabaseIndex(){
     { id: 'disciplines', name: 'Disciplines', expected: 42 },
   ]
   return (
-    <div className="p-8 bg-black min-h-screen text-white">
-      <h1 className="text-2xl font-black mb-6">Base Indesy Mialy</h1>
-      <div className="grid gap-3">
+    <div className="mx-auto w-full max-w-[1500px] space-y-4 p-4 text-zinc-100 sm:p-6">
+      <header className="border-b border-[#303238] pb-3">
+        <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-[#3d92ff]">Administration système</p>
+        <h1 className="mt-1 text-xl font-black">Base Indesy Mialy</h1>
+      </header>
+      <div className="grid gap-2">
         {tables.map(t=>(
-          <Link key={t.id} href={`/admin/database/${t.id}`} className="border border-slate-800 p-4 rounded bg-zinc-900 hover:bg-zinc-800 flex justify-between">
-            <span>{t.name}</span><span className="text-slate-400">{t.expected} attendus → gérer</span>
+          <Link key={t.id} href={`/admin/database/${t.id}`} className="flex justify-between border border-[#303238] bg-[#151619] p-3 text-xs hover:border-[#2588ff]">
+            <span className="font-semibold">{t.name}</span><span className="text-zinc-500">{t.expected} attendus → gérer</span>
           </Link>
         ))}
       </div>

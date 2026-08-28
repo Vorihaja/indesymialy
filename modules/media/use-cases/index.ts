@@ -1,0 +1,1 @@
+import { ManageSocialUseCase } from "@/modules/social-core"; import { MediaService } from "../services"; export class ManageMediaUseCase extends ManageSocialUseCase { constructor() { super(new MediaService()); } }

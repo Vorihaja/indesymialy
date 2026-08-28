@@ -1,0 +1,1 @@
+import{OperationsService}from"@/modules/platform-operations-core/services";import{PlatformAnnouncementsRepository}from"../repositories";export class PlatformAnnouncementsService extends OperationsService{constructor(){super(new PlatformAnnouncementsRepository());}}

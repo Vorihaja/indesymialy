@@ -1,0 +1,1 @@
+import{ProfessionalService}from"@/modules/professional-core/services";import{MedicalRepository}from"../repositories";export class MedicalService extends ProfessionalService{constructor(){super(new MedicalRepository());}}

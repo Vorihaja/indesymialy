@@ -1,0 +1,1 @@
+"use client";import{AccountFeature as CoreAccountFeature}from"@/modules/identity-core/features/AccountFeature";import type{AccountSection}from"@/modules/identity-core/types";export function SecurityFeature({section="security"}:{section?:AccountSection}){return <CoreAccountFeature section={section}/>;}

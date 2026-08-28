@@ -1,0 +1,1 @@
+"use client";import{OperationsFeature,type OperationsView}from"@/modules/platform-operations-core/features";export function SupportTicketsFeature({view="list",detailId,createMode=false}:{view?:OperationsView;detailId?:string;createMode?:boolean}){return <OperationsFeature domain="support-tickets" view={view} detailId={detailId} createMode={createMode}/>;}

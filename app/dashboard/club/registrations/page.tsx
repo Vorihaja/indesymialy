@@ -1,0 +1,1 @@
+import{RoleGuard}from"@/modules/auth/guards";import{EventPlatformFeature}from"@/modules/event-core/features/EventPlatformFeature";export default function Page(){return <RoleGuard role="club"><EventPlatformFeature mode="club" section="registrations"/></RoleGuard>;}

@@ -1,0 +1,1 @@
+import { RoleGuard } from "@/modules/auth/guards"; import { ProposalFeature } from "@/modules/communication-core/features/CommunicationFeatures"; export default function Page() { return <RoleGuard role="fighter"><ProposalFeature kind="fight" /></RoleGuard>; }

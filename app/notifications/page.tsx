@@ -1,0 +1,1 @@
+import { AuthenticatedCommunicationGuard } from "@/modules/communication-core/components/AuthenticatedCommunicationGuard"; import { NotificationsFeature } from "@/modules/communication-core/features/CommunicationFeatures"; export default function Page() { return <AuthenticatedCommunicationGuard><NotificationsFeature /></AuthenticatedCommunicationGuard>; }

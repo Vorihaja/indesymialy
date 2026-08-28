@@ -1,0 +1,1 @@
+import { ManageErpRecordsUseCase } from "@/modules/erp-core"; import { SellerService } from "../services"; export class ManageSellerProductsUseCase extends ManageErpRecordsUseCase { constructor() { super(new SellerService()); } }

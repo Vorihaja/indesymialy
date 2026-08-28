@@ -1,0 +1,1 @@
+export * from "./update-fighter.use-case";

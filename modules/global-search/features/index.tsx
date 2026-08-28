@@ -1,0 +1,1 @@
+"use client";import{DiscoveryFeature}from"@/modules/discovery-core/features/DiscoveryFeature";import type{DiscoveryView}from"@/modules/discovery-core/types";export function GlobalSearchFeature({view="search",id}:{view?:DiscoveryView;id?:string}){return <DiscoveryFeature view={view} id={id}/>;}

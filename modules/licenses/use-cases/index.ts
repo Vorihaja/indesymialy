@@ -1,0 +1,1 @@
+import{ManageProfessionalUseCase}from"@/modules/professional-core/use-cases";import{LicensesService}from"../services";export class ManageLicensesUseCase extends ManageProfessionalUseCase{constructor(){super(new LicensesService());}}

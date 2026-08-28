@@ -1,0 +1,1 @@
+import{ProfessionalService}from"@/modules/professional-core/services";import{PaymentsRepository}from"../repositories";export class PaymentsService extends ProfessionalService{constructor(){super(new PaymentsRepository());}}

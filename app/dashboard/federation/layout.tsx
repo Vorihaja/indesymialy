@@ -1,0 +1,5 @@
+import { RoleGuard } from "@/modules/auth/guards";
+
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return <RoleGuard role="federation">{children}</RoleGuard>;
+}

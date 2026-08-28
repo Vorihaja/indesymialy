@@ -1,0 +1,420 @@
+/* =========================================================
+   INDESY MIALY — ERP SHELL
+   Fondation commune pour /dashboard et /admin.
+
+   Principe :
+   1. HeaderWrapper mesure le header public.
+   2. .public-content--erp occupe exactement le viewport restant.
+   3. Chaque ERP remplit 100 % de ce viewport.
+   4. Le body ne scrolle pas dans un ERP.
+   5. Sidebar et contenu métier possèdent leurs propres scrolls.
+========================================================= */
+
+.public-content.public-content--erp {
+  position: fixed;
+  top: var(--platform-header-height, 84px);
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  width: 100%;
+  height: auto;
+  min-width: 0;
+  min-height: 0 !important;
+
+  padding: 0 !important;
+
+  overflow: hidden !important;
+  background: var(--ds-bg);
+}
+
+.public-content--erp > * {
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Le bouton de retour en haut concerne les pages publiques.
+   Les ERP scrollent dans leurs zones internes. */
+.public-content--erp ~ .back-to-top-button,
+body:has(.public-content--erp) .back-to-top-button {
+  display: none;
+}
+
+/* =========================================================
+   SHELL ERP GÉNÉRIQUE
+========================================================= */
+
+.erp-shell-root {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+
+  overflow: hidden;
+  background: var(--erp-bg, var(--ds-bg));
+}
+
+/* DashboardShell adds a .ds-workspace/.ds-shell-content level.
+   Both levels fill the viewport already calculated by HeaderWrapper
+   while the content level owns the generic route scroll and spacing. */
+.erp-shell-root > .ds-workspace {
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+
+  overflow: hidden;
+}
+
+.erp-shell-root
+> .ds-workspace
+> .ds-shell-content {
+  position: relative;
+
+  flex: 1 1 auto;
+
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+
+  padding: 12px;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+
+  background: #0b0c0e;
+  color: var(--erp-text, #f4f4f5);
+  font-family:
+    "Segoe UI",
+    Arial,
+    sans-serif;
+}
+
+/* Full, independently scrollable canvas for nested workspaces. */
+.platform-workspace-canvas {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+
+  padding: 12px;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+
+  background: #0b0c0e;
+  color: var(--erp-text, #f4f4f5);
+  font-family:
+    "Segoe UI",
+    Arial,
+    sans-serif;
+}
+
+@media (min-width: 640px) {
+  .erp-shell-root
+  > .ds-workspace
+  > .ds-shell-content,
+  .platform-workspace-canvas {
+    padding: 16px;
+  }
+}
+
+/* Neutralise les anciennes règles globales concurrentes. */
+.erp-shell-root .erp-topbar {
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  left: 0 !important;
+
+  width: auto !important;
+  height: 64px !important;
+  min-height: 64px;
+
+  z-index: 90;
+}
+
+.erp-shell-root .erp-sidebar {
+  position: absolute !important;
+  top: 64px !important;
+  bottom: 0 !important;
+  left: 0 !important;
+
+  width: 272px !important;
+  min-width: 272px !important;
+  max-width: 272px !important;
+  height: auto !important;
+  min-height: 0 !important;
+
+  overflow: hidden !important;
+  z-index: 80;
+}
+
+.erp-shell-root
+.erp-sidebar[data-collapsed="true"] {
+  width: 76px !important;
+  min-width: 76px !important;
+  max-width: 76px !important;
+}
+
+.erp-shell-root
+.erp-sidebar-scroll {
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.erp-shell-root
+.erp-sidebar-nav {
+  min-height: 0;
+}
+
+.erp-shell-root .erp-workspace,
+.erp-shell-root
+.erp-workspace[data-collapsed="false"] {
+  position: absolute !important;
+  top: 64px !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 272px !important;
+
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+
+  padding:
+    20px
+    clamp(16px, 2.4vw, 34px)
+    28px !important;
+
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+
+  transition:
+    left var(--ds-transition),
+    padding var(--ds-transition);
+}
+
+.erp-shell-root
+.erp-workspace[data-collapsed="true"] {
+  left: 76px !important;
+  padding-left:
+    clamp(16px, 2.4vw, 34px) !important;
+}
+
+.erp-shell-root
+.erp-workspace-inner {
+  width: 100%;
+  max-width: 1540px;
+  min-width: 0;
+  min-height: 0;
+  margin-inline: auto;
+}
+
+/* Backdrop confiné à l'ERP, sous la topbar. */
+.erp-shell-root
+.erp-sidebar-backdrop {
+  position: absolute !important;
+  inset: 64px 0 0 !important;
+  z-index: 75 !important;
+}
+
+/* =========================================================
+   ERP ORGANISATEUR
+========================================================= */
+
+.organizer-erp-shell {
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+
+  overflow: hidden;
+  background: #090a0c;
+}
+
+.organizer-erp-sidebar {
+  height: 100%;
+  min-height: 0;
+}
+
+.organizer-erp-sidebar-scroll {
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.organizer-erp-main-column {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.organizer-erp-tabs {
+  width: 100%;
+  min-width: 0;
+  flex: none;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+}
+
+.organizer-erp-main {
+  min-width: 0;
+  min-height: 0;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+/* Navigation compacte pour tablette/mobile. */
+.organizer-erp-mobile-nav {
+  display: none;
+  width: 100%;
+  min-width: 0;
+  flex: none;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  overscroll-behavior-x: contain;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1023px) {
+  .organizer-erp-shell {
+    flex-direction: column;
+  }
+
+  .organizer-erp-sidebar {
+    display: none !important;
+  }
+
+  .organizer-erp-mobile-nav {
+    display: flex;
+  }
+
+  .organizer-erp-main {
+    scrollbar-gutter: auto;
+  }
+}
+
+@media (max-width: 900px) {
+  .erp-shell-root .erp-sidebar {
+    top: 64px !important;
+
+    width: min(320px, 88vw) !important;
+    min-width: 0 !important;
+    max-width: none !important;
+
+    transform: translateX(-105%);
+  }
+
+  .erp-shell-root
+  .erp-sidebar[data-open="true"] {
+    transform: translateX(0);
+  }
+
+  .erp-shell-root .erp-workspace,
+  .erp-shell-root
+  .erp-workspace[data-collapsed="true"],
+  .erp-shell-root
+  .erp-workspace[data-collapsed="false"] {
+    left: 0 !important;
+
+    padding:
+      16px
+      clamp(12px, 3vw, 20px)
+      24px !important;
+
+    scrollbar-gutter: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .organizer-erp-main {
+    padding: 10px !important;
+  }
+
+  .organizer-erp-mobile-nav {
+    min-height: 40px;
+  }
+
+  .erp-shell-root .erp-workspace,
+  .erp-shell-root
+  .erp-workspace[data-collapsed="true"],
+  .erp-shell-root
+  .erp-workspace[data-collapsed="false"] {
+    padding:
+      12px
+      10px
+      20px !important;
+  }
+}
+
+/* =========================================================
+   PETITS ÉCRANS EN HAUTEUR
+========================================================= */
+
+@media (max-height: 650px) {
+  .organizer-erp-sidebar-scroll,
+  .erp-shell-root .erp-sidebar-scroll {
+    scrollbar-gutter: stable;
+  }
+}
+
+/* =========================================================
+   MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .erp-shell-root .erp-sidebar,
+  .erp-shell-root .erp-workspace,
+  .organizer-erp-sidebar,
+  .organizer-erp-sidebar button,
+  .organizer-erp-mobile-nav button,
+  .organizer-erp-tabs button {
+    transition: none !important;
+  }
+
+  .organizer-erp-sidebar .animate-pulse {
+    animation: none !important;
+  }
+}

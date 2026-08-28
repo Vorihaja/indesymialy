@@ -1,0 +1,1 @@
+import { createSupabaseBrowserClient } from "@/infrastructure/supabase/client";import{ClubRepository}from"../repositories/club.repository";import{ClubService}from"../services/club.service";export function createClubService(){return new ClubService(new ClubRepository(createSupabaseBrowserClient()))}

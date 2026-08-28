@@ -1,0 +1,1 @@
+import { NewsFeature } from "@/modules/news"; export default async function Page({ params }: { params: Promise<{ id: string }> }) { const { id } = await params; return <NewsFeature mode="detail" recordId={id}/>; }

@@ -1,0 +1,1 @@
+import { ManageErpRecordsUseCase } from "@/modules/erp-core"; import { OrganizerService } from "../services"; export class ManageOrganizerEventsUseCase extends ManageErpRecordsUseCase { constructor() { super(new OrganizerService()); } }

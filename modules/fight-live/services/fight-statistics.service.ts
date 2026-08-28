@@ -1,0 +1,2 @@
+import { FightStatisticsRepository } from "../repositories/fight-statistics.repository";
+export class FightStatisticsService { constructor(private readonly repository: FightStatisticsRepository) {} getFightStatistics(fightId: string) { if (!fightId) throw new Error("Fight ID obligatoire"); return this.repository.getFightStatistics(fightId); } getFighterStatistics(fighterId: string) { if (!fighterId) throw new Error("Fighter ID obligatoire"); return this.repository.getFighterStatistics(fighterId); } getRanking(limit = 100) { return this.repository.getRanking(limit); } }

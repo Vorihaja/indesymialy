@@ -1,0 +1,1 @@
+import{OperationsService}from"@/modules/platform-operations-core/services";import{SupportTicketsRepository}from"../repositories";export class SupportTicketsService extends OperationsService{constructor(){super(new SupportTicketsRepository());}}

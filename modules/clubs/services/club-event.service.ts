@@ -1,0 +1,2 @@
+import type { ClubEvent } from "../types"; import { ClubEventRepository } from "../repositories/club-event.repository";
+export class ClubEventService { constructor(private readonly repository: ClubEventRepository) {} getEvents(organizationId: string): Promise<ClubEvent[]> { return this.repository.findByOrganizationId(organizationId); } }

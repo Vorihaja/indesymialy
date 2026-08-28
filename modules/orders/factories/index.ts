@@ -1,0 +1,1 @@
+import{OrderRepository}from"../repositories";import{OrderService}from"../services";import{ManageOrdersUseCase}from"../use-cases";export const createOrdersUseCase=()=>new ManageOrdersUseCase(new OrderService(new OrderRepository()));

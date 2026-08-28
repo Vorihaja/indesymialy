@@ -1,0 +1,1 @@
+import { ErpService } from "@/modules/erp-core"; import { SponsorRepository } from "../repositories"; export class SponsorService extends ErpService { constructor() { super(new SponsorRepository()); } }

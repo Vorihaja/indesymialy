@@ -1,55 +1,82 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
 
-import { getUserPermissions } from "../services/permissions.service";
+import {
+  ReactNode
+} from "react";
 
-import { supabase } from "@/lib/supabase";
+
+import {
+  usePermission
+} from "../hooks/usePermission";
+
+
+
 
 interface PermissionGuardProps {
-  permission: string;
-  children: ReactNode;
-  fallback?: ReactNode;
+
+
+ permission:string;
+
+
+ children:ReactNode;
+
+
+ fallback?:ReactNode;
+
+
 }
 
+
+
+
 export default function PermissionGuard({
-  permission,
-  children,
-  fallback = null,
-}: PermissionGuardProps) {
-  const [allowed, setAllowed] = useState(false);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function checkPermission() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+ permission,
 
-      if (!user) {
-        setAllowed(false);
-        setLoading(false);
-        return;
-      }
+ children,
 
-      const permissions = await getUserPermissions(user.id);
+ fallback=null,
 
-      const hasPermission = permissions.some(
-        (item) => item.code === permission
-      );
+}:PermissionGuardProps){
 
-      setAllowed(hasPermission);
-      setLoading(false);
-    }
 
-    checkPermission();
-  }, [permission]);
 
-  if (loading) return null;
+const {
 
-  if (!allowed) {
-    return <>{fallback}</>;
-  }
+ can,
 
-  return <>{children}</>;
+ loading
+
+}=usePermission();
+
+
+
+
+
+if(loading){
+
+return null;
+
+}
+
+
+
+
+
+if(!can(permission)){
+
+
+return <>{fallback}</>;
+
+}
+
+
+
+
+
+return <>{children}</>;
+
+
+
 }

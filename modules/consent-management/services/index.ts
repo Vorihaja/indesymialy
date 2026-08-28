@@ -1,0 +1,1 @@
+import{OperationsService}from"@/modules/platform-operations-core/services";import{ConsentManagementRepository}from"../repositories";export class ConsentManagementService extends OperationsService{constructor(){super(new ConsentManagementRepository());}}

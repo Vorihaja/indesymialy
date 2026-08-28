@@ -1,0 +1,1 @@
+import { ErpManagementFeature } from "@/modules/erp-core"; import { ERP_MODULES } from "@/modules/erp-modules"; export default function Page() { return <ErpManagementFeature definition={ERP_MODULES.fighter} mode="create"/>; }

@@ -1,0 +1,1 @@
+import{SellerDashboardService}from"../services";export class GetSellerDashboardUseCase{constructor(private readonly service:SellerDashboardService){}statistics(){return this.service.statistics()}customers(){return this.service.customers()}transactions(){return this.service.transactions()}}

@@ -1,0 +1,1 @@
+import{OperationsService}from"@/modules/platform-operations-core/services";import{PublicSettingsRepository}from"../repositories";export class PublicSettingsService extends OperationsService{constructor(){super(new PublicSettingsRepository());}}

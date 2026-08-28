@@ -1,0 +1,3 @@
+import type { Organization, OrganizationInsert, OrganizationMemberInsert } from "../types";
+import { OrganizationRepository } from "../repositories/organization.repository";
+export class OrganizationService { constructor(private readonly repository: OrganizationRepository) {} createOrganization(input: OrganizationInsert): Promise<Organization> { return this.repository.create(input); } addOwnerMembership(input: OrganizationMemberInsert): Promise<void> { return this.repository.createMember(input); } deleteOrganization(organizationId: string): Promise<void> { return this.repository.delete(organizationId); } }

@@ -1,14 +1,6 @@
-"use client";
+import { RoleGuard } from '@/modules/auth/guards';
+import { UniversalErpPrototype } from '@/modules/universal-erp';
 
-import ErpAuthGuard from "@/components/auth/ErpAuthGuard";
-
-export default function TemporaryFanPage() {
-  return (
-    <ErpAuthGuard>
-      <div className="p-8 text-white bg-black min-h-screen">
-        <h1 className="text-amber-500 font-bold">Espace Fan Temporel</h1>
-        <p className="text-xs text-zinc-400">Si tu vois cette page, ton utilisateur a le rôle "Fan" dans Supabase.</p>
-      </div>
-    </ErpAuthGuard>
-  );
+export default function Page() {
+  return <RoleGuard role='fan'><UniversalErpPrototype role='fan' /></RoleGuard>;
 }

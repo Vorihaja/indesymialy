@@ -1,0 +1,1 @@
+import { SocialService } from "@/modules/social-core"; import { MediaRepository } from "../repositories"; export class MediaService extends SocialService { constructor() { super(new MediaRepository()); } }

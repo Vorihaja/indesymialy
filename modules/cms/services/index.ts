@@ -1,0 +1,1 @@
+import{OperationsService}from"@/modules/platform-operations-core/services";import{CmsRepository}from"../repositories";export class CmsService extends OperationsService{constructor(){super(new CmsRepository());}}

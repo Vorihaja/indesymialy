@@ -1,0 +1,1 @@
+import{ManageOperationsUseCase}from"@/modules/platform-operations-core/use-cases";import{PublicSettingsService}from"../services";export class ManagePublicSettingsUseCase extends ManageOperationsUseCase{constructor(){super(new PublicSettingsService());}}

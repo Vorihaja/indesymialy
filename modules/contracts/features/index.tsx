@@ -1,0 +1,1 @@
+"use client";import{ProfessionalFeature}from"@/modules/professional-core/features";import type{ProfessionalRole}from"@/modules/professional-core/types";export function ContractsFeature({role,supervision=false}:{role:ProfessionalRole;supervision?:boolean}){return <ProfessionalFeature domain="contracts" role={role} supervision={supervision}/>;}

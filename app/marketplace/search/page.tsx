@@ -1,0 +1,1 @@
+﻿import { CatalogFeature } from "@/modules/marketplace"; export default async function Page({ searchParams }: { searchParams: Promise<{ q?: string }> }) { const { q } = await searchParams; return <CatalogFeature search={q} />; }

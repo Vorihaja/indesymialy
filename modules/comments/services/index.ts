@@ -1,0 +1,1 @@
+import { SocialService } from "@/modules/social-core"; import { CommentRepository } from "../repositories"; export class CommentService extends SocialService { constructor() { super(new CommentRepository()); } }

@@ -1,0 +1,1 @@
+import { RoleGuard } from "@/modules/auth/guards"; import { FightLiveWorkspaceFeature } from "@/modules/fight-live"; export default async function Page({ params }: { params: Promise<{ fightId: string }> }) { const { fightId } = await params; return <RoleGuard role="organizer"><FightLiveWorkspaceFeature fightId={fightId} mode="organizer" section="result" /></RoleGuard>; }

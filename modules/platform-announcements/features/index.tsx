@@ -1,0 +1,1 @@
+"use client";import{OperationsFeature,type OperationsView}from"@/modules/platform-operations-core/features";export function PlatformAnnouncementsFeature({view="list",detailId,createMode=false}:{view?:OperationsView;detailId?:string;createMode?:boolean}){return <OperationsFeature domain="platform-announcements" view={view} detailId={detailId} createMode={createMode}/>;}

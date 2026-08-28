@@ -1,0 +1,1 @@
+import { RefereeManagementFeature } from "@/modules/referees"; export default async function Page({ params }: { params: Promise<{ id: string }> }) { const { id } = await params; return <RefereeManagementFeature mode="detail" recordId={id}/>; }

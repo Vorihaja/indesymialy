@@ -1,0 +1,1 @@
+import{OperationsService}from"@/modules/platform-operations-core/services";import{ChangelogRepository}from"../repositories";export class ChangelogService extends OperationsService{constructor(){super(new ChangelogRepository());}}

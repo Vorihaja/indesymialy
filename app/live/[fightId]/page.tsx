@@ -1,0 +1,1 @@
+import { PublicFightLiveFeature } from "@/modules/fight-live"; export default async function Page({ params }: { params: Promise<{ fightId: string }> }) { const { fightId } = await params; return <PublicFightLiveFeature fightId={fightId} />; }

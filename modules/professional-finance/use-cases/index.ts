@@ -1,0 +1,1 @@
+import{ManageProfessionalUseCase}from"@/modules/professional-core/use-cases";import{ProfessionalFinanceService}from"../services";export class ManageProfessionalFinanceUseCase extends ManageProfessionalUseCase{constructor(){super(new ProfessionalFinanceService());}}

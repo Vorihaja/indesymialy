@@ -1,0 +1,1 @@
+import{RoleGuard}from"@/modules/auth/guards";import{EventPlatformFeature}from"@/modules/event-core/features/EventPlatformFeature";export default async function Page({params}:{params:Promise<{id:string}>}){const{id}=await params;return <RoleGuard role="organizer"><EventPlatformFeature mode="organizer" section="checklists" eventId={id}/></RoleGuard>;}

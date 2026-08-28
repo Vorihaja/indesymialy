@@ -1,0 +1,1 @@
+import{ManageOperationsUseCase}from"@/modules/platform-operations-core/use-cases";import{BugReportsService}from"../services";export class ManageBugReportsUseCase extends ManageOperationsUseCase{constructor(){super(new BugReportsService());}}
