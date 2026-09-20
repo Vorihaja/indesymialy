@@ -1487,3 +1487,43 @@
       0.01ms !important;
   }
 }
+
+/* =========================================================
+   UI-R3J KORANA DEEP PALETTE
+========================================================= */
+
+.korana-theme {
+  --korana-bg-deepest: #010203;
+  --korana-bg: #030405;
+  --korana-bg-raised: #06080b;
+
+  --korana-surface-1: #06080b;
+  --korana-surface-2: #090c11;
+  --korana-surface-3: #0c1016;
+  --korana-surface-4: #111722;
+
+  --korana-red: #b90f2f;
+  --korana-red-bright: #e21a40;
+
+  --korana-blue: #0b4aaf;
+  --korana-blue-bright: #4f8eea;
+
+  background-color: #010203 !important;
+}
+
+.korana-theme
+:where(
+  [aria-current="page"],
+  [aria-selected="true"],
+  [data-active="true"]
+) {
+  border-color: var(--korana-red);
+}
+
+.korana-theme
+:where(
+  a,
+  button
+):hover {
+  border-color: var(--korana-blue);
+}

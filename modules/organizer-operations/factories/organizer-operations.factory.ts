@@ -11,10 +11,6 @@ import {
 } from "../repositories/organizer-operations-hybrid.repository";
 
 import {
-  OrganizerOperationsMemoryRepository,
-} from "../repositories/organizer-operations-memory.repository";
-
-import {
   OrganizerOperationsSupabaseRepository,
 } from "../repositories/organizer-operations-supabase.repository";
 
@@ -47,14 +43,10 @@ const persistentRepository =
     supabase,
   );
 
-const templateRepository =
-  new OrganizerOperationsMemoryRepository();
-
 const repository =
   new OrganizerOperationsHybridRepository(
     contextRepository,
     persistentRepository,
-    templateRepository,
   );
 
 const service =

@@ -1,11 +1,12 @@
 import {
   ErpModuleTabs,
 } from "@/modules/erp-core";
+import type { ErpTabDefinition } from "@/modules/erp-navigation";
 
 export function FighterTabs({ tabs, active, onChange }: {
-  tabs: string[];
+  tabs: readonly ErpTabDefinition[];
   active: string;
-  onChange: (tab: string) => void;
+  onChange: (tabId: string) => void;
 }) {
   return (
     <ErpModuleTabs

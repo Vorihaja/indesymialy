@@ -1,21 +1,23 @@
 import type { UniversalRoleDefinition } from '../types';
+import { defineErpTabs } from '@/modules/erp-navigation';
+const tab = (id: string, label: string) => ({ id, label, legacyIds: [label] });
 
 export const sportGovernanceRoleDefinitions: UniversalRoleDefinition[] = [
   {
     id: 'federation', label: 'Fédération', guardRole: 'federation', workspaceStatus: 'Fédération opérationnelle',
     modules: [
       { id: 'overview', label: 'Vue d’ensemble', tabs: [], icon: 'overview' },
-      { id: 'affiliations', label: 'Affiliations', tabs: ['Ligues', 'Clubs', 'Demandes', 'Renouvellements'], icon: 'organizations' },
-      { id: 'members', label: 'Licenciés', tabs: ['Combattants', 'Coachs', 'Arbitres', 'Juges', 'Dirigeants'], icon: 'users' },
-      { id: 'competitions', label: 'Compétitions', tabs: ['Calendrier', 'Homologations', 'Inscriptions', 'Résultats', 'Classements'], icon: 'events' },
-      { id: 'sport', label: 'Sport', tabs: ['Disciplines', 'Catégories', 'Règlements', 'Sélections', 'Équipe nationale'], icon: 'sport' },
-      { id: 'licenses', label: 'Licences', tabs: ['Délivrance', 'Renouvellements', 'Suspensions', 'Contrôles'], icon: 'documents' },
-      { id: 'training', label: 'Formation', tabs: ['Sessions', 'Certifications', 'Examens', 'Formateurs'], icon: 'training' },
-      { id: 'finance', label: 'Finances', tabs: ['Synthèse', 'Cotisations', 'Subventions', 'Dépenses', 'Paiements'], icon: 'finance' },
-      { id: 'communication', label: 'Communication', tabs: ['Circulaires', 'Actualités', 'Documents', 'Messages'], icon: 'communication' },
-      { id: 'performance', label: 'Performance', tabs: ['National', 'Ligues', 'Clubs', 'Athlètes', 'Rapports'], icon: 'performance' },
-      { id: 'settings', label: 'Paramètres', tabs: ['Fédération', 'Utilisateurs', 'Droits', 'Référentiels'], icon: 'settings' },
-      { id: 'live', label: 'Competition Control', tabs: ['Direct'], icon: 'live', live: true },
+      { id: 'affiliations', label: 'Affiliations', tabs: defineErpTabs([tab('leagues', 'Ligues'), tab('clubs', 'Clubs'), tab('requests', 'Demandes'), tab('renewals', 'Renouvellements')]), icon: 'organizations' },
+      { id: 'members', label: 'Licenciés', tabs: defineErpTabs([tab('fighters', 'Combattants'), tab('coaches', 'Coachs'), tab('referees', 'Arbitres'), tab('judges', 'Juges'), tab('leaders', 'Dirigeants')]), icon: 'users' },
+      { id: 'competitions', label: 'Compétitions', tabs: defineErpTabs([tab('calendar', 'Calendrier'), tab('approvals', 'Homologations'), tab('registrations', 'Inscriptions'), tab('results', 'Résultats'), tab('rankings', 'Classements')]), icon: 'events' },
+      { id: 'sport', label: 'Sport', tabs: defineErpTabs([tab('disciplines', 'Disciplines'), tab('categories', 'Catégories'), tab('rules', 'Règlements'), tab('selections', 'Sélections'), tab('national-team', 'Équipe nationale')]), icon: 'sport' },
+      { id: 'licenses', label: 'Licences', tabs: defineErpTabs([tab('issuance', 'Délivrance'), tab('renewals', 'Renouvellements'), tab('suspensions', 'Suspensions'), tab('checks', 'Contrôles')]), icon: 'documents' },
+      { id: 'training', label: 'Formation', tabs: defineErpTabs([tab('sessions', 'Sessions'), tab('certifications', 'Certifications'), tab('exams', 'Examens'), tab('trainers', 'Formateurs')]), icon: 'training' },
+      { id: 'finance', label: 'Finances', tabs: defineErpTabs([tab('summary', 'Synthèse'), tab('fees', 'Cotisations'), tab('grants', 'Subventions'), tab('expenses', 'Dépenses'), tab('payments', 'Paiements')]), icon: 'finance' },
+      { id: 'communication', label: 'Communication', tabs: defineErpTabs([tab('circulars', 'Circulaires'), tab('news', 'Actualités'), tab('documents', 'Documents'), tab('messages', 'Messages')]), icon: 'communication' },
+      { id: 'performance', label: 'Performance', tabs: defineErpTabs([tab('national', 'National'), tab('leagues', 'Ligues'), tab('clubs', 'Clubs'), tab('athletes', 'Athlètes'), tab('reports', 'Rapports')]), icon: 'performance' },
+      { id: 'settings', label: 'Paramètres', tabs: defineErpTabs([tab('federation', 'Fédération'), tab('users', 'Utilisateurs'), tab('permissions', 'Droits'), tab('references', 'Référentiels')]), icon: 'settings' },
+      { id: 'live', label: 'Competition Control', tabs: defineErpTabs([tab('live', 'Direct')]), icon: 'live', live: true },
     ],
     overview: {
       kpis: [
@@ -59,16 +61,16 @@ export const sportGovernanceRoleDefinitions: UniversalRoleDefinition[] = [
     id: 'league', label: 'Ligue', guardRole: 'league', workspaceStatus: 'Ligue régionale active',
     modules: [
       { id: 'overview', label: 'Vue d’ensemble', tabs: [], icon: 'overview' },
-      { id: 'clubs', label: 'Clubs', tabs: ['Affiliés', 'Demandes', 'Conformité', 'Classements'], icon: 'organizations' },
-      { id: 'members', label: 'Licenciés', tabs: ['Combattants', 'Coachs', 'Officiels', 'Mutations'], icon: 'users' },
-      { id: 'competitions', label: 'Compétitions', tabs: ['Événements', 'Inscriptions', 'Catégories', 'Planning', 'Résultats'], icon: 'events' },
-      { id: 'officials', label: 'Officiels', tabs: ['Arbitres', 'Juges', 'Désignations', 'Disponibilités'], icon: 'sport' },
-      { id: 'development', label: 'Développement', tabs: ['Formations', 'Stages', 'Talents', 'Programmes'], icon: 'training' },
-      { id: 'documents', label: 'Documents', tabs: ['Circulaires', 'Règlements', 'PV', 'Archives'], icon: 'documents' },
-      { id: 'finance', label: 'Finances', tabs: ['Synthèse', 'Cotisations', 'Budget', 'Dépenses', 'Paiements'], icon: 'finance' },
-      { id: 'performance', label: 'Performance', tabs: ['Clubs', 'Athlètes', 'Compétitions', 'Rapports'], icon: 'performance' },
-      { id: 'settings', label: 'Paramètres', tabs: ['Ligue', 'Équipe', 'Droits', 'Notifications'], icon: 'settings' },
-      { id: 'live', label: 'Ligue Live', tabs: ['Direct'], icon: 'live', live: true },
+      { id: 'clubs', label: 'Clubs', tabs: defineErpTabs([tab('affiliated', 'Affiliés'), tab('requests', 'Demandes'), tab('compliance', 'Conformité'), tab('rankings', 'Classements')]), icon: 'organizations' },
+      { id: 'members', label: 'Licenciés', tabs: defineErpTabs([tab('fighters', 'Combattants'), tab('coaches', 'Coachs'), tab('officials', 'Officiels'), tab('transfers', 'Mutations')]), icon: 'users' },
+      { id: 'competitions', label: 'Compétitions', tabs: defineErpTabs([tab('events', 'Événements'), tab('registrations', 'Inscriptions'), tab('categories', 'Catégories'), tab('planning', 'Planning'), tab('results', 'Résultats')]), icon: 'events' },
+      { id: 'officials', label: 'Officiels', tabs: defineErpTabs([tab('referees', 'Arbitres'), tab('judges', 'Juges'), tab('assignments', 'Désignations'), tab('availability', 'Disponibilités')]), icon: 'sport' },
+      { id: 'development', label: 'Développement', tabs: defineErpTabs([tab('training', 'Formations'), tab('camps', 'Stages'), tab('talents', 'Talents'), tab('programs', 'Programmes')]), icon: 'training' },
+      { id: 'documents', label: 'Documents', tabs: defineErpTabs([tab('circulars', 'Circulaires'), tab('rules', 'Règlements'), tab('minutes', 'PV'), tab('archives', 'Archives')]), icon: 'documents' },
+      { id: 'finance', label: 'Finances', tabs: defineErpTabs([tab('summary', 'Synthèse'), tab('fees', 'Cotisations'), tab('budget', 'Budget'), tab('expenses', 'Dépenses'), tab('payments', 'Paiements')]), icon: 'finance' },
+      { id: 'performance', label: 'Performance', tabs: defineErpTabs([tab('clubs', 'Clubs'), tab('athletes', 'Athlètes'), tab('competitions', 'Compétitions'), tab('reports', 'Rapports')]), icon: 'performance' },
+      { id: 'settings', label: 'Paramètres', tabs: defineErpTabs([tab('league', 'Ligue'), tab('team', 'Équipe'), tab('permissions', 'Droits'), tab('notifications', 'Notifications')]), icon: 'settings' },
+      { id: 'live', label: 'Ligue Live', tabs: defineErpTabs([tab('live', 'Direct')]), icon: 'live', live: true },
     ],
     overview: {
       kpis: [
@@ -112,17 +114,17 @@ export const sportGovernanceRoleDefinitions: UniversalRoleDefinition[] = [
     id: 'club', label: 'Club', guardRole: 'club', workspaceStatus: 'Club opérationnel',
     modules: [
       { id: 'overview', label: 'Vue d’ensemble', tabs: [], icon: 'overview' },
-      { id: 'members', label: 'Membres', tabs: ['Tous', 'Combattants', 'Coachs', 'Adhésions', 'Présences'], icon: 'users' },
-      { id: 'training', label: 'Entraînement', tabs: ['Planning', 'Séances', 'Programmes', 'Groupes', 'Évaluations'], icon: 'training' },
-      { id: 'competitions', label: 'Compétitions', tabs: ['Calendrier', 'Inscriptions', 'Engagés', 'Résultats', 'Déplacements'], icon: 'events' },
-      { id: 'sport', label: 'Sport', tabs: ['Disciplines', 'Catégories', 'Fight camps', 'Talents'], icon: 'sport' },
-      { id: 'medical', label: 'Suivi médical', tabs: ['Aptitudes', 'Certificats', 'Blessures', 'Poids'], icon: 'medical' },
-      { id: 'licenses', label: 'Licences', tabs: ['Actives', 'Demandes', 'Renouvellements', 'Assurances'], icon: 'documents' },
-      { id: 'finance', label: 'Finances', tabs: ['Synthèse', 'Cotisations', 'Revenus', 'Dépenses', 'Paiements'], icon: 'finance' },
-      { id: 'communication', label: 'Communication', tabs: ['Annonces', 'Messages', 'Documents', 'Convocations'], icon: 'communication' },
-      { id: 'performance', label: 'Performance', tabs: ['Combattants', 'Groupes', 'Compétitions', 'Rapports'], icon: 'performance' },
-      { id: 'settings', label: 'Paramètres', tabs: ['Club', 'Équipe', 'Droits', 'Abonnement'], icon: 'settings' },
-      { id: 'live', label: 'Club Day', tabs: ['Direct'], icon: 'live', live: true },
+      { id: 'members', label: 'Membres', tabs: defineErpTabs([tab('all', 'Tous'), tab('fighters', 'Combattants'), tab('coaches', 'Coachs'), tab('memberships', 'Adhésions'), tab('attendance', 'Présences')]), icon: 'users' },
+      { id: 'training', label: 'Entraînement', tabs: defineErpTabs([tab('planning', 'Planning'), tab('sessions', 'Séances'), tab('programs', 'Programmes'), tab('groups', 'Groupes'), tab('evaluations', 'Évaluations')]), icon: 'training' },
+      { id: 'competitions', label: 'Compétitions', tabs: defineErpTabs([tab('calendar', 'Calendrier'), tab('registrations', 'Inscriptions'), tab('engaged', 'Engagés'), tab('results', 'Résultats'), tab('travel', 'Déplacements')]), icon: 'events' },
+      { id: 'sport', label: 'Sport', tabs: defineErpTabs([tab('disciplines', 'Disciplines'), tab('categories', 'Catégories'), tab('fight-camps', 'Fight camps'), tab('talents', 'Talents')]), icon: 'sport' },
+      { id: 'medical', label: 'Suivi médical', tabs: defineErpTabs([tab('fitness', 'Aptitudes'), tab('certificates', 'Certificats'), tab('injuries', 'Blessures'), tab('weight', 'Poids')]), icon: 'medical' },
+      { id: 'licenses', label: 'Licences', tabs: defineErpTabs([tab('active', 'Actives'), tab('requests', 'Demandes'), tab('renewals', 'Renouvellements'), tab('insurance', 'Assurances')]), icon: 'documents' },
+      { id: 'finance', label: 'Finances', tabs: defineErpTabs([tab('summary', 'Synthèse'), tab('fees', 'Cotisations'), tab('revenue', 'Revenus'), tab('expenses', 'Dépenses'), tab('payments', 'Paiements')]), icon: 'finance' },
+      { id: 'communication', label: 'Communication', tabs: defineErpTabs([tab('announcements', 'Annonces'), tab('messages', 'Messages'), tab('documents', 'Documents'), tab('summons', 'Convocations')]), icon: 'communication' },
+      { id: 'performance', label: 'Performance', tabs: defineErpTabs([tab('fighters', 'Combattants'), tab('groups', 'Groupes'), tab('competitions', 'Compétitions'), tab('reports', 'Rapports')]), icon: 'performance' },
+      { id: 'settings', label: 'Paramètres', tabs: defineErpTabs([tab('club', 'Club'), tab('team', 'Équipe'), tab('permissions', 'Droits'), tab('subscription', 'Abonnement')]), icon: 'settings' },
+      { id: 'live', label: 'Club Day', tabs: defineErpTabs([tab('live', 'Direct')]), icon: 'live', live: true },
     ],
     overview: {
       kpis: [

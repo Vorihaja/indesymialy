@@ -138,10 +138,10 @@ Suivi officiel des combats en direct
 
 <span
 className="
-bg-red-600/10
+bg-blue-600/10
 border
-border-red-500/30
-text-red-500
+border-blue-500/30
+text-blue-500
 px-4
 py-2
 font-mono

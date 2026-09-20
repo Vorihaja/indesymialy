@@ -1,1 +1,11 @@
-import{DocumentsFeature}from"@/modules/documents";export default function Page(){return <DocumentsFeature role="referee"/>;}
+import {
+  redirectWithSearchParams,
+  type RouteSearchParams,
+} from "@/app/_routing/redirect-with-search-params";
+
+export default function Page({ searchParams }: { searchParams: RouteSearchParams }) {
+  return redirectWithSearchParams(
+    "/dashboard/officiel/documents",
+    searchParams,
+  );
+}

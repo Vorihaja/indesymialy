@@ -1,14 +1,18 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
 } from "react";
+import { useRouter } from "next/navigation";
 import { getUniversalRoleDefinition } from "../config";
 import type { UniversalRoleId } from "../types";
 import { UniversalSidebar } from "./UniversalSidebar";
-import { personnelEnabledRoles } from "@/modules/personnel-erp";
+import { SellerErpModuleView } from "./SellerErpModuleView";
+import { FinanceFeature } from "@/modules/finance-erp/features/FinanceFeature";
+import { personnelEnabledRoles } from "@/modules/personnel-erp/config";
 import { RealModuleDataView } from "@/modules/organizer-erp/components/RealModuleDataView";
 import type { RealErpRole } from "@/modules/erp-core/real-data";
 import {
@@ -16,21 +20,91 @@ import {
   ErpWorkspaceFrame,
 } from "@/modules/erp-core";
 import { useErpNavigationState } from "@/modules/erp-navigation";
+import { ErpCalendarWorkspace } from "@/modules/erp-calendar/components/ErpCalendarWorkspace";
+import { OfficialAssignmentsFeature } from "@/modules/officials/assignments";
+import { OfficialAvailabilityFeature } from "@/modules/officials/availability";
+import {
+  getEffectiveOfficialModules,
+  OFFICIAL_ADDITIONAL_MODULES,
+  useOfficialFunction,
+} from "@/modules/officials/function-context";
 
 type UniversalErpPrototypeProps = {
   role: UniversalRoleId;
   initialModule?: string;
   initialTab?: string;
+  routeContent?: import("react").ReactNode;
+};
+
+const OFFICIAL_MODULE_ROUTES: Readonly<Record<string, string>> = {
+  overview: "/dashboard/officiel",
+  assignments: "/dashboard/officiel/assignments",
+  scorecards: "/dashboard/officiel/scorecards",
+  fights: "/dashboard/officiel/fights",
+  availability: "/dashboard/officiel/availability",
+  licenses: "/dashboard/officiel/licenses",
+  training: "/dashboard/officiel/training",
+  evaluations: "/dashboard/officiel/evaluations",
+  finance: "/dashboard/officiel/finance",
+  communication: "/dashboard/officiel/messages",
+  settings: "/dashboard/officiel/settings",
+  live: "/dashboard/officiel/fight-live",
+  calendar: "/dashboard/officiel/calendar",
+  marketplace: "/dashboard/officiel/marketplace",
+  performance: "/dashboard/officiel/performance",
 };
 
 export function UniversalErpPrototype({
   role,
   initialModule,
   initialTab,
+  routeContent,
 }: UniversalErpPrototypeProps) {
+  const router = useRouter();
+  const {
+    officialFunction,
+    officialFunctionReady,
+  } = useOfficialFunction();
+
   const definition = useMemo(() => {
     const base = getUniversalRoleDefinition(role);
     const modules = [...base.modules];
+
+    if (role === "official") {
+      for (
+        const additionalModule of
+        OFFICIAL_ADDITIONAL_MODULES
+      ) {
+        if (
+          !modules.some(
+            (item) =>
+              item.id === additionalModule.id,
+          )
+        ) {
+          const targetIndex =
+            additionalModule.id ===
+            "scorecards"
+              ? modules.findIndex(
+                  (item) =>
+                    item.id ===
+                    "assignments",
+                ) + 1
+              : modules.findIndex(
+                  (item) =>
+                    item.id ===
+                    "finance",
+                );
+
+          modules.splice(
+            targetIndex <= 0
+              ? modules.length
+              : targetIndex,
+            0,
+            additionalModule,
+          );
+        }
+      }
+    }
 
     if (personnelEnabledRoles.has(role)) {
       const personnel = {
@@ -105,12 +179,7 @@ export function UniversalErpPrototype({
       modules[financeIndex] = {
         ...modules[financeIndex]!,
         label: "Finances",
-        tabs: [
-          "Synthèse",
-          ...modules[financeIndex]!.tabs.filter(
-            (tab) => tab !== "Synthèse",
-          ),
-        ],
+        tabs: [],
       };
     } else {
       const settingsIndex = modules.findIndex(
@@ -125,7 +194,7 @@ export function UniversalErpPrototype({
         {
           id: "finance",
           label: "Finances",
-          tabs: ["Synthèse"],
+          tabs: [],
           icon: "finance" as const,
         },
       );
@@ -133,9 +202,15 @@ export function UniversalErpPrototype({
 
     return {
       ...base,
-      modules,
+      modules:
+        role === "official"
+          ? getEffectiveOfficialModules(
+              modules,
+              officialFunction,
+            )
+          : modules,
     };
-  }, [role]);
+  }, [officialFunction, role]);
 
   const {
     moduleId,
@@ -150,10 +225,57 @@ export function UniversalErpPrototype({
     initialTab,
   });
 
+  const navigateFromSidebar = useCallback((nextModuleId: string) => {
+    if (role === "official") {
+      const route = OFFICIAL_MODULE_ROUTES[nextModuleId];
+
+      if (route) {
+        router.push(route);
+        return;
+      }
+    }
+
+    navigate(nextModuleId);
+  }, [navigate, role, router]);
+
+  const routeDeterminesModule =
+    role === "official" && initialModule !== undefined;
+  const effectiveModuleId = routeDeterminesModule
+    ? initialModule
+    : moduleId;
+  const effectiveActiveTab =
+    routeDeterminesModule && initialTab !== undefined
+      ? initialTab
+      : activeTab;
+
   const activeModule =
     definition.modules.find(
-      (module) => module.id === moduleId,
+      (module) => module.id === effectiveModuleId,
     ) ?? definition.modules[0]!;
+
+  const requestedModuleIsAvailable =
+    initialModule === undefined ||
+    definition.modules.some(
+      (module) =>
+        module.id === initialModule,
+    );
+
+  useEffect(() => {
+    if (
+      role === "official" &&
+      officialFunctionReady &&
+      !requestedModuleIsAvailable
+    ) {
+      router.replace(
+        "/dashboard/officiel",
+      );
+    }
+  }, [
+    requestedModuleIsAvailable,
+    officialFunctionReady,
+    role,
+    router,
+  ]);
 
   const mainRef = useRef<HTMLElement>(null);
 
@@ -163,7 +285,7 @@ export function UniversalErpPrototype({
       left: 0,
       behavior: "auto",
     });
-  }, [moduleId, activeTab]);
+  }, [effectiveModuleId, effectiveActiveTab]);
 
   return (
     <ErpWorkspaceFrame
@@ -171,15 +293,15 @@ export function UniversalErpPrototype({
       sidebar={
         <UniversalSidebar
           definition={definition}
-          active={moduleId}
-          onChange={navigate}
+          active={effectiveModuleId}
+          onChange={navigateFromSidebar}
         />
       }
       tabs={
         activeModule.tabs.length > 1 ? (
           <ErpModuleTabs
             tabs={activeModule.tabs}
-            active={activeTab}
+            active={effectiveActiveTab}
             onChange={setActiveTab}
             ariaLabel={`Sous-navigation ${activeModule.label}`}
           />
@@ -187,13 +309,49 @@ export function UniversalErpPrototype({
       }
       mainRef={mainRef}
     >
-      <RealModuleDataView
-        role={role as RealErpRole}
-        moduleId={activeModule.id}
-        moduleLabel={activeModule.label}
-        tab={activeTab || activeModule.label}
-        onTabChange={setActiveTab}
-      />
+      {role === "official" &&
+      effectiveModuleId === "scorecards" ? (
+        routeContent ?? (
+          <p className="p-6 text-sm text-red-500">
+            Le module Scorecards est indisponible.
+          </p>
+        )
+      ) : routeContent &&
+      effectiveModuleId === (initialModule ?? "overview") &&
+      (
+        activeModule.id === "finance" ||
+        !initialTab ||
+        effectiveActiveTab === initialTab
+      ) ? (
+        routeContent
+      ) : activeModule.id === "finance" ? (
+        <FinanceFeature role={role} />
+      ) : activeModule.id === "availability" && role === "official" ? (
+        <OfficialAvailabilityFeature />
+      ) : activeModule.id === "calendar" &&
+      role !== "seller" ? (
+        <ErpCalendarWorkspace role={role} />
+      ) : activeModule.id === "assignments" &&
+      (role === "official" || role === "referee") ? (
+        <OfficialAssignmentsFeature
+          tab={effectiveActiveTab || "upcoming"}
+        />
+      ) : role === "seller" ? (
+        <SellerErpModuleView
+          moduleId={activeModule.id}
+          moduleLabel={activeModule.label}
+          tab={effectiveActiveTab}
+          onTabChange={setActiveTab}
+        />
+      ) : (
+        <RealModuleDataView
+          role={role as RealErpRole}
+          moduleId={activeModule.id}
+          moduleLabel={activeModule.label}
+          tab={effectiveActiveTab || activeModule.label}
+          onTabChange={setActiveTab}
+        />
+      )}
     </ErpWorkspaceFrame>
   );
 }

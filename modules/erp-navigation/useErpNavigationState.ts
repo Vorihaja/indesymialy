@@ -71,6 +71,7 @@ export function useErpNavigationState<
     modules.map((module) => ({
       id: module.id,
       tabs: [...module.tabs],
+      defaultTabId: module.defaultTabId,
     })),
   );
 

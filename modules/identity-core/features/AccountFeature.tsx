@@ -39,7 +39,16 @@ import {
 } from "../hooks/useIdentity";
 
 import {
-  IDENTITY_ROLE_LABELS,
+  usePublicIdentifierAvailability,
+} from "../hooks/usePublicIdentifierAvailability";
+
+import {
+  normalizePublicIdentifier,
+  publicIdentifierMessage,
+} from "../public-identifier.types";
+
+import {
+  getAccountIdentityRoleLabel,
   isPublicIdentityRole,
 } from "../role-policy";
 
@@ -131,6 +140,45 @@ function readableError(
 
   if (
     normalized.includes(
+      "username_taken",
+    ) ||
+    normalized.includes(
+      "profile_actor_handle_mismatch",
+    )
+  ) {
+
+    return "Cet identifiant est déjà pris.";
+  }
+
+
+  if (
+    normalized.includes(
+      "username_reserved",
+    ) ||
+    normalized.includes(
+      "korana_handle_reserved",
+    )
+  ) {
+
+    return "Cet identifiant est réservé par Indesy Mialy.";
+  }
+
+
+  if (
+    normalized.includes(
+      "username_invalid_format",
+    ) ||
+    normalized.includes(
+      "username_not_canonical",
+    )
+  ) {
+
+    return "Utilisez 3 à 50 caractères : lettres minuscules, chiffres, point, tiret ou underscore.";
+  }
+
+
+  if (
+    normalized.includes(
       "duplicate",
     ) ||
     normalized.includes(
@@ -138,7 +186,7 @@ function readableError(
     )
   ) {
 
-    return "Ce nom utilisateur est déjà utilisé.";
+    return "Cet identifiant est déjà pris.";
   }
 
 
@@ -227,6 +275,21 @@ export function AccountFeature({
   ] =
     useState<string | null>(
       null,
+    );
+
+
+  // KORANA-K5-C2B-PUBLIC-IDENTIFIER
+  const identifierAvailability =
+    usePublicIdentifierAvailability(
+      profileForm.username,
+      {
+        enabled:
+          section ===
+          "profile",
+
+        debounceMs:
+          350,
+      },
     );
 
 
@@ -331,26 +394,25 @@ export function AccountFeature({
 
 
   const primaryRoleLabel =
-    profile.primaryRole &&
-    isPublicIdentityRole(
+    getAccountIdentityRoleLabel(
       profile.primaryRole,
-    )
-      ? IDENTITY_ROLE_LABELS[
-          profile.primaryRole
-        ]
-      : "Aucun";
+    );
 
 
   const secondaryRoleLabels =
     profile.secondaryRoles
       .filter(
-        isPublicIdentityRole,
+        (role) =>
+          role === "official" ||
+          isPublicIdentityRole(role),
       )
       .map(
-        (role) =>
-          IDENTITY_ROLE_LABELS[
-            role
-          ],
+        getAccountIdentityRoleLabel,
+      )
+      .filter(
+        (label, index, labels) =>
+          label !== primaryRoleLabel &&
+          labels.indexOf(label) === index,
       );
 
 
@@ -412,12 +474,13 @@ export function AccountFeature({
 
 
     const username =
-      profileForm.username
-        .trim()
-        .replace(
-          /^@+/,
-          "",
-        );
+      normalizePublicIdentifier(
+        profileForm.username
+          .replace(
+            /^@+/,
+            "",
+          ),
+      );
 
 
     const email =
@@ -456,6 +519,40 @@ export function AccountFeature({
 
       setProfileError(
         "Pour continuer l’onboarding, renseignez aussi votre téléphone et au moins une discipline.",
+      );
+
+      return;
+    }
+
+
+    const identifierResult =
+      await identifierAvailability
+        .check(
+          username,
+        );
+
+
+    if (
+      !identifierResult
+    ) {
+
+      setProfileError(
+        "Impossible de vérifier cet identifiant. Réessayez.",
+      );
+
+      return;
+    }
+
+
+    if (
+      !identifierResult.available
+    ) {
+
+      setProfileError(
+        publicIdentifierMessage(
+          identifierResult,
+        ) ??
+        "Cet identifiant n’est pas disponible.",
       );
 
       return;
@@ -507,7 +604,7 @@ export function AccountFeature({
       ) {
 
         router.push(
-          "/onboarding/disciplines",
+          "/account/profile",
         );
       }
 
@@ -683,22 +780,69 @@ export function AccountFeature({
                   <div className="min-w-0">
 
                     <Field
-                      label="Nom utilisateur"
+                      label="Identifiant public"
                       value={
                         profileForm.username
                       }
                       onChange={
-                        (value) =>
+                        (value) => {
+
+                          const username =
+                            normalizePublicIdentifier(
+                              value.replace(
+                                /^@+/,
+                                "",
+                              ),
+                            );
+
+
                           setProfileForm(
                             (current) => ({
                               ...current,
 
-                              username:
-                                value,
+                              username,
                             }),
-                          )
+                          );
+                        }
                       }
                     />
+
+
+                    <div
+                      className="mt-2 min-h-[34px]"
+                      aria-live="polite"
+                    >
+
+                      <p
+                        className={[
+                          "text-[10px] font-semibold leading-4",
+
+                          identifierAvailability.checking
+                            ? "text-zinc-500"
+                            : identifierAvailability.available ===
+                                true
+                              ? "text-[#3d92ff]"
+                              : identifierAvailability.message
+                                ? "text-[#ff536b]"
+                                : "text-zinc-600",
+                        ].join(
+                          " ",
+                        )}
+                      >
+                        {identifierAvailability.checking
+                          ? "Vérification de l’identifiant…"
+                          : identifierAvailability.message ??
+                            "3 à 50 caractères : lettres minuscules, chiffres, point, tiret ou underscore."}
+                      </p>
+
+
+                      <p
+                        className="mt-1 text-[9px] leading-4 text-zinc-600"
+                      >
+                        Adresse publique prévue : /{identifierAvailability.normalizedIdentifier || "identifiant"} · sans @
+                      </p>
+
+                    </div>
 
                   </div>
 
@@ -876,7 +1020,10 @@ export function AccountFeature({
                 <button
                   type="button"
                   disabled={
-                    profileSaving
+                    profileSaving ||
+                    identifierAvailability.checking ||
+                    identifierAvailability.available !==
+                      true
                   }
                   onClick={() =>
                     void saveProfile()

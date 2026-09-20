@@ -1,1 +1,11 @@
-import { LeagueManagementFeature } from "@/modules/leagues"; export default function Page() { return <LeagueManagementFeature mode="create"/>; }
+import { redirect } from "next/navigation";
+
+/*
+ * INDESY CRUD FALLBACK P0
+ *
+ * L'ancien CRUD management generique est retire.
+ * Cette route historique conduit vers le module canonique.
+ */
+export default function Page() {
+  redirect("/dashboard/ligue");
+}

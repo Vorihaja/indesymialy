@@ -1,11 +1,14 @@
 import type { ErpStatistics } from "../types";
 
-const tones = [
-  "border-l-[#087cff]",
-  "border-l-emerald-500",
-  "border-l-amber-400",
-  "border-l-[#ed1b2f]",
-] as const;
+function statisticTone(label: string) {
+  const normalized = label.toLocaleLowerCase("fr");
+
+  if (normalized.includes("actif")) return "success";
+  if (normalized.includes("brouillon") || normalized.includes("draft")) return "warning";
+  if (normalized.includes("archiv")) return "neutral";
+
+  return "info";
+}
 
 export function ErpStatisticsCards({
   statistics,
@@ -14,15 +17,16 @@ export function ErpStatisticsCards({
 }) {
   return (
     <section className="grid grid-cols-2 gap-px overflow-hidden border border-[#303238] bg-[#303238] lg:grid-cols-4">
-      {Object.entries(statistics).map(([label, value], index) => (
+      {Object.entries(statistics).map(([label, value]) => (
         <article
           key={label}
-          className={`min-h-[76px] border-l-2 bg-[#151619] px-3 py-2 ${tones[index % tones.length]}`}
+          className="erp-semantic-kpi min-h-[76px] border-l-2 px-3 py-2"
+          data-tone={statisticTone(label)}
         >
           <p className="text-[8px] font-bold uppercase tracking-[0.1em] text-zinc-500">
             {label}
           </p>
-          <p className="mt-1.5 truncate text-[18px] font-semibold tracking-[-0.03em] text-zinc-100">
+          <p className="erp-semantic-kpi-value mt-1.5 truncate text-[18px] font-semibold tracking-[-0.03em]" data-kpi-value>
             {value}
           </p>
         </article>

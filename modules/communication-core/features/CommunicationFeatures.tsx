@@ -389,7 +389,7 @@ export function NotificationUnreadBadge() {
   const { unread } = useNotifications();
 
   return unread > 0 ? (
-    <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-[10px] font-black text-white">
+    <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-blue-600 px-1.5 text-[10px] font-black text-white">
       {unread}
     </span>
   ) : null;

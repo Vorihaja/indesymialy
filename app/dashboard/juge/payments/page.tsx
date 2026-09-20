@@ -1,1 +1,5 @@
-import{PaymentsFeature}from"@/modules/payments";export default function Page(){return <PaymentsFeature role="judge"/>;}
+import { LegacyJudgeRedirect } from "@/modules/officials/components/LegacyJudgeRedirect";
+
+export default function Page() {
+  return <LegacyJudgeRedirect target="/dashboard/officiel/finance" />;
+}

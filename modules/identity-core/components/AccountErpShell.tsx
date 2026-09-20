@@ -63,8 +63,13 @@ const ACCOUNT_NAVIGATION:
           icon: UserRound,
         },
         {
-          label: "Rôles",
+          label: "Rôles et accès",
           href: "/account/roles",
+          icon: UsersRound,
+        },
+        {
+          label: "Vérification",
+          href: "/account/verification",
           icon: UsersRound,
         },
         {

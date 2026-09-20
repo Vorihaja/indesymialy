@@ -18,6 +18,10 @@ export class OrganizerEventWorkflowService {
     return this.repository.candidates();
   }
 
+  searchOfficialCandidates(query: string) {
+    return this.repository.searchOfficialCandidates(query);
+  }
+
   invitations() {
     return this.repository.invitations();
   }
@@ -46,6 +50,17 @@ export class OrganizerEventWorkflowService {
   ) {
     if (!draft.event.name.trim()) {
       throw new Error('Le nom de l’événement est obligatoire.');
+    }
+
+    const invalidOfficial = draft.officials.find(
+      (official) =>
+        Boolean(official.name.trim()) &&
+        !official.profileId &&
+        !(official.legacyMention && official.assignmentId),
+    );
+
+    if (invalidOfficial) {
+      throw new Error('Sélectionnez un compte Officiel Indesy dans les suggestions.');
     }
 
     return this.repository.save(eventId, draft, mode, readiness);

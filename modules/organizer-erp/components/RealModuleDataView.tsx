@@ -10,10 +10,15 @@ import {
   RefreshCw,
   TriangleAlert,
 } from "lucide-react";
+import IndesyDualOrbitLoader from "@/components/loading/IndesyDualOrbitLoader";
 import {
   useRealErpData,
   type RealErpRole,
 } from "@/modules/erp-core/real-data";
+import {
+  resolveCanonicalErpRole,
+  resolveErpModuleEntry,
+} from "@/modules/erp-dispatch-registry";
 import { normalizeBackendError } from "@/shared/errors/backend-error";
 import { RealDataTable } from "./RealDataTable";
 import { OrganizerEventsTable } from "./OrganizerEventsTable";
@@ -52,6 +57,63 @@ export function RealModuleDataView({
     moduleLabel,
     tab,
   };
+
+  const resolvedRegistryEntry = resolveErpModuleEntry(
+    resolveCanonicalErpRole(role) ?? role,
+    moduleId,
+  );
+
+  if (!resolvedRegistryEntry) {
+    if (process.env.NODE_ENV === "development") {
+      throw new Error(
+        `[ERP dispatch] Missing registry entry for ${role}/${moduleId}`,
+      );
+    }
+
+    return (
+      <section
+        role="status"
+        className="grid min-h-56 place-items-center border border-red-500/30 bg-[#151619] p-6 text-center"
+      >
+        <div>
+          <TriangleAlert className="mx-auto text-red-400" size={22} />
+          <p className="mt-3 text-[12px] font-semibold text-zinc-100">
+            Module non modifiable
+          </p>
+          <p className="mt-1 max-w-lg text-[11px] leading-5 text-zinc-500">
+            Ce module n’a pas encore de registre ERP valide et ne peut pas être
+            exposé en production.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  const isUnavailable = resolvedRegistryEntry.implementationStatus === "unavailable";
+
+  if (isUnavailable) {
+    return (
+      <section
+        role="status"
+        className="grid min-h-56 place-items-center border border-amber-500/30 bg-[#151619] p-6 text-center"
+      >
+        <div>
+          <TriangleAlert className="mx-auto text-amber-400" size={22} />
+          <p className="mt-3 text-[12px] font-semibold text-zinc-100">
+            Module en cours de développement
+          </p>
+          <p className="mt-1 max-w-lg text-[11px] leading-5 text-zinc-500">
+            La section {moduleLabel} · {tab} n’a pas encore de handler métier
+            explicite. Aucune donnée ne peut être créée ou modifiée depuis cet
+            écran.
+          </p>
+          <p className="mt-3 text-[9px] font-bold uppercase tracking-[0.1em] text-amber-300">
+            Référence : {role}/{moduleId}
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   const {
     data,
@@ -169,25 +231,17 @@ export function RealModuleDataView({
   if (
     role === "organizer" &&
     moduleId === "events" &&
-    tab === "Coorganisations"
+    tab === "coorganizations"
   ) {
     return <CoorganizationView onChanged={refresh} />;
   }
 
   if (loading) {
     return (
-      <div
-        className="grid min-h-56 place-items-center border border-[#303238] bg-[#151619]"
-        aria-busy="true"
-      >
-        <div className="flex items-center gap-2 text-[11px] text-zinc-400">
-          <RefreshCw
-            size={15}
-            className="animate-spin text-[#3d92ff]"
-          />
-          Chargement des données…
-        </div>
-      </div>
+      <IndesyDualOrbitLoader
+        variant="section"
+        label={`Chargement du module ${moduleLabel}`}
+      />
     );
   }
 
@@ -218,13 +272,46 @@ export function RealModuleDataView({
     );
   }
 
+  if (
+    enhancedData.implementationStatus ===
+    "unavailable"
+  ) {
+    return (
+      <section
+        role="status"
+        className="grid min-h-56 place-items-center border border-amber-500/30 bg-[#151619] p-6 text-center"
+      >
+        <div>
+          <TriangleAlert
+            className="mx-auto text-amber-400"
+            size={22}
+          />
+
+          <p className="mt-3 text-[12px] font-semibold text-zinc-100">
+            Module en cours de d\u00e9veloppement
+          </p>
+
+          <p className="mt-1 max-w-lg text-[11px] leading-5 text-zinc-500">
+            La section {moduleLabel} \u00b7 {tab} ne poss\u00e8de pas encore
+            de handler m\u00e9tier explicite. Aucune donn\u00e9e ne peut
+            \u00eatre cr\u00e9\u00e9e ou modifi\u00e9e depuis cet \u00e9cran.
+          </p>
+
+          <p className="mt-3 text-[9px] font-bold uppercase tracking-[0.1em] text-amber-300">
+            R\u00e9f\u00e9rence : {role}/{moduleId}
+          </p>
+        </div>
+      </section>
+    );
+  }
+
   const richEventWorkflow =
     role === "organizer" && data.entity === "events";
 
   const organizerEventList =
     richEventWorkflow &&
     moduleId === "events" &&
-    tab === "Tous les événements";
+    tab === "all-events";
 
   const openCreate = richEventWorkflow
     ? () => {
@@ -298,6 +385,7 @@ export function RealModuleDataView({
           open={wizardOpen}
           initialValue={wizardInitial}
           coorganizerCandidates={workflow.candidates}
+          searchOfficialCandidates={workflow.searchOfficialCandidates}
           onClose={() => setWizardOpen(false)}
           onSave={async (_row, mode, draft) => {
             await workflow.save(

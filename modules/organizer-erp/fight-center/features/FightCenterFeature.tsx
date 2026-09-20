@@ -63,18 +63,18 @@ import type {
   OperationalFightItem,
 } from "../types";
 
-const FIGHT_CARD_TAB = "Fight Card";
-const COMBATS_TAB = "Combats";
-const WEIGH_IN_TAB = "Pesée";
-const OFFICIALS_TAB = "Officiels";
+const FIGHT_CARD_TAB = "fight-card";
+const COMBATS_TAB = "fights";
+const WEIGH_IN_TAB = "weigh-in";
+const OFFICIALS_TAB = "officials";
 
 function fightCenterTabLabel(value: string) {
   switch (value) {
-    case "Fight Card":
+    case "fight-card":
       return "Carte des combats";
-    case "Matchmaking":
+    case "matchmaking":
       return "Matchmaking";
-    case "Fight Live":
+    case "fight-live":
       return "Combat en direct";
     default:
       return value;

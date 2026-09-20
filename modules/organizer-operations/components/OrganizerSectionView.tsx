@@ -15,7 +15,7 @@ export function OrganizerSectionView({ snapshot }: { snapshot: OrganizerSectionS
   return (
     <motion.div className='organizer-control' initial={reduceMotion ? undefined : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <Link className='organizer-back-link' href='/dashboard/organisateur'><ArrowLeft size={15} /> Centre de contrôle</Link>
-      <SectionHeader eyebrow={snapshot.eyebrow} title={snapshot.title} description={snapshot.description} actions={<Link href='/dashboard/organisateur/events/new' className='ds-button ds-primary'><Plus size={16} />{snapshot.primaryAction}</Link>} />
+      <SectionHeader eyebrow={snapshot.eyebrow} title={snapshot.title} description={snapshot.description} actions={snapshot.primaryAction ? <Link href='/dashboard/organisateur/events/new' className='ds-button ds-primary'><Plus size={16} />{snapshot.primaryAction}</Link> : undefined} />
       <div className='organizer-event-signal'><div><span className='organizer-live-dot' aria-hidden='true' /><span>POSTE OPÉRATIONNEL</span></div><strong>Données synchronisées</strong><span className='ds-caption'>Préparation globale {snapshot.readiness}%</span></div>
       <OrganizerKpiGrid metrics={snapshot.metrics} />
       {snapshot.records && <section className='erp-section-panel' aria-labelledby='records-heading'>

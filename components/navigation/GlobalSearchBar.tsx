@@ -24,7 +24,11 @@ function toInputDate(d: Date) {
   return `${year}-${month}-${day}`;
 }
 
-export default function GlobalSearchBar() {
+type GlobalSearchBarProps = {
+  compact?: boolean;
+};
+
+export default function GlobalSearchBar({ compact = false }: GlobalSearchBarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -53,8 +57,10 @@ export default function GlobalSearchBar() {
   const [searching, setSearching] = useState(false);
   const [showDisc, setShowDisc] = useState(false);
   const [showDate, setShowDate] = useState(false);
+  const [showCompactFilters, setShowCompactFilters] = useState(false);
   const [results, setResults] = useState<DiscoveryResult[]>([]);
 
+  const rootRef = useRef<HTMLDivElement>(null);
   const discRef = useRef<HTMLDivElement>(null);
   const dateRef = useRef<HTMLDivElement>(null);
 
@@ -63,6 +69,7 @@ export default function GlobalSearchBar() {
     const handle = (e: MouseEvent) => {
       if (discRef.current && !discRef.current.contains(e.target as Node)) setShowDisc(false);
       if (dateRef.current && !dateRef.current.contains(e.target as Node)) setShowDate(false);
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setShowCompactFilters(false);
       const t = e.target as HTMLElement;
       if (!t.closest("#global-search-input")) setShowResults(false);
     };
@@ -76,13 +83,13 @@ export default function GlobalSearchBar() {
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
     ["search", "region", "ville", "dateFrom", "dateTo", "disciplines"].forEach((key) => params.delete(key));
-    
+
     if (q) params.set("search", q);
     if (region) params.set("region", region);
     if (ville) params.set("ville", ville);
     if (dateFrom) params.set("dateFrom", dateFrom);
     if (dateTo) params.set("dateTo", dateTo);
-    
+
     // Comparaison sûre par chaîne de caractères pour les disciplines
     if (!isAllSelected && selectedDisciplines.length > 0) {
       params.set("disciplines", selectedDisciplines.join(","));
@@ -149,6 +156,10 @@ export default function GlobalSearchBar() {
   const hasDateFilter = !!(dateFrom || dateTo);
   const hasGeoFilter = !!(region || ville);
   const hasAnyFilter = !!(q || hasGeoFilter || hasDateFilter || !isAllSelected);
+  const activeFilterCount =
+    (hasGeoFilter ? 1 : 0) +
+    (hasDateFilter ? 1 : 0) +
+    (!isAllSelected ? 1 : 0);
 
   const dateBtnLabel = hasDateFilter
     ? dateFrom && dateTo
@@ -157,11 +168,14 @@ export default function GlobalSearchBar() {
     : "Période";
 
   return (
-    <div className="relative w-full bg-neutral-950 font-mono border-b border-neutral-900">
-      <div className="flex items-stretch divide-x divide-neutral-900 text-[10px] uppercase tracking-wider overflow-x-auto scrollbar-hide min-h-[40px]">
+    <div
+      ref={rootRef}
+      className={`global-search-root relative w-full bg-neutral-950 font-mono border-b border-neutral-900 ${compact ? "global-search--cockpit" : ""}`}
+    >
+      <div className="global-search-toolbar flex items-stretch divide-x divide-neutral-900 text-[10px] uppercase tracking-wider overflow-x-auto scrollbar-hide min-h-[40px]">
 
         {/* SEARCH INPUT */}
-        <div id="global-search-input" className="flex items-center flex-1 px-4 gap-2.5 relative min-w-[180px]">
+        <div id="global-search-input" className="global-search-input-shell flex items-center flex-1 px-4 gap-2.5 relative min-w-[180px]">
           <Search size={12} className="text-neutral-600 shrink-0" />
           <input
             aria-label='Recherche globale'
@@ -190,8 +204,27 @@ export default function GlobalSearchBar() {
           )}
         </div>
 
+        {compact ? (
+          <button
+            type="button"
+            className="global-search-compact-filter-button"
+            aria-expanded={showCompactFilters}
+            onClick={() => {
+              setShowCompactFilters((value) => !value);
+              setShowDisc(false);
+              setShowDate(false);
+            }}
+          >
+            <Filter size={12} aria-hidden="true" />
+            <span>Filtres</span>
+            {activeFilterCount > 0 ? <strong>{activeFilterCount}</strong> : null}
+            <ChevronDown size={10} aria-hidden="true" />
+          </button>
+        ) : null}
+
+        <div className={compact ? `global-search-compact-filters ${showCompactFilters ? "is-open" : ""}` : "global-search-default-filters"}>
         {/* DISCIPLINE FILTER */}
-        <div ref={discRef} className="flex items-center px-3 relative shrink-0">
+        <div ref={discRef} className="global-search-filter-segment flex items-center px-3 relative shrink-0">
           <button
             onClick={() => { setShowDisc(v => !v); setShowDate(false); }}
             className="flex items-center gap-2 font-bold text-xs h-full py-2"
@@ -229,7 +262,7 @@ export default function GlobalSearchBar() {
         </div>
 
         {/* PÉRIODE / DATE FILTER */}
-        <div ref={dateRef} className="flex items-center px-3 relative shrink-0">
+        <div ref={dateRef} className="global-search-filter-segment flex items-center px-3 relative shrink-0">
           <button
             onClick={() => { setShowDate(v => !v); setShowDisc(false); }}
             className="flex items-center gap-2 font-bold text-xs h-full py-2"
@@ -289,7 +322,7 @@ export default function GlobalSearchBar() {
         </div>
 
         {/* RÉGION / VILLE */}
-        <div className="flex items-center px-3 gap-2 shrink-0">
+        <div className="global-search-filter-segment global-search-geo flex items-center px-3 gap-2 shrink-0">
           <MapPin size={10} className={hasGeoFilter ? "text-blue-400" : "text-blue-600"} />
           <select
             value={region}
@@ -312,6 +345,7 @@ export default function GlobalSearchBar() {
               <option key={v} value={v} className="bg-neutral-950 text-white">{v}</option>
             ))}
           </select>
+        </div>
         </div>
       </div>
 
@@ -341,7 +375,7 @@ export default function GlobalSearchBar() {
             </span>
           )}
           {!isAllSelected && selectedDisciplines.slice(0, 3).map((d) => (
-            <span key={d} className="h-5 px-2 rounded-full bg-red-700 text-white text-[10px] font-bold flex items-center gap-1">
+            <span key={d} className="h-5 px-2 rounded-full bg-blue-700 text-white text-[10px] font-bold flex items-center gap-1">
               {d}<button onClick={() => toggleDiscipline(d)}><X size={10} /></button>
             </span>
           ))}

@@ -1,1 +1,6 @@
-import { RoleGuard } from "@/modules/auth/guards"; import { MessagingFeature } from "@/modules/communication-core/features/CommunicationFeatures"; export default async function Page({ params }: { params: Promise<{ conversationId: string }> }) { const { conversationId } = await params; return <RoleGuard role="judge"><MessagingFeature conversationId={conversationId} role="judge" basePath="/dashboard/juge/messages" /></RoleGuard>; }
+import { LegacyJudgeRedirect } from "@/modules/officials/components/LegacyJudgeRedirect";
+
+export default async function Page({ params }: { params: Promise<{ conversationId: string }> }) {
+  const { conversationId } = await params;
+  return <LegacyJudgeRedirect target={`/dashboard/officiel/messages/${conversationId}`} />;
+}

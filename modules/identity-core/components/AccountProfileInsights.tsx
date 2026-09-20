@@ -24,7 +24,7 @@ import type {
 } from "../types";
 
 import {
-  getIdentityRoleLabel,
+  getAccountIdentityRoleLabel,
   isPublicIdentityRole,
 } from "../role-policy";
 
@@ -149,12 +149,13 @@ function resolvePublicRoles(
 
   if (
     profile.primaryRole &&
-    isPublicIdentityRole(
-      profile.primaryRole,
-    )
+    (profile.primaryRole === "official" ||
+      isPublicIdentityRole(
+        profile.primaryRole,
+      ))
   ) {
     roles.push(
-      getIdentityRoleLabel(
+      getAccountIdentityRoleLabel(
         profile.primaryRole,
       ),
     );
@@ -162,12 +163,14 @@ function resolvePublicRoles(
 
   profile.secondaryRoles
     .filter(
-      isPublicIdentityRole,
+      (role) =>
+        role === "official" ||
+        isPublicIdentityRole(role),
     )
     .forEach(
       (role) => {
         const label =
-          getIdentityRoleLabel(
+          getAccountIdentityRoleLabel(
             role,
           );
 
@@ -501,10 +504,11 @@ export function AccountProfileContext({
               label="Rôle principal"
               value={
                 profile.primaryRole &&
-                isPublicIdentityRole(
-                  profile.primaryRole,
-                )
-                  ? getIdentityRoleLabel(
+                (profile.primaryRole === "official" ||
+                  isPublicIdentityRole(
+                    profile.primaryRole,
+                  ))
+                  ? getAccountIdentityRoleLabel(
                       profile.primaryRole,
                     )
                   : "Aucun"

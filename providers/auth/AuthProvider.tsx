@@ -18,62 +18,282 @@ import {
 import { createIdentityUseCase } from "@/modules/identity-core/factories/identity.factory";
 import { AuthContext } from "./auth-context";
 
-type Props = { children: ReactNode };
+type Props = {
+  children: ReactNode;
+};
 
-export default function AuthProvider({ children }: Props) {
-  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
-  const identityUseCase = useMemo(() => createIdentityUseCase(), []);
-  const [snapshot, setSnapshot] = useState<AuthSnapshot>(EMPTY_AUTH_SNAPSHOT);
-  const [loading, setLoading] = useState(true);
+export default function AuthProvider({
+  children,
+}: Props) {
+  const supabase = useMemo(
+    () => createSupabaseBrowserClient(),
+    [],
+  );
+  const identityUseCase = useMemo(
+    () => createIdentityUseCase(),
+    [],
+  );
+  const [snapshot, setSnapshot] =
+    useState<AuthSnapshot>(
+      EMPTY_AUTH_SNAPSHOT,
+    );
+  const [loading, setLoading] =
+    useState(true);
   const requestRef = useRef(0);
   const mountedRef = useRef(true);
+  const refreshInFlightRef =
+    useRef<Promise<AuthSnapshot> | null>(
+      null,
+    );
+  const refreshQueuedRef =
+    useRef(false);
+  const synchronizationTimerRef =
+    useRef<number | null>(null);
 
-  const refreshUser = useCallback(async () => {
-    const request = ++requestRef.current;
-    setLoading(true);
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (sessionData.session?.user.user_metadata?.profile_setup_pending === "true") {
-        try {
-          await identityUseCase.resumeRegistration();
-        } catch {
-          console.error("[Auth] Impossible de finaliser l’inscription. Une nouvelle tentative sera effectuée.");
+  const refreshUser = useCallback(
+    (): Promise<AuthSnapshot> => {
+      const inFlight =
+        refreshInFlightRef.current;
+
+      if (inFlight) {
+        return inFlight;
+      }
+
+      const request =
+        ++requestRef.current;
+
+      if (mountedRef.current) {
+        setLoading(true);
+      }
+
+      const operation =
+        (async (): Promise<AuthSnapshot> => {
+          try {
+            let next =
+              await loadAuthSnapshot(
+                supabase,
+              );
+
+            if (
+              next.user?.user_metadata
+                ?.profile_setup_pending ===
+              "true"
+            ) {
+              try {
+                await identityUseCase
+                  .resumeRegistration();
+
+                next =
+                  await loadAuthSnapshot(
+                    supabase,
+                  );
+              } catch (error) {
+                console.error(
+                  "[Auth] Impossible de finaliser l’inscription. Une nouvelle tentative sera effectuée.",
+                  error,
+                );
+              }
+            }
+
+            if (
+              !mountedRef.current ||
+              request !== requestRef.current
+            ) {
+              return next;
+            }
+
+            setSnapshot(next);
+
+            return next;
+          } catch (error) {
+            if (
+              !mountedRef.current ||
+              request !== requestRef.current
+            ) {
+              return EMPTY_AUTH_SNAPSHOT;
+            }
+
+            setSnapshot(
+              EMPTY_AUTH_SNAPSHOT,
+            );
+
+            throw error;
+          } finally {
+            if (
+              mountedRef.current &&
+              request === requestRef.current
+            ) {
+              setLoading(false);
+            }
+          }
+        })();
+
+      refreshInFlightRef.current =
+        operation;
+
+      const clearInFlight = () => {
+        if (
+          refreshInFlightRef.current ===
+          operation
+        ) {
+          refreshInFlightRef.current =
+            null;
         }
-      }
-      const next = await loadAuthSnapshot(supabase);
-      if (mountedRef.current && request === requestRef.current) setSnapshot(next);
-      return next;
-    } catch (reason) {
-      if (mountedRef.current && request === requestRef.current) {
-        setSnapshot(EMPTY_AUTH_SNAPSHOT);
-      }
-      throw reason;
-    } finally {
-      if (mountedRef.current && request === requestRef.current) setLoading(false);
-    }
-  }, [identityUseCase, supabase]);
+      };
+
+      void operation.then(
+        clearInFlight,
+        clearInFlight,
+      );
+
+      return operation;
+    },
+    [identityUseCase, supabase],
+  );
 
   useEffect(() => {
     mountedRef.current = true;
-    const initializationTimer = window.setTimeout(() => {
-      void refreshUser().catch(() => {
-        console.error("[Auth] Impossible de charger la session.");
-      });
-    }, 0);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      window.setTimeout(() => {
-        if (mountedRef.current) {
-          void refreshUser().catch(() => {
-            console.error("[Auth] Impossible de synchroniser la session.");
-          });
-        }
-      }, 0);
-    });
+    const reportSynchronizationError = (
+      error: unknown,
+    ) => {
+      if (!mountedRef.current) {
+        return;
+      }
+
+      console.error(
+        "[Auth] Impossible de synchroniser la session.",
+        error,
+      );
+    };
+
+    const runQueuedRefresh = () => {
+      if (
+        !mountedRef.current ||
+        !refreshQueuedRef.current
+      ) {
+        return;
+      }
+
+      refreshQueuedRef.current = false;
+
+      void refreshUser().catch(
+        reportSynchronizationError,
+      );
+    };
+
+    const synchronizeSession = () => {
+      if (!mountedRef.current) {
+        return;
+      }
+
+      const inFlight =
+        refreshInFlightRef.current;
+
+      if (inFlight) {
+        refreshQueuedRef.current = true;
+
+        void inFlight.then(
+          runQueuedRefresh,
+          runQueuedRefresh,
+        );
+
+        return;
+      }
+
+      void refreshUser().catch(
+        reportSynchronizationError,
+      );
+    };
+
+    const deferSynchronization = () => {
+      if (
+        synchronizationTimerRef.current !==
+        null
+      ) {
+        window.clearTimeout(
+          synchronizationTimerRef.current,
+        );
+      }
+
+      synchronizationTimerRef.current =
+        window.setTimeout(() => {
+          synchronizationTimerRef.current =
+            null;
+
+          synchronizeSession();
+        }, 0);
+    };
+
+    const {
+      data: {
+        subscription,
+      },
+    } = supabase.auth
+      .onAuthStateChange(
+        (event, session) => {
+          if (
+            event === "SIGNED_OUT" ||
+            session === null
+          ) {
+            requestRef.current += 1;
+            refreshQueuedRef.current =
+              false;
+
+            if (
+              synchronizationTimerRef.current !==
+              null
+            ) {
+              window.clearTimeout(
+                synchronizationTimerRef.current,
+              );
+
+              synchronizationTimerRef.current =
+                null;
+            }
+
+            if (mountedRef.current) {
+              setSnapshot(
+                EMPTY_AUTH_SNAPSHOT,
+              );
+              setLoading(false);
+            }
+
+            return;
+          }
+
+          /*
+           * INITIAL_SESSION, SIGNED_IN,
+           * TOKEN_REFRESHED, USER_UPDATED,
+           * PASSWORD_RECOVERY et les futurs
+           * événements portant une session
+           * passent par la même synchronisation.
+           *
+           * Le report hors du callback évite
+           * d’appeler Supabase depuis son verrou
+           * interne onAuthStateChange.
+           */
+          deferSynchronization();
+        },
+      );
 
     return () => {
       mountedRef.current = false;
-      window.clearTimeout(initializationTimer);
+      requestRef.current += 1;
+      refreshQueuedRef.current = false;
+
+      if (
+        synchronizationTimerRef.current !==
+        null
+      ) {
+        window.clearTimeout(
+          synchronizationTimerRef.current,
+        );
+
+        synchronizationTimerRef.current =
+          null;
+      }
+
       subscription.unsubscribe();
     };
   }, [refreshUser, supabase]);

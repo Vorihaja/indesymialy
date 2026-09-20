@@ -3,6 +3,10 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import {
+  useIndesyDialog,
+} from "@/components/ui/indesy-dialog";
+
 import type {
   CommunicationConversation,
   CommunicationNotification,
@@ -20,6 +24,7 @@ const roleLabels: Record<CommunicationRole, string> = {
   coach: "Coach",
   club: "Club",
   organizer: "Organisateur",
+  official: "Officiel",
   referee: "Arbitre",
   judge: "Juge",
   sponsor: "Sponsor",
@@ -115,6 +120,7 @@ export function ConversationPanel({
   onSend: (content: string, replyToId?: string) => Promise<void>;
   onAction: (id: string, action: "archive" | "delete_local" | "favorite" | "mute") => Promise<void>;
 }) {
+  const dialog = useIndesyDialog();
   const [content, setContent] = useState("");
   const [replyTo, setReplyTo] = useState<string | undefined>();
 
@@ -232,7 +238,15 @@ export function ConversationPanel({
               accept="image/*,video/*,.pdf,.doc,.docx"
               onChange={(event) => {
                 const file = event.target.files?.[0];
-                if (file && file.size > 20 * 1024 * 1024) alert("Fichier supÃ©rieur Ã  20 Mo");
+                if (file && file.size > 20 * 1024 * 1024) {
+                  event.target.value = "";
+                  void dialog.alert({
+                    title: "Fichier trop volumineux",
+                    description:
+                      "La taille maximale autorisée est de 20 Mo.",
+                    tone: "warning",
+                  });
+                }
               }}
             />
           </label>

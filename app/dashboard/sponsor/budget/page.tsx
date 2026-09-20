@@ -1,1 +1,10 @@
-import{ProfessionalFinanceFeature}from"@/modules/professional-finance";export default function Page(){return <ProfessionalFinanceFeature role="sponsor"/>;}
+import { FinanceFeature } from '@/modules/finance-erp';
+
+export default function SponsorBudgetPage() {
+  return (
+    <FinanceFeature
+      role="sponsor"
+      initialTab="sponsor-budget"
+    />
+  );
+}

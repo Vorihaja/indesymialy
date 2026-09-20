@@ -32,7 +32,7 @@ type AccountPreferencesRow = Database["public"]["Tables"]["account_preferences"]
 
 const identityRoles = new Set<IdentityRole>([
   "super_admin", "admin", "federation", "league", "club", "coach", "fighter",
-  "organizer", "referee", "judge", "sponsor", "seller", "fan",
+  "organizer", "official", "referee", "judge", "sponsor", "seller", "fan",
 ]);
 
 function asIdentityRole(value: string | undefined): IdentityRole | null {
@@ -197,9 +197,11 @@ export class IdentitySupabaseRepository extends IdentityMemoryRepository {
         .eq("id", userId)
         .maybeSingle();
       if (existingProfileError) throw existingProfileError;
+      // KORANA-K5-C2D2-AUTO-USERNAME-LOWERCASE
       const usernameRoot = input.email
         .split("@")[0]
-        .replace(/[^a-zA-Z0-9_.-]/g, "-")
+        .toLowerCase()
+        .replace(/[^a-z0-9_.-]/g, "-")
         .slice(0, 20) || "membre";
       const username = existingProfile?.username || `${usernameRoot}-${userId.slice(0, 8)}`;
       const { error: profileError } = await this.supabase.from("profiles").upsert({
@@ -308,7 +310,8 @@ export class IdentitySupabaseRepository extends IdentityMemoryRepository {
         const fullName = String(registeredUser.user_metadata?.full_name ?? userEmail.split("@")[0]);
         const usernameRoot = userEmail
           .split("@")[0]
-          .replace(/[^a-zA-Z0-9_.-]/g, "-")
+          .toLowerCase()
+          .replace(/[^a-z0-9_.-]/g, "-")
           .slice(0, 20) || "membre";
         const username = `${usernameRoot}-${userId.slice(0, 8)}`;
         const regionId = String(registeredUser.user_metadata?.region_id ?? "");

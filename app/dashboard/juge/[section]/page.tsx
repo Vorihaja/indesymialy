@@ -1,2 +1,17 @@
-import { WorkspaceRoutePage } from "@/modules/platform-workspaces/features/WorkspaceRoutePage";
-export default async function Page({ params }: { params: Promise<{ section: string }> }) { const { section } = await params; return <WorkspaceRoutePage role="judge" section={section} />; }
+import {
+  LegacyJudgeRedirect,
+} from "@/modules/officials/components/LegacyJudgeRedirect";
+
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ section: string }>;
+}) {
+  const { section } = await params;
+
+  return (
+    <LegacyJudgeRedirect
+      target={`/dashboard/officiel/${section}`}
+    />
+  );
+}

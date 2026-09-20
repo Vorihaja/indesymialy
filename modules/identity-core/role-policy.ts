@@ -67,7 +67,17 @@ export function isPublicIdentityRole(value: string): value is PublicIdentityRole
 
 export function getIdentityRoleLabel(role: IdentityRole | null | undefined): string {
   if (!role) return "Aucun";
-  return isPublicIdentityRole(role)
-    ? IDENTITY_ROLE_LABELS[role]
-    : SYSTEM_IDENTITY_ROLE_LABELS[role];
+  if (isPublicIdentityRole(role)) return IDENTITY_ROLE_LABELS[role];
+  if (role === "official") return "Officiel";
+  return SYSTEM_IDENTITY_ROLE_LABELS[role];
+}
+
+export function getAccountIdentityRoleLabel(
+  role: IdentityRole | null | undefined,
+): string {
+  if (role === "official" || role === "referee") {
+    return "Officiel";
+  }
+
+  return getIdentityRoleLabel(role);
 }

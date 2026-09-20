@@ -1,4 +1,22 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+
+/*
+ * Keep Tailwind's scanner on application sources only. The repository root
+ * also contains generated diagnostic/audit text files; scanning them can turn
+ * log bytes into malformed arbitrary utilities and make PostCSS fail.
+ */
+@source "../app";
+@source "../components";
+@source "../config";
+@source "../constants";
+@source "../infrastructure";
+@source "../lib";
+@source "../modules";
+@source "../providers";
+@source "../services";
+@source "../shared";
+@source "../types";
+@source "../utils";
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
@@ -255,4 +273,1700 @@ select option:disabled {
 .auth-dark-surface select optgroup {
   background-color: #111318;
   color: #f4f4f5;
+}
+
+/* INDESY ERP CENTRAL BRIGHTNESS START */
+
+/*
+ * Central ERP typography enhancement.
+ *
+ * V2 focus:
+ * - make small descriptive texts more brilliant
+ * - especially subtitles, helper texts and muted paragraphs
+ * - preserve premium graphite / silver balance
+ * - no neon effect
+ */
+
+[data-erp-central="true"],
+.erp-central-brightness {
+  --erp-text: #f6f8fb;
+  --erp-muted: #d1d8e2;
+  --erp-subtle: #bcc5d1;
+  --erp-faint: #a8b2bf;
+  --erp-helper: #dde4ed;
+
+  color: var(--erp-text);
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/*
+ * Main titles and important emphasis.
+ */
+[data-erp-central="true"] :where(
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  strong
+) {
+  color: #fbfcfe;
+  text-shadow:
+    0 0 10px rgba(255, 255, 255, 0.055),
+    0 0 22px rgba(255, 255, 255, 0.025);
+}
+
+/*
+ * Body copy defaults.
+ */
+[data-erp-central="true"] :where(
+  p,
+  li,
+  dt,
+  dd,
+  label,
+  small,
+  th,
+  td
+) {
+  color: var(--erp-text);
+}
+
+/*
+ * Small / supporting texts:
+ * this is the key improvement requested.
+ */
+[data-erp-central="true"] :where(
+  p,
+  small,
+  label,
+  .erp-subtitle,
+  .erp-helper-text,
+  .text-muted-foreground,
+  [class*="text-zinc-400"],
+  [class*="text-zinc-500"],
+  [class*="text-slate-400"],
+  [class*="text-slate-500"],
+  [class*="text-neutral-400"],
+  [class*="text-neutral-500"],
+  [class*="text-gray-400"],
+  [class*="text-gray-500"],
+  [class*="text-stone-400"],
+  [class*="text-stone-500"]
+) {
+  color: var(--erp-helper) !important;
+  text-shadow:
+    0 0 8px rgba(255, 255, 255, 0.035),
+    0 0 18px rgba(255, 255, 255, 0.018);
+}
+
+/*
+ * Stronger readability for intro/description paragraphs
+ * placed just below titles.
+ */
+[data-erp-central="true"] :where(h1, h2, h3, h4, h5, h6) + p,
+[data-erp-central="true"] :where(.erp-page-title, .erp-section-title) + p {
+  color: #e2e8f0 !important;
+  text-shadow:
+    0 0 10px rgba(255, 255, 255, 0.04),
+    0 0 22px rgba(255, 255, 255, 0.02);
+}
+
+/*
+ * Table headers / labels.
+ */
+[data-erp-central="true"] :where(
+  th,
+  legend
+) {
+  color: #edf2f7;
+}
+
+/*
+ * Form typography.
+ */
+[data-erp-central="true"] :where(
+  input,
+  textarea,
+  select
+) {
+  color: #f5f7fa;
+}
+
+[data-erp-central="true"] :where(
+  input,
+  textarea
+)::placeholder {
+  color: #b4becb;
+  opacity: 1;
+}
+
+/*
+ * Clean readable links without changing brand accents globally.
+ */
+[data-erp-central="true"] a:not([class*="text-"]) {
+  color: #eef3f8;
+}
+
+/*
+ * KPI / stat values.
+ */
+[data-erp-central="true"] :where(
+  [data-kpi-value],
+  .erp-kpi-value,
+  .erp-stat-value
+) {
+  color: #ffffff;
+  text-shadow:
+    0 0 12px rgba(255, 255, 255, 0.07),
+    0 0 28px rgba(255, 255, 255, 0.025);
+}
+
+/*
+ * Preserve badges/buttons using explicit text classes.
+ */
+[data-erp-central="true"] :where(
+  button,
+  [role="button"],
+  .badge,
+  .chip
+) {
+  text-shadow: none;
+}
+
+/*
+ * Light theme.
+ * Keep clarity and contrast, not glowing white text.
+ */
+html.light [data-erp-central="true"],
+[data-theme="light"] [data-erp-central="true"] {
+  --erp-text: #171a20;
+  --erp-muted: #55606d;
+  --erp-subtle: #66717e;
+  --erp-faint: #7a8592;
+  --erp-helper: #505b68;
+
+  color: var(--erp-text);
+}
+
+html.light [data-erp-central="true"] :where(
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  strong
+),
+[data-theme="light"] [data-erp-central="true"] :where(
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  strong
+) {
+  color: #111318;
+  text-shadow: none;
+}
+
+html.light [data-erp-central="true"] :where(
+  p,
+  small,
+  label,
+  .erp-subtitle,
+  .erp-helper-text,
+  .text-muted-foreground,
+  [class*="text-zinc-400"],
+  [class*="text-zinc-500"],
+  [class*="text-slate-400"],
+  [class*="text-slate-500"],
+  [class*="text-neutral-400"],
+  [class*="text-neutral-500"],
+  [class*="text-gray-400"],
+  [class*="text-gray-500"],
+  [class*="text-stone-400"],
+  [class*="text-stone-500"]
+),
+[data-theme="light"] [data-erp-central="true"] :where(
+  p,
+  small,
+  label,
+  .erp-subtitle,
+  .erp-helper-text,
+  .text-muted-foreground,
+  [class*="text-zinc-400"],
+  [class*="text-zinc-500"],
+  [class*="text-slate-400"],
+  [class*="text-slate-500"],
+  [class*="text-neutral-400"],
+  [class*="text-neutral-500"],
+  [class*="text-gray-400"],
+  [class*="text-gray-500"],
+  [class*="text-stone-400"],
+  [class*="text-stone-500"]
+) {
+  color: var(--erp-helper) !important;
+  text-shadow: none;
+}
+
+html.light [data-erp-central="true"] :where(
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6
+) + p,
+[data-theme="light"] [data-erp-central="true"] :where(
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6
+) + p {
+  color: #5a6471 !important;
+  text-shadow: none;
+}
+
+html.light [data-erp-central="true"] :where(
+  input,
+  textarea,
+  select
+),
+[data-theme="light"] [data-erp-central="true"] :where(
+  input,
+  textarea,
+  select
+) {
+  color: #171a20;
+}
+
+html.light [data-erp-central="true"] :where(
+  input,
+  textarea
+)::placeholder,
+[data-theme="light"] [data-erp-central="true"] :where(
+  input,
+  textarea
+)::placeholder {
+  color: #7a8592;
+}
+
+/* INDESY ERP CENTRAL BRIGHTNESS END */
+
+/* === INDESY AUTH HERO 1 START === */
+
+/* ============================================================
+   AUTH HERO — IMMERSIVE CAROUSEL
+============================================================ */
+
+.auth-carousel-screen {
+  position: relative;
+  isolation: isolate;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: #05070a;
+}
+
+.auth-carousel-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: #05070a;
+}
+
+.auth-carousel-layer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255,22,56,.11) 0%,
+      rgba(5,7,10,.03) 28%,
+      rgba(5,7,10,.08) 52%,
+      rgba(5,7,10,.30) 67%,
+      rgba(8,124,255,.12) 100%
+    );
+}
+
+.auth-carousel-layer .home-cinematic {
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+}
+
+.auth-carousel-layer .home-cinematic-image {
+  height: 100%;
+}
+
+.auth-carousel-layer .home-cinematic-shade {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(3,5,8,.28) 0%,
+      rgba(3,5,8,.17) 36%,
+      rgba(3,5,8,.22) 54%,
+      rgba(3,5,8,.52) 73%,
+      rgba(3,5,8,.72) 100%
+    ) !important;
+}
+
+
+/* ============================================================
+   HERO COPY
+============================================================ */
+
+.auth-carousel-layer .home-cinematic-content {
+  position: relative;
+  z-index: 5;
+
+  padding-right:
+    min(47vw, 760px);
+}
+
+.auth-carousel-layer .home-cinematic-copy {
+  max-width:
+    min(47vw, 760px);
+}
+
+
+/* ============================================================
+   REMOVE OLD LIVE SIGNAL CARD
+============================================================ */
+
+.auth-carousel-layer .home-cinematic-signal {
+  display: none !important;
+}
+
+
+/* ============================================================
+   REMOVE CTA / SCROLL FROM HERO AUTH VERSION
+============================================================ */
+
+.auth-carousel-layer .home-cinematic-actions {
+  display: none !important;
+}
+
+.auth-carousel-layer .home-cinematic-scroll {
+  display: none !important;
+}
+
+
+/* ============================================================
+   CAROUSEL CONTROLS
+============================================================ */
+
+.auth-carousel-layer .home-cinematic-controls {
+  z-index: 8;
+
+  right:
+    clamp(500px, 36vw, 650px) !important;
+}
+
+
+/* ============================================================
+   AUTH LAYOUT
+============================================================ */
+
+.auth-carousel-layout {
+  position: relative;
+  z-index: 20;
+
+  display: block !important;
+
+  width: 100%;
+  max-width: none !important;
+
+  min-height: 100dvh;
+
+  pointer-events: none;
+}
+
+
+/*
+ * Old marketing panel:
+ * HeroCarousel now provides the visual identity.
+ */
+.auth-carousel-layout > section:first-child {
+  display: none !important;
+}
+
+
+/* ============================================================
+   FORM POSITION
+   Replaces the old "Signal en direct" area.
+============================================================ */
+
+.auth-carousel-layout > section:last-child {
+  position: fixed !important;
+
+  z-index: 30;
+
+  top: 50%;
+  right:
+    clamp(28px, 4vw, 72px);
+
+  bottom: auto !important;
+  left: auto !important;
+
+  transform:
+    translateY(-50%);
+
+  display: flex !important;
+
+  width:
+    min(440px, calc(100vw - 48px));
+
+  min-width: 0;
+
+  height: auto !important;
+  min-height: 0 !important;
+
+  padding: 0 !important;
+
+  overflow: visible !important;
+
+  border: 0 !important;
+
+  background: transparent !important;
+
+  backdrop-filter: none !important;
+
+  pointer-events: auto;
+}
+
+
+/* ============================================================
+   REMOVE LEGACY RIGHT PANEL DECORATIONS
+============================================================ */
+
+.auth-carousel-layout
+  > section:last-child::before,
+.auth-carousel-layout
+  > section:last-child::after {
+  display: none !important;
+}
+
+.auth-carousel-layout
+  > section:last-child
+  > div.absolute.left-0.top-0,
+.auth-carousel-layout
+  > section:last-child
+  > div.absolute.right-0.top-0 {
+  display: none !important;
+}
+
+
+/* ============================================================
+   AUTH CARD
+============================================================ */
+
+.auth-carousel-layout
+  > section:last-child
+  > div[class*="shadow"] {
+
+  position: relative;
+
+  z-index: 2;
+
+  width: 100%;
+
+  padding:
+    clamp(24px, 2.4vw, 34px) !important;
+
+  border:
+    1px solid transparent !important;
+
+  border-radius:
+    18px !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(12,15,21,.91),
+      rgba(7,9,14,.88)
+    ) padding-box,
+
+    linear-gradient(
+      135deg,
+      rgba(255,22,56,.72),
+      rgba(255,255,255,.10) 48%,
+      rgba(8,124,255,.72)
+    ) border-box !important;
+
+  box-shadow:
+    -18px 18px 60px rgba(255,22,56,.07),
+    18px 18px 60px rgba(8,124,255,.08),
+    0 30px 90px rgba(0,0,0,.50) !important;
+
+  backdrop-filter:
+    blur(26px) saturate(120%);
+}
+
+
+/* ============================================================
+   RED / BLUE SIGNATURE BAR
+============================================================ */
+
+.auth-carousel-layout
+  > section:last-child
+  > div[class*="shadow"]::before {
+
+  content: "";
+
+  position: absolute;
+
+  top: -1px;
+  left: 22px;
+  right: 22px;
+
+  height: 2px;
+
+  border-radius:
+    999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #ff1638 0%,
+      #ff1638 48%,
+      #087cff 52%,
+      #087cff 100%
+    );
+
+  box-shadow:
+    0 0 18px rgba(255,22,56,.22),
+    0 0 18px rgba(8,124,255,.22);
+}
+
+
+/* ============================================================
+   TYPOGRAPHY
+============================================================ */
+
+.auth-carousel-layout h1,
+.auth-carousel-layout h2 {
+  letter-spacing:
+    -.035em;
+}
+
+.auth-carousel-layout label {
+  color:
+    rgba(255,255,255,.75);
+}
+
+
+/* ============================================================
+   INPUTS
+============================================================ */
+
+.auth-carousel-layout input,
+.auth-carousel-layout select {
+
+  min-height:
+    48px;
+
+  border-color:
+    rgba(255,255,255,.11) !important;
+
+  border-radius:
+    10px !important;
+
+  background:
+    rgba(9,12,18,.82) !important;
+
+  color:
+    #f5f7fa !important;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255,255,255,.025);
+
+  transition:
+    border-color .18s ease,
+    background-color .18s ease,
+    box-shadow .18s ease;
+}
+
+.auth-carousel-layout input:hover,
+.auth-carousel-layout select:hover {
+
+  border-color:
+    rgba(255,255,255,.18) !important;
+}
+
+.auth-carousel-layout input:focus,
+.auth-carousel-layout select:focus {
+
+  border-color:
+    rgba(8,124,255,.62) !important;
+
+  outline:
+    none !important;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(8,124,255,.10),
+    inset 0 1px 0
+    rgba(255,255,255,.03);
+}
+
+
+/* ============================================================
+   CHECKBOX
+============================================================ */
+
+.auth-carousel-layout input[type="checkbox"] {
+  min-height: auto;
+  accent-color: #ff1638;
+}
+
+
+/* ============================================================
+   PRIMARY BUTTON
+============================================================ */
+
+.auth-carousel-layout button[type="submit"] {
+
+  min-height:
+    50px;
+
+  border:
+    1px solid rgba(255,255,255,.08) !important;
+
+  border-radius:
+    10px !important;
+
+  background:
+    linear-gradient(
+      90deg,
+      #ff1638 0%,
+      #da2d65 34%,
+      #7650bb 66%,
+      #087cff 100%
+    ) !important;
+
+  color:
+    white !important;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    .015em;
+
+  box-shadow:
+    0 12px 28px rgba(255,22,56,.11),
+    0 12px 28px rgba(8,124,255,.11);
+
+  transition:
+    transform .16s ease,
+    filter .16s ease,
+    box-shadow .16s ease;
+}
+
+.auth-carousel-layout button[type="submit"]:hover {
+
+  transform:
+    translateY(-1px);
+
+  filter:
+    brightness(1.08);
+
+  box-shadow:
+    0 14px 34px rgba(255,22,56,.15),
+    0 14px 34px rgba(8,124,255,.15);
+}
+
+.auth-carousel-layout button[type="submit"]:active {
+
+  transform:
+    translateY(0);
+}
+
+
+/* ============================================================
+   SECONDARY BUTTONS
+============================================================ */
+
+.auth-carousel-layout button:not([type="submit"]) {
+
+  border-radius:
+    10px;
+}
+
+
+/* ============================================================
+   LINKS
+============================================================ */
+
+.auth-carousel-layout a {
+  text-underline-offset:
+    3px;
+}
+
+
+/* ============================================================
+   DESKTOP LARGE
+============================================================ */
+
+@media (min-width: 1440px) {
+
+  .auth-carousel-layout
+    > section:last-child {
+
+    right:
+      clamp(48px, 5vw, 96px);
+
+    width:
+      min(460px, calc(100vw - 64px));
+  }
+
+  .auth-carousel-layer
+    .home-cinematic-content {
+
+    padding-right:
+      540px;
+  }
+}
+
+
+/* ============================================================
+   LAPTOP
+============================================================ */
+
+@media
+  (min-width: 1024px)
+  and
+  (max-width: 1279px) {
+
+  .auth-carousel-layout
+    > section:last-child {
+
+    right:
+      28px;
+
+    width:
+      400px;
+  }
+
+  .auth-carousel-layer
+    .home-cinematic-content {
+
+    padding-right:
+      430px;
+  }
+
+  .auth-carousel-layer
+    .home-cinematic-copy {
+
+    max-width:
+      calc(100vw - 470px);
+  }
+
+  .auth-carousel-layer
+    .home-cinematic-controls {
+
+    right:
+      440px !important;
+  }
+}
+
+
+/* ============================================================
+   TABLET / MOBILE
+============================================================ */
+
+@media (max-width: 1023px) {
+
+  .auth-carousel-screen {
+    overflow-y:
+      auto;
+  }
+
+  .auth-carousel-layer::after {
+
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255,22,56,.10) 0%,
+        rgba(5,7,10,.64) 42%,
+        rgba(8,124,255,.10) 100%
+      );
+  }
+
+  .auth-carousel-layer
+    .home-cinematic-content,
+  .auth-carousel-layer
+    .home-cinematic-controls {
+
+    display:
+      none !important;
+  }
+
+  .auth-carousel-layout {
+
+    min-height:
+      100dvh;
+  }
+
+  .auth-carousel-layout
+    > section:last-child {
+
+    position:
+      relative !important;
+
+    top:
+      auto;
+
+    right:
+      auto;
+
+    transform:
+      none;
+
+    width:
+      100%;
+
+    min-height:
+      100dvh !important;
+
+    padding:
+      20px !important;
+
+    display:
+      flex !important;
+
+    align-items:
+      center;
+
+    justify-content:
+      center;
+
+    background:
+      rgba(5,7,11,.56) !important;
+
+    backdrop-filter:
+      blur(8px) !important;
+  }
+
+  .auth-carousel-layout
+    > section:last-child
+    > div[class*="shadow"] {
+
+    width:
+      min(100%, 520px);
+
+    margin-inline:
+      auto;
+  }
+}
+
+
+/* ============================================================
+   SMALL MOBILE
+============================================================ */
+
+@media (max-width: 520px) {
+
+  .auth-carousel-layout
+    > section:last-child {
+
+    padding:
+      14px !important;
+  }
+
+  .auth-carousel-layout
+    > section:last-child
+    > div[class*="shadow"] {
+
+    padding:
+      22px 18px !important;
+
+    border-radius:
+      14px !important;
+  }
+}
+
+/* === INDESY AUTH HERO 1 END === */
+
+/* === INDESY AUTH HERO 5 START === */
+
+
+/* ============================================================
+   AUTH BACKGROUND
+============================================================ */
+
+.auth-carousel-screen {
+  position: relative;
+  isolation: isolate;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: #05070a !important;
+}
+
+
+.auth-carousel-layer {
+  position: fixed !important;
+  inset: 0 !important;
+
+  overflow: hidden !important;
+
+  background:
+    radial-gradient(
+      circle at 34% 48%,
+      rgba(23,29,39,.46) 0%,
+      rgba(8,10,14,.82) 46%,
+      #05070a 78%
+    ) !important;
+}
+
+
+/*
+ * TRUE INDESY LOGO
+ *
+ * Transparent asset.
+ * Original colours preserved.
+ */
+.auth-carousel-layer::before {
+  content: "" !important;
+
+  position: absolute !important;
+
+  z-index: 1 !important;
+
+  inset: -3% !important;
+
+  pointer-events: none !important;
+
+  background-image:
+    url("https://jwoxjvrsgywmlvbzhyoi.supabase.co/storage/v1/object/public/public-images/logo_sans_fond") !important;
+
+  background-repeat:
+    no-repeat !important;
+
+  background-position:
+    26% 48% !important;
+
+  background-size:
+    min(56vw, 780px) auto !important;
+
+  opacity:
+    .52 !important;
+
+  filter:
+    none !important;
+
+  transform:
+    none !important;
+}
+
+
+/*
+ * Very subtle Indesy atmosphere.
+ *
+ * It does not recolour the logo.
+ */
+.auth-carousel-layer::after {
+  content: "" !important;
+
+  position: absolute !important;
+
+  z-index: 2 !important;
+
+  inset: 0 !important;
+
+  pointer-events: none !important;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255,22,56,.075) 0%,
+      transparent 28%,
+      rgba(5,7,10,.10) 54%,
+      rgba(8,124,255,.075) 100%
+    ) !important;
+}
+
+
+/* ============================================================
+   REMOVE ALL ROTATING VISUAL BACKGROUNDS
+============================================================ */
+
+.auth-carousel-screen
+.home-cinematic-image,
+
+.auth-carousel-screen
+.home-cinematic-shade,
+
+.auth-carousel-screen
+.home-cinematic-signal,
+
+.auth-carousel-screen
+.home-cinematic-actions,
+
+.auth-carousel-screen
+.home-cinematic-meta,
+
+.auth-carousel-screen
+.home-cinematic-scroll {
+  display: none !important;
+}
+
+
+.auth-carousel-screen
+.home-cinematic::before,
+
+.auth-carousel-screen
+.home-cinematic::after,
+
+.auth-carousel-screen
+.home-cinematic-image::before,
+
+.auth-carousel-screen
+.home-cinematic-image::after,
+
+.auth-carousel-screen
+.home-cinematic-shade::before,
+
+.auth-carousel-screen
+.home-cinematic-shade::after {
+  content: none !important;
+  display: none !important;
+}
+
+
+/* ============================================================
+   CAROUSEL LAYER
+============================================================ */
+
+.auth-carousel-screen
+.home-cinematic {
+  position: relative !important;
+
+  z-index: 3 !important;
+
+  width: 100vw !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+
+  background:
+    transparent !important;
+}
+
+
+.auth-carousel-screen
+.home-cinematic-content {
+  position: relative !important;
+
+  z-index: 5 !important;
+
+  width: 100% !important;
+
+  background:
+    transparent !important;
+
+  padding-right:
+    500px !important;
+}
+
+
+/* ============================================================
+   ONLY TITLES ROTATE
+============================================================ */
+
+.auth-carousel-screen
+.home-cinematic-copy {
+  width:
+    min(48vw, 640px) !important;
+
+  max-width:
+    640px !important;
+
+  margin-left:
+    clamp(62px, 7vw, 108px) !important;
+
+  padding:
+    0 !important;
+}
+
+
+.auth-carousel-screen
+.home-cinematic-title {
+  max-width:
+    640px !important;
+
+  margin:
+    0 !important;
+
+  color:
+    #f7f7f8 !important;
+
+  font-size:
+    clamp(44px, 4.55vw, 68px) !important;
+
+  font-weight:
+    900 !important;
+
+  line-height:
+    .92 !important;
+
+  letter-spacing:
+    -.052em !important;
+
+  text-transform:
+    uppercase;
+
+  text-shadow:
+    0 12px 38px rgba(0,0,0,.48);
+}
+
+
+.auth-carousel-screen
+.home-cinematic-title span {
+  display:
+    block !important;
+
+  margin-top:
+    9px !important;
+
+  color:
+    transparent !important;
+
+  font-size:
+    .76em !important;
+
+  line-height:
+    1 !important;
+
+  -webkit-text-stroke:
+    1px rgba(255,255,255,.62);
+
+  text-shadow:
+    none !important;
+}
+
+
+/* ============================================================
+   NAVIGATION
+============================================================ */
+
+/*
+ * No more thick dark navigation bar.
+ */
+.auth-carousel-screen
+.home-cinematic-controls {
+  position:
+    fixed !important;
+
+  z-index:
+    20 !important;
+
+  left:
+    0 !important;
+
+  right:
+    clamp(500px, 36vw, 650px) !important;
+
+  bottom:
+    0 !important;
+
+  width:
+    auto !important;
+
+  max-width:
+    none !important;
+
+  min-height:
+    58px !important;
+
+  padding:
+    0 !important;
+
+  border:
+    0 !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      transparent,
+      rgba(4,6,9,.55)
+    ) !important;
+
+  backdrop-filter:
+    none !important;
+
+  display:
+    block !important;
+}
+
+
+/*
+ * Arrows remain available but no longer consume the width
+ * of the progression.
+ */
+.auth-carousel-screen
+.home-cinematic-arrows {
+  position:
+    absolute !important;
+
+  z-index:
+    4 !important;
+
+  left:
+    24px !important;
+
+  bottom:
+    22px !important;
+
+  display:
+    flex !important;
+}
+
+
+.auth-carousel-screen
+.home-cinematic-arrows button {
+  width:
+    38px !important;
+
+  height:
+    38px !important;
+
+  border:
+    1px solid rgba(255,255,255,.20) !important;
+
+  border-radius:
+    0 !important;
+
+  background:
+    rgba(5,7,10,.42) !important;
+
+  color:
+    #d7dbe2 !important;
+}
+
+
+.auth-carousel-screen
+.home-cinematic-arrows button:hover {
+  border-color:
+    #087cff !important;
+
+  background:
+    #087cff !important;
+
+  color:
+    white !important;
+}
+
+
+/* ============================================================
+   TRUE FULL-WIDTH PROGRESS
+============================================================ */
+
+.auth-carousel-screen
+.home-cinematic-pagination {
+  position:
+    absolute !important;
+
+  z-index:
+    2 !important;
+
+  left:
+    118px !important;
+
+  right:
+    0 !important;
+
+  bottom:
+    0 !important;
+
+  width:
+    auto !important;
+
+  max-width:
+    none !important;
+
+  display:
+    grid !important;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr)) !important;
+
+  gap:
+    0 !important;
+}
+
+
+.auth-carousel-screen
+.home-cinematic-pagination button {
+  position:
+    relative !important;
+
+  display:
+    grid !important;
+
+  grid-template-columns:
+    auto minmax(0,1fr) !important;
+
+  align-items:
+    center !important;
+
+  gap:
+    10px !important;
+
+  min-width:
+    0 !important;
+
+  padding:
+    0 15px 8px 15px !important;
+
+  border:
+    0 !important;
+
+  border-radius:
+    0 !important;
+
+  background:
+    transparent !important;
+
+  color:
+    rgba(255,255,255,.34) !important;
+
+  font-size:
+    9px !important;
+
+  font-weight:
+    800 !important;
+}
+
+
+.auth-carousel-screen
+.home-cinematic-pagination
+button.is-active {
+  color:
+    #fff !important;
+}
+
+
+/*
+ * Track = 1 physical CSS pixel.
+ */
+.auth-carousel-screen
+.home-cinematic-pagination i {
+  position:
+    relative !important;
+
+  display:
+    block !important;
+
+  width:
+    100% !important;
+
+  height:
+    1px !important;
+
+  min-height:
+    1px !important;
+
+  max-height:
+    1px !important;
+
+  overflow:
+    hidden !important;
+
+  border-radius:
+    0 !important;
+
+  background:
+    rgba(255,255,255,.18) !important;
+}
+
+
+.auth-carousel-screen
+.home-cinematic-pagination b {
+  display:
+    block !important;
+
+  height:
+    1px !important;
+
+  min-height:
+    1px !important;
+
+  max-height:
+    1px !important;
+
+  border-radius:
+    0 !important;
+
+  background:
+    #087cff !important;
+
+  box-shadow:
+    none !important;
+}
+
+
+/* ============================================================
+   FORM — RECTILINEAR
+============================================================ */
+
+.auth-carousel-layout
+> section:last-child
+> div[class*="shadow"] {
+  border-radius:
+    0 !important;
+
+  border:
+    1px solid transparent !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(10,13,19,.90),
+      rgba(6,9,14,.91)
+    ) padding-box,
+
+    linear-gradient(
+      90deg,
+      rgba(255,22,56,.82) 0%,
+      rgba(255,255,255,.06) 50%,
+      rgba(8,124,255,.82) 100%
+    ) border-box !important;
+
+  box-shadow:
+    0 28px 80px rgba(0,0,0,.45) !important;
+}
+
+
+.auth-carousel-layout
+> section:last-child
+> div[class*="shadow"]::before {
+  left:
+    0 !important;
+
+  right:
+    0 !important;
+
+  top:
+    -1px !important;
+
+  height:
+    2px !important;
+
+  border-radius:
+    0 !important;
+
+  background:
+    linear-gradient(
+      90deg,
+      #ff1638 0%,
+      #ff1638 50%,
+      #087cff 50%,
+      #087cff 100%
+    ) !important;
+}
+
+
+.auth-carousel-layout input,
+.auth-carousel-layout select,
+.auth-carousel-layout button {
+  border-radius:
+    0 !important;
+}
+
+
+.auth-carousel-layout
+button[type="submit"] {
+  border-radius:
+    0 !important;
+}
+
+
+/* ============================================================
+   LAPTOP
+============================================================ */
+
+@media
+  (min-width: 1024px)
+  and
+  (max-width: 1365px) {
+
+  .auth-carousel-layer::before {
+    background-position:
+      29% 50% !important;
+
+    background-size:
+      min(52vw, 660px) auto !important;
+  }
+
+  .auth-carousel-screen
+  .home-cinematic-copy {
+    width:
+      min(43vw, 520px) !important;
+
+    max-width:
+      520px !important;
+  }
+
+  .auth-carousel-screen
+  .home-cinematic-title {
+    font-size:
+      clamp(40px, 4.15vw, 58px) !important;
+  }
+
+  .auth-carousel-screen
+  .home-cinematic-controls {
+    right:
+      440px !important;
+  }
+
+  .auth-carousel-screen
+  .home-cinematic-pagination {
+    left:
+      112px !important;
+
+    right:
+      0 !important;
+  }
+}
+
+
+/* ============================================================
+   MOBILE / TABLET
+============================================================ */
+
+@media (max-width: 1023px) {
+
+  .auth-carousel-layer::before {
+    inset:
+      -2% !important;
+
+    background-position:
+      center 38% !important;
+
+    background-size:
+      min(82vw, 560px) auto !important;
+
+    opacity:
+      .42 !important;
+
+    filter:
+      none !important;
+  }
+
+  .auth-carousel-screen
+  .home-cinematic-content,
+
+  .auth-carousel-screen
+  .home-cinematic-controls {
+    display:
+      none !important;
+  }
+}
+
+
+/* === INDESY AUTH HERO 5 END === */
+
+/* =========================================================
+   UI-R3J UNIFIED DEEP PALETTE
+========================================================= */
+
+:root {
+  --indesy-black-deepest: #010203;
+  --indesy-black-panel: #030405;
+  --indesy-black-surface: #06080b;
+  --indesy-black-raised: #090c11;
+
+  --indesy-red-deep: #b90f2f;
+  --indesy-red-bright: #e21a40;
+
+  --indesy-blue-deep: #0b4aaf;
+  --indesy-blue-bright: #4f8eea;
+}
+
+html:not(.light):not([data-theme="light"]) {
+  --ds-bg: var(--indesy-black-deepest);
+  --ds-surface: var(--indesy-black-panel);
+  --ds-surface-2: var(--indesy-black-surface);
+  --ds-surface-raised: var(--indesy-black-raised);
+
+  --ds-primary: var(--indesy-red-deep);
+  --ds-secondary: var(--indesy-blue-deep);
+
+  --erp-bg-deepest: var(--indesy-black-deepest);
+  --erp-bg: var(--indesy-black-panel);
+  --erp-surface: var(--indesy-black-surface);
+  --erp-surface-raised: var(--indesy-black-raised);
+  --erp-red: var(--indesy-red-deep);
+  --erp-blue: var(--indesy-blue-deep);
+
+  --marketplace-bg-deepest: var(--indesy-black-deepest);
+  --marketplace-bg: var(--indesy-black-panel);
+  --marketplace-surface: var(--indesy-black-surface);
+  --marketplace-red: var(--indesy-red-deep);
+  --marketplace-blue: var(--indesy-blue-deep);
+}
+
+html:not(.light):not([data-theme="light"])
+:where(
+  [data-erp-central="true"],
+  .erp-shell-root,
+  .account-erp-shell,
+  .seller-shell,
+  .seller-erp-shell,
+  .marketplace-shell,
+  .marketplace-page,
+  .marketplace-page-shell,
+  [data-marketplace="true"]
+) {
+  background-color: var(--indesy-black-deepest) !important;
+}
+
+html:not(.light):not([data-theme="light"])
+:where(
+  [data-erp-central="true"],
+  .erp-shell-root,
+  .account-erp-shell,
+  .seller-shell,
+  .seller-erp-shell,
+  .marketplace-shell,
+  .marketplace-page,
+  [data-marketplace="true"]
+)
+:where(
+  [aria-current="page"],
+  [aria-selected="true"],
+  [data-active="true"]
+) {
+  border-color: var(--indesy-red-deep);
+}
+
+html:not(.light):not([data-theme="light"])
+:where(
+  [data-erp-central="true"],
+  .erp-shell-root,
+  .account-erp-shell,
+  .seller-shell,
+  .seller-erp-shell,
+  .marketplace-shell,
+  .marketplace-page,
+  [data-marketplace="true"]
+)
+:where(
+  a,
+  button
+):hover {
+  border-color: var(--indesy-blue-deep);
 }

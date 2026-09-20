@@ -1,1 +1,11 @@
-import { RoleGuard } from "@/modules/auth/guards"; import { FightLiveListFeature } from "@/modules/fight-live"; export default function Page() { return <RoleGuard role="referee"><FightLiveListFeature mode="referee" /></RoleGuard>; }
+import {
+  redirectWithSearchParams,
+  type RouteSearchParams,
+} from "@/app/_routing/redirect-with-search-params";
+
+export default function Page({ searchParams }: { searchParams: RouteSearchParams }) {
+  return redirectWithSearchParams(
+    "/dashboard/officiel/fight-live",
+    searchParams,
+  );
+}

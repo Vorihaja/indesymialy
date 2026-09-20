@@ -1,1 +1,9 @@
-import{TransactionsFeature}from"@/modules/marketplace-transactions";export default function Page(){return <TransactionsFeature/>}
+"use client";
+
+import {
+  SellerTransactionsFeature,
+} from "@/modules/seller-finance";
+
+export default function Page() {
+  return <SellerTransactionsFeature />;
+}

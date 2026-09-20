@@ -7,7 +7,7 @@ import {
   useMemo,
   useRef,
   useState,
-  type KeyboardEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 
 import {
@@ -37,6 +37,7 @@ import type {
   CommunicationConversation,
   CommunicationMessage,
   CommunicationRecipient,
+  CommunicationRole,
 } from "../types";
 
 import {
@@ -171,6 +172,9 @@ const COMMUNICATION_ROLE_LABELS:
     organizer:
       "Organisateur",
 
+    official:
+      "Officiel",
+
     referee:
       "Arbitre",
 
@@ -223,8 +227,8 @@ function CommunicationRoleTag({
         shrink-0
         items-center
         border
-        border-[#ff1638]/25
-        bg-[#ff1638]/[0.065]
+        border-[#167EFF]/25
+        bg-[#167EFF]/[0.065]
         px-1.5
         py-[2px]
         text-[7px]
@@ -232,8 +236,8 @@ function CommunicationRoleTag({
         uppercase
         leading-none
         tracking-[0.08em]
-        text-[#d92c43]
-        dark:text-[#ff536b]
+        text-[#2C79D9]
+        dark:text-[#539FFF]
       "
       title={
         communicationRoleLabel(
@@ -1206,7 +1210,7 @@ export function ModernMessagingWorkspace({
 
   function handleComposerKeyDown(
     event:
-      KeyboardEvent<HTMLTextAreaElement>,
+      ReactKeyboardEvent<HTMLTextAreaElement>,
   ) {
 
     if (

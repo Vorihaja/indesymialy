@@ -1,6 +1,11 @@
-import { RoleGuard } from '@/modules/auth/guards';
-import { UniversalErpPrototype } from '@/modules/universal-erp';
+import {
+  LegacyJudgeRedirect,
+} from "@/modules/officials/components/LegacyJudgeRedirect";
 
 export default function Page() {
-  return <RoleGuard role='judge'><UniversalErpPrototype role='judge' /></RoleGuard>;
+  return (
+    <LegacyJudgeRedirect
+      target="/dashboard/officiel"
+    />
+  );
 }

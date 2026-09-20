@@ -751,7 +751,7 @@ export function OrganizerSettingsView({
 
   if (
     tab ===
-    "Vérification organisation"
+    "organization-verification"
   ) {
     return (
       <div className="grid gap-3">
@@ -776,7 +776,7 @@ export function OrganizerSettingsView({
 
   if (
     tab ===
-    "Utilisateurs & droits"
+    "users-permissions"
   ) {
     return (
       <div className="grid gap-3">
@@ -851,7 +851,7 @@ export function OrganizerSettingsView({
 
   if (
     tab ===
-    "Intégrations"
+    "integrations"
   ) {
     return (
       <div className="grid gap-3">

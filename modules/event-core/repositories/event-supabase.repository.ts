@@ -43,7 +43,8 @@ export class EventSupabaseRepository extends EventMemoryRepository {
           .order('starts_at', {
             ascending: true,
             nullsFirst: false,
-          });
+          })
+          .limit(100);
 
         if (publicEventsResult.error) {
           throw publicEventsResult.error;
@@ -134,6 +135,15 @@ export class EventSupabaseRepository extends EventMemoryRepository {
           }
         }
 
+        const [organizationsResult, citiesResult, regionsResult] = await Promise.all([
+          this.supabase.from('organizations').select('id,name').in('id', publicEvents.map((event) => event.organizer_id).filter((id): id is string => Boolean(id))),
+          this.supabase.from('cities').select('id,name').in('id', publicEvents.map((event) => event.city_id).filter((id): id is string => Boolean(id))),
+          this.supabase.from('regions').select('id,name').in('id', publicEvents.map((event) => event.region_id).filter((id): id is string => Boolean(id))),
+        ]);
+        const organizationNames = new Map((organizationsResult.data ?? []).map((item) => [item.id, item.name]));
+        const cityNames = new Map((citiesResult.data ?? []).map((item) => [item.id, item.name]));
+        const regionNames = new Map((regionsResult.data ?? []).map((item) => [item.id, item.name]));
+
         const fightsByEvent =
           new Map<string, number>();
 
@@ -181,11 +191,11 @@ export class EventSupabaseRepository extends EventMemoryRepository {
         return {
           events:
             publicEvents.map(
-              (event) =>
-                this.mapEvent(
+              (event) => ({
+                ...this.mapEvent(
                   event,
                   null,
-                  undefined,
+                  event.organizer_id ? organizationNames.get(event.organizer_id) : undefined,
                   {
                     sold:
                       soldTicketsByEvent.get(
@@ -202,6 +212,9 @@ export class EventSupabaseRepository extends EventMemoryRepository {
                     event.id,
                   ) ?? 0,
                 ),
+                city: event.city_id ? cityNames.get(event.city_id) ?? '' : '',
+                region: event.region_id ? regionNames.get(event.region_id) ?? '' : '',
+              }),
             ),
 
           /*
@@ -226,36 +239,61 @@ export class EventSupabaseRepository extends EventMemoryRepository {
           sponsors: [],
 
           ticketTypes:
-            publicTicketTypes.map(
-              (item) => ({
-                id:
-                  item.id,
+            publicTicketTypes.flatMap(
+              (item) => {
 
-                eventId:
-                  item.event_id,
+                const eventId =
+                  item.event_id;
 
-                name:
-                  item.name,
 
-                category:
-                  item.name,
+                /*
+                 * ticket_types.event_id est nullable côté DB.
+                 * Une entrée sans event_id ne peut pas appartenir
+                 * au catalogue public d'un événement.
+                 */
 
-                price:
-                  item.price,
+                if (
+                  !eventId ||
+                  !publicEventIds.includes(
+                    eventId,
+                  )
+                ) {
 
-                quota:
-                  item.total_quantity,
+                  return [];
+                }
 
-                sold:
-                  item.sold_quantity ??
-                  0,
 
-                reserved:
-                  0,
+                return [
+                  {
+                    id:
+                      item.id,
 
-                active:
-                  true,
-              }),
+                    eventId,
+
+                    name:
+                      item.name,
+
+                    category:
+                      item.name,
+
+                    price:
+                      item.price,
+
+                    quota:
+                      item.total_quantity,
+
+                    sold:
+                      item.sold_quantity ??
+                      0,
+
+                    reserved:
+                      0,
+
+                    active:
+                      true,
+                  },
+                ];
+              },
             ),
 
           /*
@@ -283,7 +321,6 @@ export class EventSupabaseRepository extends EventMemoryRepository {
       const organizationId = await this.organizationId();
       let eventQuery = this.supabase.from('events').select('*').order('created_at', { ascending: false });
       if (organizationId) eventQuery = eventQuery.eq('organizer_id', organizationId);
-      else if (this.mode === 'public') eventQuery = eventQuery.eq('status', 'published');
       const eventsResult = await eventQuery;
       if (eventsResult.error) throw eventsResult.error;
       const events = eventsResult.data ?? [];

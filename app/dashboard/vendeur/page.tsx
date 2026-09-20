@@ -1,10 +1,9 @@
-import { RoleGuard } from "@/modules/auth/guards";
-import { SellerDashboardFeature } from "@/modules/seller-dashboard";
+import {
+  SellerDashboardFeature,
+} from "@/modules/seller-dashboard";
 
-export default function Page() {
+export default function SellerDashboardPage() {
   return (
-    <RoleGuard role="seller">
-      <SellerDashboardFeature />
-    </RoleGuard>
+    <SellerDashboardFeature />
   );
 }

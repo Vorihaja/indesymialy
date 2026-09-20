@@ -29,6 +29,9 @@ import type {
 import {
   useKoranaComments,
 } from "../hooks/useKoranaComments";
+import {
+  useIndesyDialog,
+} from "@/components/ui/indesy-dialog";
 
 
 interface CommentTreeNode
@@ -193,6 +196,9 @@ export function KoranaCommentsPanel({
   onChanged:
     () => Promise<unknown>;
 }) {
+
+  const dialog =
+    useIndesyDialog();
 
   const comments =
     useKoranaComments(
@@ -434,9 +440,15 @@ export function KoranaCommentsPanel({
 
 
     const confirmed =
-      window.confirm(
-        "Supprimer ce commentaire ? Les réponses existantes seront conservées.",
-      );
+      await dialog.confirm({
+        title:
+          "Supprimer ce commentaire ?",
+        description:
+          "Les réponses existantes seront conservées.",
+        confirmLabel: "Supprimer",
+        cancelLabel: "Annuler",
+        tone: "danger",
+      });
 
 
     if (!confirmed) {

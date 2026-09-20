@@ -1,3 +1,5 @@
+import type { ErpTabDefinition } from "@/modules/erp-navigation";
+
 export type UniversalRoleId =
   | 'super-admin'
   | 'admin'
@@ -5,6 +7,7 @@ export type UniversalRoleId =
   | 'league'
   | 'club'
   | 'coach'
+  | 'official'
   | 'referee'
   | 'judge'
   | 'sponsor'
@@ -19,7 +22,7 @@ export type UniversalIconKey =
 export type UniversalModule = {
   id: string;
   label: string;
-  tabs: string[];
+  tabs: readonly ErpTabDefinition[];
   icon: UniversalIconKey;
   live?: boolean;
 };

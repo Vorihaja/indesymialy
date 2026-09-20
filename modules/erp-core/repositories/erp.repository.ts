@@ -1,12 +1,53 @@
-import type { ErpRecord, ErpRecordInput } from "../types";
+import type {
+  ErpRecord,
+  ErpRecordInput,
+} from "../types";
 
-const stores = new Map<string, ErpRecord[]>();
-
+/*
+ * INDESY CRUD FALLBACK P0
+ *
+ * L'ancien stockage Map etait volatil, non scope par utilisateur
+ * et ne representait aucune autorite metier. Le contrat reste
+ * temporairement present pour compatibilite de compilation, mais
+ * toutes ses operations sont volontairement desactivees.
+ */
 export class ErpRepository {
-  constructor(private readonly namespace: string) {}
-  list(): Promise<ErpRecord[]> { return Promise.resolve([...(stores.get(this.namespace) ?? [])]); }
-  findById(id: string): Promise<ErpRecord | null> { return Promise.resolve((stores.get(this.namespace) ?? []).find((item) => item.id === id) ?? null); }
-  create(input: ErpRecordInput): Promise<ErpRecord> { const item = { ...input, id: crypto.randomUUID(), updatedAt: new Date().toISOString() }; stores.set(this.namespace, [item, ...(stores.get(this.namespace) ?? [])]); return Promise.resolve(item); }
-  update(id: string, input: ErpRecordInput): Promise<ErpRecord> { const item = { ...input, id, updatedAt: new Date().toISOString() }; stores.set(this.namespace, (stores.get(this.namespace) ?? []).map((current) => current.id === id ? item : current)); return Promise.resolve(item); }
-  delete(id: string): Promise<void> { stores.set(this.namespace, (stores.get(this.namespace) ?? []).filter((item) => item.id !== id)); return Promise.resolve(); }
+  constructor(
+    private readonly namespace: string,
+  ) {}
+
+  private disabledError(): Error {
+    return new Error(
+      `Le registre ERP generique "${this.namespace}" est desactive. Utilisez le module metier canonique.`,
+    );
+  }
+
+  list(): Promise<ErpRecord[]> {
+    return Promise.reject(this.disabledError());
+  }
+
+  findById(
+    _id: string,
+  ): Promise<ErpRecord | null> {
+    return Promise.reject(this.disabledError());
+  }
+
+  create(
+    _input: ErpRecordInput,
+  ): Promise<ErpRecord> {
+    return Promise.reject(this.disabledError());
+  }
+
+  update(
+    _id: string,
+    _input: ErpRecordInput,
+  ): Promise<ErpRecord> {
+    return Promise.reject(this.disabledError());
+  }
+
+  delete(
+    _id: string,
+  ): Promise<void> {
+    return Promise.reject(this.disabledError());
+  }
 }

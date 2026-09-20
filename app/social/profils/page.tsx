@@ -7,7 +7,7 @@ const roles = [
   "club",
   "coach",
   "organisateur",
-  "arbitre",
+  "officiel",
   "juge",
   "sponsor",
   "vendeur",

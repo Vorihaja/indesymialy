@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation';
-
 export default function Page() {
-  redirect('/dashboard/organisateur/events');
+  // The organizer layout owns the routed ERP workspace and opens the
+  // existing event creation workflow for this pathname.
+  return null;
 }

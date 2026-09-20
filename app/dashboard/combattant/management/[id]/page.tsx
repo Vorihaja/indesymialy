@@ -1,1 +1,11 @@
-import { ErpManagementFeature } from "@/modules/erp-core"; import { ERP_MODULES } from "@/modules/erp-modules"; export default async function Page({ params }: { params: Promise<{ id: string }> }) { const { id } = await params; return <ErpManagementFeature definition={ERP_MODULES.fighter} mode="detail" recordId={id}/>; }
+import { redirect } from "next/navigation";
+
+/*
+ * INDESY CRUD FALLBACK P0
+ *
+ * L'ancien CRUD management generique est retire.
+ * Cette route historique conduit vers le module canonique.
+ */
+export default function Page() {
+  redirect("/dashboard/combattant");
+}

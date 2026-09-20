@@ -22,10 +22,15 @@ export class IdentityService {
     if (!fullName.trim() || !email.trim() || password.length < 8 || password !== confirmation || !accepted || !role || !regionId || !cityId) {
       throw normalizeIdentityError(new Error("VALIDATION_ERROR"));
     }
+
+    // KORANA-K5-C2D2-NORMALIZED-REGISTRATION-EMAIL
+    const normalizedEmail =
+      email.trim().toLowerCase();
+
     try {
       if (!isPublicIdentityRole(role)) throw new Error("ACCESS_DENIED");
       const registrationRole = isControlledIdentityRole(role) ? "fan" : role;
-      const result = await this.auth.register(email, password, {
+      const result = await this.auth.register(normalizedEmail, password, {
         full_name: fullName.trim(),
         primary_role: registrationRole,
         requested_role: isControlledIdentityRole(role) ? role : "",
@@ -35,7 +40,7 @@ export class IdentityService {
       });
       if (result?.session) {
         const outcome = await this.repository.completeRegistration({
-          fullName: fullName.trim(), email, role, regionId, cityId,
+          fullName: fullName.trim(), email: normalizedEmail, role, regionId, cityId,
         });
         return outcome.kind === "pending" ? "/role-requests" : "/dashboard";
       }

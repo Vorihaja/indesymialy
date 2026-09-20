@@ -1,1 +1,11 @@
-import ErpAuthGuard from"@/components/auth/ErpAuthGuard";export default function Layout({children}:{children:React.ReactNode}){return <ErpAuthGuard>{children}</ErpAuthGuard>;}
+import type {
+  ReactNode,
+} from "react";
+
+export default function Layout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  return <>{children}</>;
+}

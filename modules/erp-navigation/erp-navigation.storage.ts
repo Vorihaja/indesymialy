@@ -3,6 +3,7 @@ import type {
   ErpNavigationState,
   ErpNavigationStorageReadResult,
 } from "./types";
+import { resolveErpTabId } from "./tab-definitions";
 
 export function createErpNavigationStorageKey(
   workspace: string,
@@ -59,14 +60,7 @@ export function getValidErpNavigationTab<
     fallbackModuleId,
   );
 
-  if (
-    requestedTab &&
-    module.tabs.includes(requestedTab)
-  ) {
-    return requestedTab;
-  }
-
-  return module.tabs[0] ?? "";
+  return resolveErpTabId(module.tabs, requestedTab ?? module.defaultTabId);
 }
 
 export function normalizeErpNavigationState<

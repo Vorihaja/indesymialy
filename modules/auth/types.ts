@@ -34,6 +34,8 @@ export type BusinessRole =
 
   | "coach"
 
+  | "official"
+
   | "judge"
 
   | "referee"

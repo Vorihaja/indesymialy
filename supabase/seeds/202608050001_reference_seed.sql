@@ -8,6 +8,7 @@ with role_seed(slug, label, description, is_organization) as (values
   ('coach','Coach','Encadrement sportif',false),
   ('fighter','Combattant','Pratique sportive',false),
   ('organizer','Organisateur','Organisation événementielle',true),
+  ('official','Officiel','Fonctions officielles de compétition',false),
   ('referee','Arbitre','Officiel arbitre',false),
   ('judge','Juge','Officiel juge',false),
   ('sponsor','Sponsor','Partenaire ou sponsor',true),

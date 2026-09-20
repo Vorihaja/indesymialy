@@ -17,14 +17,20 @@ export interface RbacRouteConfig {
 }
 
 const workspaceRoutes: RbacRouteConfig[] =
-  WORKSPACE_REGISTRY.map((entry) => ({
-    path: entry.basePath,
-    protection:
-      entry.accessKind === "system"
-        ? "system_role"
-        : "business_role",
-    role: entry.technicalRole,
-  }));
+  WORKSPACE_REGISTRY
+    .filter(
+      (entry) =>
+        entry.technicalRole !== "referee" &&
+        entry.technicalRole !== "judge",
+    )
+    .map((entry) => ({
+      path: entry.basePath,
+      protection:
+        entry.accessKind === "system"
+          ? "system_role"
+          : "business_role",
+      role: entry.technicalRole,
+    }));
 
 const compatibilityRoutes: RbacRouteConfig[] = [
   {

@@ -1,1 +1,5 @@
-import{RoleGuard}from"@/modules/auth/guards";import{EventPlatformFeature}from"@/modules/event-core/features/EventPlatformFeature";export default function Page(){return <RoleGuard role="judge"><EventPlatformFeature mode="official" section="staff"/></RoleGuard>;}
+import { LegacyJudgeRedirect } from "@/modules/officials/components/LegacyJudgeRedirect";
+
+export default function Page() {
+  return <LegacyJudgeRedirect target="/dashboard/officiel/assignments" />;
+}

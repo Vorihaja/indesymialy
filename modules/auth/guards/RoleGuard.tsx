@@ -38,11 +38,18 @@ export default function RoleGuard({
 }: RoleGuardProps) {
   const { hasRole, loading } = useRole();
 
+  const hasRequiredRole =
+    role === "official"
+      ? hasRole("official") ||
+        hasRole("referee") ||
+        hasRole("judge")
+      : hasRole(role);
+
   if (loading) {
     return <LoadingState />;
   }
 
-  if (!hasRole(role)) {
+  if (!hasRequiredRole) {
     return <>{fallback ?? <DeniedState />}</>;
   }
 

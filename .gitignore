@@ -49,3 +49,16 @@ node_modules/
 /project-tree.txt
 /npx
 /.tmp-*.sql
+
+# BEGIN INDESY LOCAL ARTIFACTS
+# Rapports, diagnostics et sauvegardes conservés hors du dépôt
+/diagnostics/
+/*.txt
+/avatar-global-sync-parts-*/
+/m0-messaging-public-schema-*.sql
+/install-seller-variants.ps1
+*.backup
+*.log
+*.tsbuildinfo
+/.next/
+# END INDESY LOCAL ARTIFACTS

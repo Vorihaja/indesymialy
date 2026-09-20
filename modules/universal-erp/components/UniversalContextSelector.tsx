@@ -1,8 +1,9 @@
 import { ChevronDown } from 'lucide-react';
+import type { ErpTabDefinition } from '@/modules/erp-navigation';
 
 export function UniversalContextSelector({ moduleLabel, tabs, active, onChange }: {
   moduleLabel: string;
-  tabs: string[];
+  tabs: readonly ErpTabDefinition[];
   active: string;
   onChange: (tab: string) => void;
 }) {
@@ -16,7 +17,7 @@ export function UniversalContextSelector({ moduleLabel, tabs, active, onChange }
     <label className='relative flex h-8 min-w-[210px] items-center border border-[#343840] bg-[#101114]'>
       <span className='sr-only'>Sous-fonction</span>
       <select value={active} onChange={(event) => onChange(event.target.value)} className='h-full w-full cursor-pointer appearance-none bg-transparent px-2.5 pr-8 text-[9px] font-semibold text-zinc-300 outline-none focus:border-[#087cff]'>
-        {tabs.map((tab) => <option key={tab} value={tab} className='bg-[#17191d]'>{tab}</option>)}
+        {tabs.map((tab) => <option key={tab.id} value={tab.id} className='bg-[#17191d]'>{tab.label}</option>)}
       </select>
       <ChevronDown size={13} className='pointer-events-none absolute right-2 text-zinc-600' />
     </label>

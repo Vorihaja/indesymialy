@@ -5,5 +5,10 @@ import { ProfileCompletionPrompt } from "@/components/auth/ProfileCompletionProm
 import { useRoleRequest } from "../../providers/roles/RoleRequestContext";
 export { useRoleRequest };
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return <ErpAuthGuard><ProfileCompletionPrompt /><ErpShell>{children}</ErpShell></ErpAuthGuard>;
+  return <ErpAuthGuard><ProfileCompletionPrompt /><ErpShell><div
+        data-erp-central="true"
+        className="erp-central-brightness"
+      >
+        {children}
+      </div></ErpShell></ErpAuthGuard>;
 }

@@ -4,6 +4,7 @@ import {
   useEffect,
   useRef,
 } from "react";
+import type { ReactNode } from "react";
 
 import { fighterModules } from "../config/navigation";
 import type { FighterModuleId } from "../types";
@@ -12,15 +13,19 @@ import { FighterTabs } from "../components/FighterTabs";
 import { RealModuleDataView } from "@/modules/organizer-erp/components/RealModuleDataView";
 import { useErpNavigationState } from "@/modules/erp-navigation";
 import { ErpWorkspaceFrame } from "@/modules/erp-core";
+import { ErpCalendarWorkspace } from "@/modules/erp-calendar";
+import { FinanceFeature } from "@/modules/finance-erp/features/FinanceFeature";
 
 type FighterErpPrototypeProps = {
   initialModule?: FighterModuleId;
   initialTab?: string;
+  routeContent?: ReactNode;
 };
 
 export function FighterErpPrototype({
   initialModule,
   initialTab,
+  routeContent,
 }: FighterErpPrototypeProps = {}) {
   const {
     moduleId,
@@ -41,6 +46,15 @@ export function FighterErpPrototype({
     ) ?? fighterModules[0]!;
 
   const mainRef = useRef<HTMLElement>(null);
+
+  const renderRouteContent =
+    routeContent !== undefined &&
+    activeModule.id === (initialModule ?? "overview") &&
+    (
+      activeModule.id === "finance" ||
+      !initialTab ||
+      activeTab === initialTab
+    );
 
   useEffect(() => {
     mainRef.current?.scrollTo({
@@ -72,13 +86,21 @@ export function FighterErpPrototype({
       }
       mainRef={mainRef}
     >
-      <RealModuleDataView
-        role="fighter"
-        moduleId={activeModule.id}
-        moduleLabel={activeModule.label}
-        tab={activeTab || activeModule.label}
-        onTabChange={setActiveTab}
-      />
+      {renderRouteContent ? (
+        routeContent
+      ) : activeModule.id === "calendar" ? (
+        <ErpCalendarWorkspace role="fighter" />
+      ) : activeModule.id === "finance" ? (
+        <FinanceFeature role="combattant" />
+      ) : (
+        <RealModuleDataView
+          role="fighter"
+          moduleId={activeModule.id}
+          moduleLabel={activeModule.label}
+          tab={activeTab || activeModule.label}
+          onTabChange={setActiveTab}
+        />
+      )}
     </ErpWorkspaceFrame>
   );
 }

@@ -1,3 +1,5 @@
+import type { ErpTabDefinition } from "@/modules/erp-navigation";
+
 export type FighterModuleId =
   | 'overview'
   | 'profile'
@@ -18,6 +20,6 @@ export type FighterModuleId =
 export type FighterModule = {
   id: FighterModuleId;
   label: string;
-  tabs: string[];
+  tabs: readonly ErpTabDefinition[];
   live?: boolean;
 };

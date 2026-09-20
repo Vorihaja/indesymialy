@@ -20,7 +20,7 @@ const labelClass = "grid gap-1 text-[9px] font-semibold uppercase tracking-[0.08
 const labels = { draft: "Brouillon", submitted: "Soumis", in_review: "En examen", verified: "Vérifié", rejected: "Refusé", needs_changes: "À corriger" } as const;
 
 export function OrganizerVerificationView({ profile, organization, onProfileEdit }: { profile: PrivateProfile; organization?: IdentityOrganization; onProfileEdit(): void }) {
-  const api = useProfileVerification();
+  const api = useProfileVerification("organization", organization?.id ?? null);
   const [form, setForm] = useState<VerificationDetails>({ subjectType: "organization", organizationId: organization?.id, legalName: organization?.name ?? "", identityNumber: "", nif: "", statNumber: "", registeredAddress: "" });
   const [expiry, setExpiry] = useState<Record<string, string>>({});
   const [notice, setNotice] = useState<string | null>(null);

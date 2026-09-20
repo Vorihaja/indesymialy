@@ -1,2 +1,5 @@
-"use client"; import { ClubFinancePage } from "@/modules/clubs"; import { useClubActive } from "@/modules/clubs/components/ClubWorkspace";
-export default function Page() { const { organizationId } = useClubActive(); return <ClubFinancePage organizationId={organizationId} />; }
+import { FinanceFeature } from '@/modules/finance-erp';
+
+export default function FinancePage() {
+  return <FinanceFeature role='club' />;
+}

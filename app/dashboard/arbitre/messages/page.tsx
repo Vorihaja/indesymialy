@@ -1,1 +1,11 @@
-import { RoleGuard } from "@/modules/auth/guards"; import { MessagingFeature } from "@/modules/communication-core/features/CommunicationFeatures"; export default function Page() { return <RoleGuard role="referee"><MessagingFeature role="referee" basePath="/dashboard/arbitre/messages" /></RoleGuard>; }
+import {
+  redirectWithSearchParams,
+  type RouteSearchParams,
+} from "@/app/_routing/redirect-with-search-params";
+
+export default function Page({ searchParams }: { searchParams: RouteSearchParams }) {
+  return redirectWithSearchParams(
+    "/dashboard/officiel/messages",
+    searchParams,
+  );
+}

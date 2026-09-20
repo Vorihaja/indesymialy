@@ -19,6 +19,8 @@ export function useAuth() {
 
   return {
     user,
+    profile,
+    primaryRole,
     loading,
     authenticated,
   };

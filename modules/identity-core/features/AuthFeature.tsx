@@ -1,5 +1,7 @@
 "use client";
 
+import HeroCarousel from "@/components/home/HeroCarousel";
+
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -83,8 +85,11 @@ export function AuthFeature({ mode }: { mode: AuthMode }) {
   const title = register ? "Créer mon compte" : mode === "login" ? "Se connecter" : mode === "forgot" ? "Mot de passe oublié" : mode === "reset" ? "Nouveau mot de passe" : mode === "verify" ? "Vérifier mon email" : "Ouverture de votre espace";
   if (mode === "callback") return <main className="grid min-h-[100dvh] place-items-center bg-[#07090d] text-white"><div className="border border-white/10 bg-[#10131a] p-8 text-center"><span className="mx-auto block h-5 w-5 animate-spin rounded-full border-2 border-[#087cff] border-t-[#ff1638]"/><p className="mt-4 text-sm">Connexion en cours…</p><FormMessage error={error}/></div></main>;
 
-  return <main className="auth-dark-surface min-h-[100dvh] bg-[#07090d] font-[Arial,'Segoe_UI',Helvetica,sans-serif] text-white">
-    <div className={`mx-auto grid min-h-[100dvh] max-w-[1800px] ${register ? "lg:grid-cols-3" : "lg:grid-cols-[minmax(0,1fr)_minmax(520px,.82fr)]"}`}>
+  return <main className="auth-dark-surface auth-carousel-screen min-h-[100dvh] bg-[#07090d] font-[Arial,'Segoe_UI',Helvetica,sans-serif] text-white">
+      <div className="auth-carousel-layer">
+        <HeroCarousel />
+      </div>
+    <div className={`auth-carousel-layout mx-auto grid min-h-[100dvh] max-w-[1800px] ${register ? "lg:grid-cols-3" : "lg:grid-cols-[minmax(0,1fr)_minmax(520px,.82fr)]"}`}>
       <section className={`relative hidden min-h-0 overflow-hidden border-r border-white/10 lg:block ${register ? "lg:col-span-1" : ""}`}>
         <img src="https://jwoxjvrsgywmlvbzhyoi.supabase.co/storage/v1/object/public/public-images/logo_sans_fond" alt="" aria-hidden="true" className="absolute left-1/2 top-1/2 h-[72%] w-[72%] -translate-x-1/2 -translate-y-1/2 object-contain opacity-[0.15] grayscale"/>
         <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(239,35,60,.18),transparent_42%,rgba(40,118,232,.17))]"/>

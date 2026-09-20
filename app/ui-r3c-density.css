@@ -1,0 +1,62 @@
+/*
+ * INDESY MIALY — UI-R3C
+ * Réduction des espaces verticaux sur les six pages publiques refondues.
+ */
+
+.ui-r3c-density .public-hero {
+  min-height: 0 !important;
+  height: auto !important;
+  padding-block: clamp(2rem, 4vw, 3.5rem) !important;
+}
+
+.ui-r3c-density .public-hero > * {
+  min-height: 0 !important;
+}
+
+.ui-r3c-density .public-hero .public-container {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.ui-r3c-density main.public-container {
+  padding-top: clamp(1.25rem, 2.2vw, 2rem) !important;
+}
+
+.ui-r3c-density .public-filter-bar {
+  gap: 0.75rem !important;
+  padding: clamp(0.75rem, 1.5vw, 1rem) !important;
+}
+
+.ui-r3c-density .public-featured-story {
+  min-height: clamp(11rem, 18vw, 15rem) !important;
+  padding: clamp(1.5rem, 3vw, 2.5rem) !important;
+}
+
+.ui-r3c-density .public-featured-event {
+  min-height: 0 !important;
+  padding: clamp(1.25rem, 2.5vw, 2rem) !important;
+}
+
+@media (max-width: 767px) {
+  .ui-r3c-density .public-hero {
+    padding-block: 2rem !important;
+  }
+
+  .ui-r3c-density main.public-container {
+    padding-top: 1rem !important;
+  }
+
+  .ui-r3c-density .public-filter-bar {
+    gap: 0.625rem !important;
+    padding: 0.75rem !important;
+  }
+
+  .ui-r3c-density .public-featured-story {
+    min-height: 10rem !important;
+    padding: 1.25rem !important;
+  }
+
+  .ui-r3c-density .public-featured-event {
+    padding: 1.25rem !important;
+  }
+}

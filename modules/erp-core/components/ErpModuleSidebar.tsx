@@ -68,12 +68,14 @@ export function ErpModuleSidebar<ModuleId extends string>({
         title={collapsed ? item.label : undefined}
         aria-label={collapsed ? item.label : undefined}
         aria-pressed={selected}
+        data-active={selected}
+        data-live={item.live || undefined}
         className={[
-          "group relative flex min-h-9 w-full items-center gap-2.5 border-l-2 text-left text-[10px] font-semibold transition-colors",
+          "erp-module-nav-item group relative flex min-h-9 w-full items-center gap-2.5 border-l-2 text-left text-[10px] font-semibold transition-colors",
           collapsed ? "justify-center px-0" : "px-3",
           selected
-            ? "border-[#ff1638] bg-[#ff1638]/10 text-white"
-            : "border-transparent text-zinc-400 hover:bg-white/[0.035] hover:text-zinc-100",
+            ? "is-active"
+            : "border-transparent text-zinc-400",
         ].join(" ")}
       >
         <Icon
@@ -81,7 +83,7 @@ export function ErpModuleSidebar<ModuleId extends string>({
           strokeWidth={1.8}
           className={
             selected || item.live
-              ? "text-[#e23546]"
+              ? "erp-module-nav-icon is-active"
               : "text-zinc-500 group-hover:text-zinc-300"
           }
           aria-hidden="true"
@@ -179,13 +181,14 @@ export function ErpModuleSidebar<ModuleId extends string>({
             <button
               key={item.id}
               ref={selected ? activeMobileItemRef : undefined}
-              type="button"
-              onClick={() => onChange(item.id)}
-              aria-pressed={selected}
-              className={[
-                "flex h-10 flex-none items-center gap-2 border-b-2 px-3 text-[10px] font-semibold",
+            type="button"
+            onClick={() => onChange(item.id)}
+            aria-pressed={selected}
+            data-active={selected}
+            className={[
+                "erp-module-mobile-item flex h-10 flex-none items-center gap-2 border-b-2 px-3 text-[10px] font-semibold",
                 selected
-                  ? "border-[#ff1638] text-white"
+                  ? "is-active"
                   : "border-transparent text-zinc-500",
               ].join(" ")}
             >

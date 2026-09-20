@@ -136,6 +136,68 @@
 }
 [data-theme=light]{color-scheme:light;--ds-primary:#087cff;--ds-secondary:#1d4ed8;--ds-bg:#f3f4f6;--ds-surface:#f8fafc;--ds-card:#fff;--ds-elevated:#fff;--ds-text:#111318;--ds-text-2:#3f4652;--ds-muted:#697180;--ds-border:rgb(15 23 42 / 10%);--ds-border-strong:rgb(15 23 42 / 18%);--ds-glass:rgb(255 255 255 / 78%);--ds-hover:rgb(255 22 56 / 8%);--ds-overlay:rgb(15 23 42 / 48%)}
 
+/* ERP-COLOR-1: shared Indesy accents and semantic states. */
+:root {
+  --indesy-accent-red: #ed1b2f;
+  --indesy-accent-red-strong: #c91027;
+  --indesy-accent-blue: #2f86e9;
+  --indesy-accent-blue-strong: #1769c2;
+
+  --semantic-success: #35c477;
+  --semantic-warning: #e5a126;
+  --semantic-danger: #ef4b5f;
+  --semantic-info: #4b97ed;
+  --semantic-neutral: #a6afbd;
+
+  --semantic-success-soft: color-mix(in srgb, var(--semantic-success) 11%, transparent);
+  --semantic-warning-soft: color-mix(in srgb, var(--semantic-warning) 12%, transparent);
+  --semantic-danger-soft: color-mix(in srgb, var(--semantic-danger) 11%, transparent);
+  --semantic-info-soft: color-mix(in srgb, var(--semantic-info) 11%, transparent);
+  --semantic-neutral-soft: color-mix(in srgb, var(--semantic-neutral) 8%, transparent);
+
+  --semantic-success-border: color-mix(in srgb, var(--semantic-success) 42%, var(--ds-border));
+  --semantic-warning-border: color-mix(in srgb, var(--semantic-warning) 44%, var(--ds-border));
+  --semantic-danger-border: color-mix(in srgb, var(--semantic-danger) 44%, var(--ds-border));
+  --semantic-info-border: color-mix(in srgb, var(--semantic-info) 42%, var(--ds-border));
+  --semantic-neutral-border: color-mix(in srgb, var(--semantic-neutral) 30%, var(--ds-border));
+
+  --kpi-balance: var(--semantic-info);
+  --kpi-revenue: var(--semantic-success);
+  --kpi-expense: var(--semantic-danger);
+  --kpi-pending: var(--semantic-warning);
+  --kpi-activity: var(--semantic-info);
+
+  --erp-canvas: #0b0c0e;
+  --erp-surface: #101318;
+  --erp-panel: #15191f;
+  --erp-panel-subtle: #111419;
+
+  --ds-primary: var(--indesy-accent-red);
+  --ds-secondary: var(--indesy-accent-blue);
+  --ds-success: var(--semantic-success);
+  --ds-warning: var(--semantic-warning);
+  --ds-danger: var(--semantic-danger);
+  --ds-focus: var(--indesy-accent-blue);
+}
+
+[data-theme=light] {
+  --indesy-accent-red: #d71933;
+  --indesy-accent-red-strong: #b41029;
+  --indesy-accent-blue: #176fca;
+  --indesy-accent-blue-strong: #115ca9;
+
+  --semantic-success: #177a48;
+  --semantic-warning: #a86208;
+  --semantic-danger: #c6283d;
+  --semantic-info: #176fca;
+  --semantic-neutral: #647083;
+
+  --erp-canvas: #eef1f5;
+  --erp-surface: #f7f8fa;
+  --erp-panel: #ffffff;
+  --erp-panel-subtle: #f3f5f8;
+}
+
 /* Official component primitives */
 .ds-card{min-width:0;border:1px solid var(--ds-border);border-radius:var(--ds-r-lg);background:var(--ds-card);box-shadow:var(--ds-shadow-sm)}.ds-glass{background:var(--ds-glass);backdrop-filter:blur(18px) saturate(130%)}.ds-interactive{transition:transform var(--ds-transition),border-color var(--ds-transition),box-shadow var(--ds-transition)}.ds-interactive:hover{transform:translateY(-2px);border-color:var(--ds-border-strong);box-shadow:var(--ds-shadow-md)}.ds-pad{padding:var(--ds-5)}
 .ds-button{display:inline-flex;min-height:40px;align-items:center;justify-content:center;gap:8px;border:1px solid transparent;border-radius:var(--ds-r-md);padding:0 16px;font-weight:650;cursor:pointer;transition:transform var(--ds-transition),background var(--ds-transition),border-color var(--ds-transition)}.ds-button:hover:not(:disabled){transform:translateY(-1px)}.ds-button:disabled{cursor:not-allowed;opacity:.48}.ds-primary{background:var(--ds-primary);color:#fff}.ds-secondary{background:var(--ds-secondary);color:#fff}.ds-outline{border-color:var(--ds-border-strong);background:transparent;color:var(--ds-text)}.ds-ghost{background:transparent;color:var(--ds-text-2)}.ds-outline:hover,.ds-ghost:hover{background:var(--ds-hover)}.ds-danger{background:var(--ds-danger);color:#fff}.ds-button-sm{min-height:32px;padding-inline:12px;font-size:.8125rem}.ds-button-lg{min-height:48px;padding-inline:24px}.ds-icon-button{width:40px;padding:0}

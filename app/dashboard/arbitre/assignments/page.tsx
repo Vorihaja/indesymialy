@@ -1,1 +1,11 @@
-import{RoleGuard}from"@/modules/auth/guards";import{EventPlatformFeature}from"@/modules/event-core/features/EventPlatformFeature";export default function Page(){return <RoleGuard role="referee"><EventPlatformFeature mode="official" section="staff"/></RoleGuard>;}
+import {
+  redirectWithSearchParams,
+  type RouteSearchParams,
+} from "@/app/_routing/redirect-with-search-params";
+
+export default function Page({ searchParams }: { searchParams: RouteSearchParams }) {
+  return redirectWithSearchParams(
+    "/dashboard/officiel/assignments",
+    searchParams,
+  );
+}

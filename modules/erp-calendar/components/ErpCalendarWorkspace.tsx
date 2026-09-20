@@ -1,124 +1,957 @@
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
 import {
-  CalendarDays, Check, ChevronLeft, ChevronRight, Clock3, Filter, Link2,
-  List, MapPin, Plus, RefreshCw, Search, Settings2, X,
-} from 'lucide-react';
-import { getCalendarMock } from '../mocks/calendar.mock';
-import type { ErpCalendarEvent, ErpCalendarEventType, ErpCalendarRole } from '../types';
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
-const weekdays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-const monthLabel = new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' });
-const dayLabel = new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: '2-digit', month: 'short' });
-const typeLabels: Record<ErpCalendarEventType, string> = { sport: 'Sport', meeting: 'Réunion', deadline: 'Échéance', travel: 'Déplacement', medical: 'Médical', commercial: 'Business' };
-const typeColors: Record<ErpCalendarEventType, string> = { sport: '#ff1638', meeting: '#087cff', deadline: '#f59e0b', travel: '#8b98a9', medical: '#22c55e', commercial: '#287bd8' };
+import FullCalendar, {
+  type CalendarRef,
+} from "@fullcalendar/react";
+import classicThemePlugin from "@fullcalendar/react/themes/classic";
+import dayGridPlugin from "@fullcalendar/react/daygrid";
+import timeGridPlugin from "@fullcalendar/react/timegrid";
+import listPlugin from "@fullcalendar/react/list";
+import interactionPlugin from "@fullcalendar/react/interaction";
 
-function isoDate(date: Date) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+import "@fullcalendar/react/skeleton.css";
+import "@fullcalendar/react/themes/classic/theme.css";
+import "@fullcalendar/react/themes/classic/palette.css";
+
+import {
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Clock3,
+  Filter,
+  MapPin,
+  Pencil,
+  Plus,
+  Search,
+  Settings2,
+  Trash2,
+  X,
+} from "lucide-react";
+
+import IndesyDualOrbitLoader from "@/components/loading/IndesyDualOrbitLoader";
+
+import { useErpCalendar } from "../hooks/useErpCalendar";
+
+import {
+  ERP_CALENDAR_EVENT_TYPES,
+} from "../types";
+
+import type {
+  ErpCalendarEventType,
+  ErpCalendarItem,
+  ErpCalendarRole,
+  ErpCalendarStatus,
+} from "../types";
+
+import styles from "./ErpCalendarWorkspace.module.css";
+
+type CalendarView =
+  | "dayGridMonth"
+  | "timeGridWeek"
+  | "timeGridDay"
+  | "listWeek";
+
+type FormState = {
+  title: string;
+  description: string;
+  startsLocal: string;
+  endsLocal: string;
+  allDay: boolean;
+  type: ErpCalendarEventType;
+  status: ErpCalendarStatus;
+  location: string;
+};
+
+const typeLabels: Record<
+  ErpCalendarEventType,
+  string
+> = {
+  sport: "Sport",
+  meeting: "Réunion",
+  deadline: "Échéance",
+  travel: "Déplacement",
+  medical: "Médical",
+  commercial: "Business",
+  personal: "Personnel",
+};
+
+const typeColors: Record<
+  ErpCalendarEventType,
+  string
+> = {
+  sport: "#ef233c",
+  meeting: "#3b82f6",
+  deadline: "#f59e0b",
+  travel: "#8792a2",
+  medical: "#22c55e",
+  commercial: "#287bd8",
+  personal: "#a855f7",
+};
+
+function pad(value: number): string {
+  return String(value).padStart(2, "0");
 }
 
-function monthCells(cursor: Date) {
-  const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
-  const start = new Date(first);
-  start.setDate(first.getDate() - ((first.getDay() + 6) % 7));
-  return Array.from({ length: 42 }, (_, index) => {
-    const date = new Date(start);
-    date.setDate(start.getDate() + index);
-    return date;
-  });
+function localInput(date: Date): string {
+  return [
+    date.getFullYear(),
+    "-",
+    pad(date.getMonth() + 1),
+    "-",
+    pad(date.getDate()),
+    "T",
+    pad(date.getHours()),
+    ":",
+    pad(date.getMinutes()),
+  ].join("");
 }
 
-function SmallButton({ children, active = false, onClick, title }: { children: React.ReactNode; active?: boolean; onClick?: () => void; title?: string }) {
-  return <button type='button' title={title} onClick={onClick} className={`inline-flex h-8 items-center justify-center gap-1.5 border px-2.5 text-[11px] font-semibold transition-colors ${active ? 'border-[#2588ff] bg-[#087cff] text-white' : 'border-[var(--erp-border)] bg-[var(--erp-panel)] text-[var(--erp-text-secondary)] hover:border-[var(--erp-border-strong)] hover:bg-[var(--erp-panel-muted)] hover:text-[var(--erp-text)]'}`}>{children}</button>;
-}
+function initialForm(dateSeed?: string): FormState {
+  const start = dateSeed
+    ? new Date(`${dateSeed}T09:00:00`)
+    : new Date();
 
-function EventLine({ event, compact = false }: { event: ErpCalendarEvent; compact?: boolean }) {
-  return <button type='button' className={`group flex w-full min-w-0 items-start gap-2 border-l-2 px-2 text-left hover:bg-[var(--erp-panel-muted)] ${compact ? 'py-1' : 'py-2'}`} style={{ borderLeftColor: typeColors[event.type] }}>
-    <span className='w-9 flex-none pt-px text-[10px] font-semibold text-[var(--erp-muted)]'>{event.start}</span>
-    <span className='min-w-0 flex-1'><strong className='block truncate text-[11px] font-semibold text-[var(--erp-text)]'>{event.title}</strong>{!compact && <span className='mt-0.5 flex items-center gap-1 truncate text-[10px] text-[var(--erp-muted)]'><MapPin size={10} />{event.location}</span>}</span>
-  </button>;
-}
+  start.setSeconds(0, 0);
 
-export function ErpCalendarWorkspace({ role }: { role: ErpCalendarRole }) {
-  const mock = useMemo(() => getCalendarMock(role), [role]);
-  const [events, setEvents] = useState(mock.events);
-  const [cursor, setCursor] = useState(new Date(2026, 7, 1));
-  const [view, setView] = useState<'month' | 'week' | 'list'>('month');
-  const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<'all' | ErpCalendarEventType>('all');
-  const [composer, setComposer] = useState(false);
-  const [integration, setIntegration] = useState(false);
-  const [googleConnected, setGoogleConnected] = useState(false);
-  const [form, setForm] = useState({ title: '', date: '2026-08-13', start: '09:00', end: '10:00', type: 'meeting' as ErpCalendarEventType, location: '' });
+  const end = new Date(
+    start.getTime() + 60 * 60 * 1000,
+  );
 
-  const filtered = events.filter((event) => (filter === 'all' || event.type === filter) && `${event.title} ${event.location}`.toLowerCase().includes(query.toLowerCase()));
-  const upcoming = [...filtered].sort((a, b) => `${a.date}${a.start}`.localeCompare(`${b.date}${b.start}`));
-  const cells = monthCells(cursor);
-  const move = (amount: number) => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + amount, 1));
-  const saveEvent = () => {
-    if (!form.title.trim() || !form.date) return;
-    setEvents((current) => [...current, { ...form, id: `local-${Date.now()}`, context: mock.owner, status: 'confirmed', source: 'Agenda personnel' }]);
-    setComposer(false);
-    setForm((current) => ({ ...current, title: '', location: '' }));
+  return {
+    title: "",
+    description: "",
+    startsLocal: localInput(start),
+    endsLocal: localInput(end),
+    allDay: false,
+    type: "meeting",
+    status: "confirmed",
+    location: "",
   };
+}
 
-  return <div className='mx-auto grid w-full max-w-[1540px] gap-3 text-[var(--erp-text)]'>
-    <header className='flex flex-wrap items-center justify-between gap-2 border border-[var(--erp-border)] bg-[var(--erp-surface)] px-3 py-2'>
-      <div className='min-w-[180px]'>
-        <span className='block text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--erp-muted)]'>Agenda partagé</span>
-        <strong className='block text-[14px] font-semibold capitalize'>{monthLabel.format(cursor)}</strong>
-        <span className='text-[10px] text-[var(--erp-muted)]'>{mock.owner}</span>
+function formForItem(
+  item: ErpCalendarItem,
+): FormState {
+  return {
+    title: item.title,
+    description: item.description ?? "",
+    startsLocal: localInput(
+      new Date(item.startsAt),
+    ),
+    endsLocal: localInput(
+      new Date(item.endsAt),
+    ),
+    allDay: item.allDay,
+    type: item.type,
+    status: item.status,
+    location: item.location ?? "",
+  };
+}
+
+export function ErpCalendarWorkspace({
+  role,
+}: {
+  role: ErpCalendarRole;
+}) {
+  return (
+    <CalendarRuntime role={role} />
+  );
+}
+function CalendarRuntime({
+  role,
+}: {
+  role: ErpCalendarRole;
+}) {
+  const model = useErpCalendar();
+
+  const manualCreationAllowed =
+    role !== "seller" &&
+    role !== "vendeur";
+
+  const calendarRef =
+    useRef<CalendarRef | null>(null);
+
+  const [view, setView] =
+    useState<CalendarView>("dayGridMonth");
+
+  const [periodTitle, setPeriodTitle] =
+    useState("");
+
+  const [query, setQuery] =
+    useState("");
+
+  const [typeFilter, setTypeFilter] =
+    useState<"all" | ErpCalendarEventType>(
+      "all",
+    );
+
+  const [statusFilter, setStatusFilter] =
+    useState<"all" | ErpCalendarStatus>(
+      "all",
+    );
+
+  const [formOpen, setFormOpen] =
+    useState(false);
+
+  const [editing, setEditing] =
+    useState<ErpCalendarItem | null>(null);
+
+  const [selected, setSelected] =
+    useState<ErpCalendarItem | null>(null);
+
+  const [form, setForm] =
+    useState<FormState>(initialForm());
+
+  const filtered = useMemo(() => {
+    const search =
+      query.trim().toLowerCase();
+
+    return model.items.filter((item) => {
+      if (
+        typeFilter !== "all" &&
+        item.type !== typeFilter
+      ) {
+        return false;
+      }
+
+      if (
+        statusFilter !== "all" &&
+        item.status !== statusFilter
+      ) {
+        return false;
+      }
+
+      if (!search) {
+        return true;
+      }
+
+      return [
+        item.title,
+        item.description,
+        item.location,
+        typeLabels[item.type],
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(search);
+    });
+  }, [
+    model.items,
+    query,
+    typeFilter,
+    statusFilter,
+  ]);
+
+  const events = useMemo(
+    () =>
+      filtered.map((item) => ({
+        id: item.calendarKey,
+        title: item.title,
+        start: item.startsAt,
+        end: item.endsAt,
+        allDay: item.allDay,
+        editable: item.editable,
+        backgroundColor:
+          typeColors[item.type],
+        borderColor:
+          typeColors[item.type],
+        extendedProps: {
+          item,
+        },
+      })),
+    [filtered],
+  );
+
+  function api() {
+    return calendarRef.current?.getApi();
+  }
+
+  function changeView(
+    nextView: CalendarView,
+  ) {
+    api()?.changeView(nextView);
+    setView(nextView);
+  }
+
+  function createForm(
+    dateSeed?: string,
+  ) {
+    setEditing(null);
+    setForm(initialForm(dateSeed));
+    setFormOpen(true);
+  }
+
+  function editItem(
+    item: ErpCalendarItem,
+  ) {
+    setEditing(item);
+    setForm(formForItem(item));
+    setFormOpen(true);
+  }
+
+  async function save() {
+    const payload = {
+      title: form.title,
+      description:
+        form.description || null,
+      startsAt: new Date(
+        form.startsLocal,
+      ).toISOString(),
+      endsAt: new Date(
+        form.endsLocal,
+      ).toISOString(),
+      allDay: form.allDay,
+      type: form.type,
+      status: form.status,
+      location:
+        form.location || null,
+      contextRole: String(role),
+    };
+
+    if (editing) {
+      await model.update({
+        ...payload,
+        id: editing.sourceId,
+      });
+    } else {
+      await model.create(payload);
+    }
+
+    setEditing(null);
+    setFormOpen(false);
+  }
+
+  return (
+    <section className={styles.workspace}>
+      <header className={styles.header}>
+        <div>
+          <span className={styles.eyebrow}>
+            Agenda universel
+          </span>
+
+          <h1>Mon agenda</h1>
+
+          <p>
+            Événements personnels et métier liés à votre compte
+          </p>
+        </div>
+
+                {manualCreationAllowed && (
+          <button
+          type="button"
+          className={styles.primary}
+          onClick={() => createForm()}
+          >
+          <Plus size={14} />
+          Ajouter
+          </button>
+        )}
+      </header>
+
+      <div className={styles.googleNotice}>
+        <CalendarDays size={17} />
+
+        <div>
+          <strong>
+            Google Calendar
+          </strong>
+
+          <p>
+            Configuration requise — aucune
+            connexion simulée.
+          </p>
+        </div>
+
+        <span>
+          <Settings2 size={13} />
+          U-CAL-2
+        </span>
       </div>
-      <div className='flex flex-wrap items-center gap-1.5'>
-        <SmallButton title='Mois précédent' onClick={() => move(-1)}><ChevronLeft size={14} /></SmallButton>
-        <SmallButton onClick={() => setCursor(new Date(2026, 7, 1))}>Aujourd’hui</SmallButton>
-        <SmallButton title='Mois suivant' onClick={() => move(1)}><ChevronRight size={14} /></SmallButton>
-        <span className='mx-1 hidden h-5 w-px bg-[var(--erp-border)] sm:block' />
-        <SmallButton active={view === 'month'} onClick={() => setView('month')}><CalendarDays size={13} />Mois</SmallButton>
-        <SmallButton active={view === 'week'} onClick={() => setView('week')}><Clock3 size={13} />Semaine</SmallButton>
-        <SmallButton active={view === 'list'} onClick={() => setView('list')}><List size={13} />Liste</SmallButton>
-        <SmallButton onClick={() => setIntegration(!integration)}><Link2 size={13} />Google</SmallButton>
-        <button type='button' onClick={() => setComposer(true)} className='inline-flex h-8 items-center gap-1.5 border border-[#ff1638] bg-[#ff1638] px-3 text-[11px] font-semibold text-white hover:bg-[#b91f31]'><Plus size={14} />Ajouter</button>
+
+      <div className={styles.toolbar}>
+        <div className={styles.nav}>
+          <button
+            type="button"
+            onClick={() => api()?.prev()}
+          >
+            <ChevronLeft size={15} />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => api()?.today()}
+          >
+            Aujourd’hui
+          </button>
+
+          <button
+            type="button"
+            onClick={() => api()?.next()}
+          >
+            <ChevronRight size={15} />
+          </button>
+
+          <strong>
+            {periodTitle}
+          </strong>
+        </div>
+
+        <div className={styles.views}>
+          {[
+            ["dayGridMonth", "Mois"],
+            ["timeGridWeek", "Semaine"],
+            ["timeGridDay", "Jour"],
+            ["listWeek", "Planning"],
+          ].map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              data-active={view === value}
+              onClick={() =>
+                changeView(
+                  value as CalendarView,
+                )
+              }
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
-    </header>
 
-    <div className='flex flex-wrap items-center gap-2 border-x border-b border-[var(--erp-border)] bg-[var(--erp-panel-muted)] px-3 py-2'>
-      <label className='flex h-8 min-w-[210px] flex-1 items-center gap-2 border border-[var(--erp-border)] bg-[var(--erp-panel)] px-2 text-[var(--erp-muted)]'><Search size={13} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder='Rechercher dans l’agenda' className='min-w-0 flex-1 border-0 bg-transparent text-[11px] text-[var(--erp-text)] outline-none' /></label>
-      <label className='flex h-8 items-center gap-2 border border-[var(--erp-border)] bg-[var(--erp-panel)] px-2 text-[10px] text-[var(--erp-muted)]'><Filter size={12} /><select value={filter} onChange={(event) => setFilter(event.target.value as typeof filter)} className='border-0 bg-transparent text-[11px] text-[var(--erp-text)] outline-none'><option value='all'>Tous les types</option>{Object.entries(typeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-      <span className='ml-auto text-[10px] text-[var(--erp-muted)]'>{filtered.length} rendez-vous</span>
-    </div>
+      <div className={styles.filters}>
+        <label>
+          <Search size={13} />
 
-    {integration && <section className='grid gap-3 border border-[#326dba] bg-[color-mix(in_srgb,var(--erp-panel)_92%,#087cff)] p-3 md:grid-cols-[1fr_auto]'>
-      <div><span className='flex items-center gap-2 text-[11px] font-semibold'><CalendarDays size={15} className='text-[#5596e7]' />Google Calendar</span><p className='mt-1 text-[11px] text-[var(--erp-text-secondary)]'>{googleConnected ? 'Compte connecté en mode prototype. La synchronisation serveur OAuth sera activée lors de la phase d’intégration.' : 'Préparez la synchronisation de cet agenda avec votre calendrier Google. Aucune donnée n’est envoyée pendant cette phase UI.'}</p></div>
-      <div className='flex items-center gap-2'><SmallButton onClick={() => setGoogleConnected(!googleConnected)}>{googleConnected ? <><Check size={13} />Connecté</> : <><Link2 size={13} />Connecter le compte</>}</SmallButton><button type='button' onClick={() => setIntegration(false)} className='p-1 text-[var(--erp-muted)] hover:text-[var(--erp-text)]' aria-label='Fermer'><X size={15} /></button></div>
-    </section>}
+          <input
+            value={query}
+            onChange={(event) =>
+              setQuery(event.target.value)
+            }
+            placeholder="Rechercher"
+          />
+        </label>
 
-    <div className='grid min-h-[540px] gap-3 xl:grid-cols-[minmax(0,1fr)_280px]'>
-      <section className='min-w-0 border border-[var(--erp-border)] bg-[var(--erp-panel)]'>
-        {view === 'month' && <div className='min-w-[690px] overflow-x-auto'>
-          <div className='grid grid-cols-7 border-b border-[var(--erp-border)] bg-[var(--erp-panel-muted)]'>{weekdays.map((day) => <div key={day} className='px-2 py-2 text-[9px] font-bold uppercase tracking-[0.12em] text-[var(--erp-muted)]'>{day}</div>)}</div>
-          <div className='grid grid-cols-7'>{cells.map((date) => {
-            const key = isoDate(date); const dayEvents = filtered.filter((event) => event.date === key); const outside = date.getMonth() !== cursor.getMonth(); const today = key === '2026-08-12';
-            return <button key={key} type='button' onClick={() => { setForm((current) => ({ ...current, date: key })); setComposer(true); }} className={`min-h-[92px] border-b border-r border-[var(--erp-border)] p-1.5 text-left align-top hover:bg-[var(--erp-panel-muted)] ${outside ? 'opacity-35' : ''}`}><span className={`mb-1 grid h-5 w-5 place-items-center text-[10px] font-semibold ${today ? 'rounded-full bg-[#ff1638] text-white' : 'text-[var(--erp-text-secondary)]'}`}>{date.getDate()}</span>{dayEvents.slice(0, 3).map((event) => <div key={event.id} className='mb-1 truncate border-l-2 bg-[var(--erp-panel-muted)] px-1.5 py-1 text-[9px] text-[var(--erp-text-secondary)]' style={{ borderLeftColor: typeColors[event.type] }}><b className='mr-1'>{event.start}</b>{event.title}</div>)}</button>;
-          })}</div>
-        </div>}
-        {view === 'week' && <div className='grid min-w-[760px] grid-cols-7 overflow-x-auto'>{cells.slice(7, 14).map((date) => { const key = isoDate(date); return <div key={key} className='min-h-[520px] border-r border-[var(--erp-border)]'><div className='border-b border-[var(--erp-border)] bg-[var(--erp-panel-muted)] p-2 text-center text-[10px] font-semibold capitalize'>{dayLabel.format(date)}</div><div className='grid gap-1 p-1'>{filtered.filter((event) => event.date === key).map((event) => <EventLine key={event.id} event={event} />)}</div></div>; })}</div>}
-        {view === 'list' && <div>{upcoming.length ? upcoming.map((event) => <div key={event.id} className='grid border-b border-[var(--erp-border)] px-3 py-2 sm:grid-cols-[110px_minmax(0,1fr)_150px_110px] sm:items-center'><span className='text-[10px] font-semibold capitalize text-[var(--erp-muted)]'>{dayLabel.format(new Date(`${event.date}T12:00:00`))}</span><EventLine event={event} /><span className='truncate text-[10px] text-[var(--erp-muted)]'>{event.context}</span><span className='mt-1 w-max border border-[var(--erp-border)] px-1.5 py-0.5 text-[9px] text-[var(--erp-text-secondary)] sm:mt-0'>{typeLabels[event.type]}</span></div>) : <div className='grid min-h-[360px] place-items-center text-[11px] text-[var(--erp-muted)]'>Aucun rendez-vous pour ces filtres.</div>}</div>}
-      </section>
+        <label>
+          <Filter size={13} />
 
-      <aside className='grid content-start gap-3'>
-        <section className='border border-[var(--erp-border)] bg-[var(--erp-panel)]'><div className='flex items-center justify-between border-b border-[var(--erp-border)] px-3 py-2'><strong className='text-[10px] uppercase tracking-[0.1em]'>À venir</strong><span className='text-[9px] text-[var(--erp-muted)]'>Août 2026</span></div><div className='divide-y divide-[var(--erp-border)]'>{upcoming.slice(0, 5).map((event) => <div key={event.id} className='p-2'><span className='mb-1 block text-[9px] font-semibold capitalize text-[var(--erp-muted)]'>{dayLabel.format(new Date(`${event.date}T12:00:00`))}</span><EventLine event={event} compact /></div>)}</div></section>
-        <section className='border border-[var(--erp-border)] bg-[var(--erp-panel)] p-3'><div className='flex items-center justify-between'><span className='flex items-center gap-2 text-[10px] font-semibold'><RefreshCw size={13} className='text-[#4d8fde]' />Synchronisation</span><span className={`h-2 w-2 rounded-full ${googleConnected ? 'bg-[#22c55e]' : 'bg-[var(--erp-muted)]'}`} /></div><p className='mt-2 text-[10px] leading-4 text-[var(--erp-muted)]'>{googleConnected ? 'Google Calendar · préparation active' : 'Agenda Indesy Mialy uniquement'}</p><button type='button' onClick={() => setIntegration(true)} className='mt-2 inline-flex items-center gap-1 text-[10px] font-semibold text-[#3d92ff] hover:text-[#79adf0]'><Settings2 size={12} />Gérer l’intégration</button></section>
-      </aside>
-    </div>
+          <select
+            value={typeFilter}
+            onChange={(event) =>
+              setTypeFilter(
+                event.target.value as
+                  | "all"
+                  | ErpCalendarEventType,
+              )
+            }
+          >
+            <option value="all">
+              Tous les types
+            </option>
 
-    {composer && <div className='fixed inset-0 z-[220] flex justify-end bg-black/60' onMouseDown={(event) => { if (event.currentTarget === event.target) setComposer(false); }}><section className='h-full w-full max-w-[420px] overflow-y-auto border-l border-[var(--erp-border-strong)] bg-[var(--erp-surface)] p-4 shadow-[-12px_0_35px_rgba(0,0,0,.28)]' aria-label='Ajouter un rendez-vous'><header className='flex items-start justify-between border-b border-[var(--erp-border)] pb-3'><div><span className='text-[9px] font-bold uppercase tracking-[0.13em] text-[var(--erp-muted)]'>Nouvelle entrée</span><h2 className='mt-1 text-[15px] font-semibold'>Ajouter à l’agenda</h2></div><button type='button' onClick={() => setComposer(false)} className='p-1 text-[var(--erp-muted)] hover:text-[var(--erp-text)]'><X size={17} /></button></header><div className='grid gap-3 py-4'>
-      <label className='grid gap-1 text-[10px] font-semibold text-[var(--erp-text-secondary)]'>Titre<input autoFocus value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} className='h-9 border border-[var(--erp-border)] bg-[var(--erp-panel)] px-2.5 text-[12px] text-[var(--erp-text)] outline-none focus:border-[#2588ff]' placeholder='Nom du rendez-vous' /></label>
-      <div className='grid grid-cols-2 gap-2'><label className='grid gap-1 text-[10px] font-semibold text-[var(--erp-text-secondary)]'>Date<input type='date' value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} className='h-9 border border-[var(--erp-border)] bg-[var(--erp-panel)] px-2 text-[11px] text-[var(--erp-text)]' /></label><label className='grid gap-1 text-[10px] font-semibold text-[var(--erp-text-secondary)]'>Type<select value={form.type} onChange={(event) => setForm({ ...form, type: event.target.value as ErpCalendarEventType })} className='h-9 border border-[var(--erp-border)] bg-[var(--erp-panel)] px-2 text-[11px] text-[var(--erp-text)]'>{Object.entries(typeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label></div>
-      <div className='grid grid-cols-2 gap-2'><label className='grid gap-1 text-[10px] font-semibold text-[var(--erp-text-secondary)]'>Début<input type='time' value={form.start} onChange={(event) => setForm({ ...form, start: event.target.value })} className='h-9 border border-[var(--erp-border)] bg-[var(--erp-panel)] px-2 text-[11px] text-[var(--erp-text)]' /></label><label className='grid gap-1 text-[10px] font-semibold text-[var(--erp-text-secondary)]'>Fin<input type='time' value={form.end} onChange={(event) => setForm({ ...form, end: event.target.value })} className='h-9 border border-[var(--erp-border)] bg-[var(--erp-panel)] px-2 text-[11px] text-[var(--erp-text)]' /></label></div>
-      <label className='grid gap-1 text-[10px] font-semibold text-[var(--erp-text-secondary)]'>Lieu<input value={form.location} onChange={(event) => setForm({ ...form, location: event.target.value })} className='h-9 border border-[var(--erp-border)] bg-[var(--erp-panel)] px-2.5 text-[12px] text-[var(--erp-text)] outline-none focus:border-[#2588ff]' placeholder='Lieu ou visioconférence' /></label>
-      <div className='border border-[var(--erp-border)] bg-[var(--erp-panel-muted)] p-2.5 text-[10px] leading-4 text-[var(--erp-muted)]'>Cette entrée sera ajoutée à <b className='text-[var(--erp-text-secondary)]'>{mock.owner}</b>. La synchronisation Google sera disponible après configuration OAuth.</div>
-    </div><footer className='flex justify-end gap-2 border-t border-[var(--erp-border)] pt-3'><SmallButton onClick={() => setComposer(false)}>Annuler</SmallButton><button type='button' onClick={saveEvent} className='inline-flex h-8 items-center gap-1.5 border border-[#087cff] bg-[#087cff] px-3 text-[11px] font-semibold text-white'><Check size={13} />Enregistrer</button></footer></section></div>}
-  </div>;
+            {ERP_CALENDAR_EVENT_TYPES.map(
+              (type) => (
+                <option
+                  key={type}
+                  value={type}
+                >
+                  {typeLabels[type]}
+                </option>
+              ),
+            )}
+          </select>
+        </label>
+
+        <label>
+          <Clock3 size={13} />
+
+          <select
+            value={statusFilter}
+            onChange={(event) =>
+              setStatusFilter(
+                event.target.value as
+                  | "all"
+                  | ErpCalendarStatus,
+              )
+            }
+          >
+            <option value="all">
+              Tous les statuts
+            </option>
+
+            <option value="confirmed">
+              Confirmé
+            </option>
+
+            <option value="tentative">
+              À confirmer
+            </option>
+
+            <option value="cancelled">
+              Annulé
+            </option>
+          </select>
+        </label>
+      </div>
+
+      {model.error && (
+        <div className={styles.error}>
+          {model.error}
+        </div>
+      )}
+
+      <div className={styles.calendar}>
+        {model.isLoading && (
+          <div className={styles.loader}>
+            <IndesyDualOrbitLoader />
+          </div>
+        )}
+
+        <FullCalendar
+          ref={calendarRef}
+          plugins={[
+            classicThemePlugin,
+            dayGridPlugin,
+            timeGridPlugin,
+            listPlugin,
+            interactionPlugin,
+          ]}
+          initialView="dayGridMonth"
+          headerToolbar={false}
+          firstDay={1}
+          nowIndicator
+          allDaySlot
+          selectable
+          editable
+          eventStartEditable
+          eventDurationEditable
+          dayMaxEvents={4}
+          height="auto"
+          slotMinTime="05:00:00"
+          slotMaxTime="24:00:00"
+          events={events}
+          datesSet={(info) => {
+            setPeriodTitle(info.view.title);
+
+            setView(
+              info.view.type as CalendarView,
+            );
+
+            void model.load(
+              info.start.toISOString(),
+              info.end.toISOString(),
+            );
+          }}
+          dateClick={(info) => {
+            if (!manualCreationAllowed) {
+              return;
+            }
+
+            createForm(
+              info.dateStr.slice(0, 10),
+            );
+          }}          eventClick={(info) => {
+            const item =
+              info.event.extendedProps
+                .item as ErpCalendarItem;
+
+            setSelected(item);
+          }}
+          eventDrop={(info) => {
+            const item =
+              info.event.extendedProps
+                .item as ErpCalendarItem;
+
+            const start =
+              info.event.start;
+
+            if (!start || !item.editable) {
+              info.revert();
+              return;
+            }
+
+            const end =
+              info.event.end ??
+              new Date(
+                start.getTime() +
+                  60 * 60 * 1000,
+              );
+
+            void model
+              .update({
+                id: item.calendarKey,
+                title: item.title,
+                description:
+                  item.description,
+                startsAt:
+                  start.toISOString(),
+                endsAt:
+                  end.toISOString(),
+                allDay:
+                  info.event.allDay,
+                type: item.type,
+                status: item.status,
+                location:
+                  item.location,
+                contextRole:
+                  item.contextRole,
+              })
+              .catch(() =>
+                info.revert(),
+              );
+          }}
+          eventResize={(info) => {
+            const item =
+              info.event.extendedProps
+                .item as ErpCalendarItem;
+
+            if (
+              !item.editable ||
+              !info.event.start ||
+              !info.event.end
+            ) {
+              info.revert();
+              return;
+            }
+
+            void model
+              .update({
+                id: item.calendarKey,
+                title: item.title,
+                description:
+                  item.description,
+                startsAt:
+                  info.event.start
+                    .toISOString(),
+                endsAt:
+                  info.event.end
+                    .toISOString(),
+                allDay:
+                  info.event.allDay,
+                type: item.type,
+                status: item.status,
+                location:
+                  item.location,
+                contextRole:
+                  item.contextRole,
+              })
+              .catch(() =>
+                info.revert(),
+              );
+          }}
+        />
+      </div>
+
+      {selected && (
+        <div
+          className={styles.overlay}
+          onMouseDown={(event) => {
+            if (
+              event.currentTarget ===
+              event.target
+            ) {
+              setSelected(null);
+            }
+          }}
+        >
+          <aside className={styles.panel}>
+            <header>
+              <div>
+                <span className={styles.eyebrow}>
+                  Agenda personnel
+                </span>
+
+                <h2>
+                  {selected.title}
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setSelected(null)
+                }
+              >
+                <X size={16} />
+              </button>
+            </header>
+
+            <div className={styles.details}>
+              <p>
+                <Clock3 size={14} />
+                {new Date(
+                  selected.startsAt,
+                ).toLocaleString("fr-FR")}
+              </p>
+
+              {selected.location && (
+                <p>
+                  <MapPin size={14} />
+                  {selected.location}
+                </p>
+              )}
+
+              <p>
+                <CalendarDays size={14} />
+                {selected.sourceLabel}
+              </p>
+              {selected.description && (
+                <p>
+                  {selected.description}
+                </p>
+              )}
+            </div>
+
+                        {selected.editable && (
+              <footer>
+              <button
+              type="button"
+              onClick={() => {
+              editItem(selected);
+              setSelected(null);
+              }}
+              >
+              <Pencil size={14} />
+              Modifier
+              </button>
+
+              <button
+              type="button"
+              disabled={model.isMutating}
+              onClick={() => {
+              void model
+              .archive(selected.sourceId)
+              .then(() =>
+              setSelected(null),
+              );
+              }}
+              >
+              <Trash2 size={14} />
+              Archiver
+              </button>
+              </footer>
+            )}
+          </aside>
+        </div>
+      )}
+
+      {formOpen && (
+        <div
+          className={styles.overlay}
+          onMouseDown={(event) => {
+            if (
+              event.currentTarget ===
+              event.target
+            ) {
+              setFormOpen(false);
+            }
+          }}
+        >
+          <aside className={styles.panel}>
+            <header>
+              <div>
+                <span className={styles.eyebrow}>
+                  {editing
+                    ? "Modification"
+                    : "Nouvelle entrée"}
+                </span>
+
+                <h2>
+                  {editing
+                    ? "Modifier"
+                    : "Ajouter à mon agenda"}
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setFormOpen(false)
+                }
+              >
+                <X size={16} />
+              </button>
+            </header>
+
+            <div className={styles.form}>
+              <label>
+                Titre
+                <input
+                  value={form.title}
+                  onChange={(event) =>
+                    setForm({
+                      ...form,
+                      title:
+                        event.target.value,
+                    })
+                  }
+                />
+              </label>
+
+              <label>
+                Début
+                <input
+                  type="datetime-local"
+                  value={form.startsLocal}
+                  onChange={(event) =>
+                    setForm({
+                      ...form,
+                      startsLocal:
+                        event.target.value,
+                    })
+                  }
+                />
+              </label>
+
+              <label>
+                Fin
+                <input
+                  type="datetime-local"
+                  value={form.endsLocal}
+                  onChange={(event) =>
+                    setForm({
+                      ...form,
+                      endsLocal:
+                        event.target.value,
+                    })
+                  }
+                />
+              </label>
+
+              <label>
+                Type
+                <select
+                  value={form.type}
+                  onChange={(event) =>
+                    setForm({
+                      ...form,
+                      type:
+                        event.target
+                          .value as
+                          ErpCalendarEventType,
+                    })
+                  }
+                >
+                  {ERP_CALENDAR_EVENT_TYPES.map(
+                    (type) => (
+                      <option
+                        key={type}
+                        value={type}
+                      >
+                        {typeLabels[type]}
+                      </option>
+                    ),
+                  )}
+                </select>
+              </label>
+
+              <label>
+                Statut
+                <select
+                  value={form.status}
+                  onChange={(event) =>
+                    setForm({
+                      ...form,
+                      status:
+                        event.target
+                          .value as
+                          ErpCalendarStatus,
+                    })
+                  }
+                >
+                  <option value="confirmed">
+                    Confirmé
+                  </option>
+
+                  <option value="tentative">
+                    À confirmer
+                  </option>
+
+                  <option value="cancelled">
+                    Annulé
+                  </option>
+                </select>
+              </label>
+
+              <label>
+                Lieu
+                <input
+                  value={form.location}
+                  onChange={(event) =>
+                    setForm({
+                      ...form,
+                      location:
+                        event.target.value,
+                    })
+                  }
+                />
+              </label>
+
+              <label>
+                Description
+                <textarea
+                  rows={4}
+                  value={form.description}
+                  onChange={(event) =>
+                    setForm({
+                      ...form,
+                      description:
+                        event.target.value,
+                    })
+                  }
+                />
+              </label>
+
+              <label className={styles.check}>
+                <input
+                  type="checkbox"
+                  checked={form.allDay}
+                  onChange={(event) =>
+                    setForm({
+                      ...form,
+                      allDay:
+                        event.target.checked,
+                    })
+                  }
+                />
+
+                Journée entière
+              </label>
+            </div>
+
+            <footer>
+              <button
+                type="button"
+                onClick={() =>
+                  setFormOpen(false)
+                }
+              >
+                Annuler
+              </button>
+
+              <button
+                type="button"
+                className={styles.primary}
+                disabled={model.isMutating}
+                onClick={() =>
+                  void save()
+                }
+              >
+                {model.isMutating
+                  ? "Enregistrement..."
+                  : "Enregistrer"}
+              </button>
+            </footer>
+          </aside>
+        </div>
+      )}
+    </section>
+  );
 }

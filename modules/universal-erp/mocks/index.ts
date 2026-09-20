@@ -52,6 +52,13 @@ const contexts: Record<UniversalRoleId, RoleContext> = {
     places: ['Dojo Sakura', 'Fight Lab Mada', 'Centre Kiné Plus'],
     references: ['ATH-012', 'CAMP-0826', 'TRAIN-1842'],
   },
+  official: {
+    organization: 'Corps des officiels FMMA',
+    people: ['Jean Rakoto', 'Haja Raveloson', 'Mamy Andry'],
+    events: ['Mahajanga Fight Night Vol.3', 'Open Analamanga', 'Tana Combat Series 8'],
+    places: ['Stade Rabemananjara', 'Gymnase Mahamasina', 'Tana Arena'],
+    references: ['OFF-2026-084', 'MFN-03', 'ASSIGN-126'],
+  },
   referee: {
     organization: 'Corps arbitral FMMA',
     people: ['Jean Rakoto', 'Haja Raveloson', 'Mamy Andry'],

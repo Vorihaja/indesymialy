@@ -5,17 +5,16 @@ import {
 import {
   ErpModuleTabs,
 } from "@/modules/erp-core";
+import type { ErpTabDefinition } from "@/modules/erp-navigation";
 
 export function OrganizerTabs({
   tabs,
   active,
   onChange,
 }: {
-  tabs: string[];
+  tabs: readonly ErpTabDefinition[];
   active: string;
-  onChange: (
-    tab: string,
-  ) => void;
+  onChange: (tabId: string) => void;
 }) {
   return (
     <ErpModuleTabs
@@ -23,7 +22,7 @@ export function OrganizerTabs({
       active={active}
       onChange={onChange}
       ariaLabel="Sous-navigation du module"
-      getDisplayLabel={getOrganizerTabDisplayLabel}
+      getDisplayLabel={(tab) => getOrganizerTabDisplayLabel(tab.label)}
     />
   );
 }

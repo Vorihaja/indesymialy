@@ -5,10 +5,25 @@ import { ArrowDownToLine, ArrowUpDown, ChevronLeft, ChevronRight, Eye, Pencil, P
 import type { RealErpData } from "@/modules/erp-core/real-data";
 import { OrganizerDialog, OrganizerToast, organizerButtonClass, organizerPrimaryButtonClass, type OrganizerToastState } from "./OrganizerFeedback";
 
-const toneBorder = { red: "border-l-[#ff1638]", blue: "border-l-[#087cff]", green: "border-l-emerald-500", amber: "border-l-amber-500" };
+const semanticTone = { red: "danger", blue: "info", green: "success", amber: "warning" } as const;
 const csvCell = (value: string) => `"${value.replaceAll('"', '""')}"`;
 type Mode = "create" | "edit" | "view" | "delete" | null;
 type Values = Record<string, string | number | null>;
+type StatusTone = "success" | "warning" | "danger" | "info" | "neutral";
+
+const statusColumnPattern = /statut|status|paiement|décision|disponibilité/i;
+
+function statusTone(value: string): StatusTone {
+  const normalized = value.toLocaleLowerCase("fr");
+
+  if (/archiv|inactive|inactif|unknown|inconnu/.test(normalized)) return "neutral";
+  if (/payé|paid|valid|active|success|succeeded|completed|confirm|approved|accept|published|livré|signed/.test(normalized)) return "success";
+  if (/attente|pending|partial|partiel|draft|brouillon|requested|todo|invité|invited/.test(normalized)) return "warning";
+  if (/annul|cancel|refus|reject|declin|failed|échec|overdue|retard|bloqué|blocked|unavailable|indisponible|revoked|suspended/.test(normalized)) return "danger";
+  if (/cours|progress|scheduled|programmé|planned|live|issued|affecté|assigned|traitement/.test(normalized)) return "info";
+
+  return "neutral";
+}
 
 export function RealDataTable({
   data,
@@ -139,9 +154,9 @@ export function RealDataTable({
     <OrganizerToast toast={toast} onClose={() => setToast(null)} />
 
     <section className="grid grid-cols-2 gap-px overflow-hidden border border-[#303238] bg-[#303238] xl:grid-cols-5">
-      {data.kpis.map((kpi) => <article key={kpi.label} className={`min-h-[76px] border-l-2 bg-[#151619] px-3 py-2 ${kpi.tone ? toneBorder[kpi.tone] : "border-l-transparent"}`}>
+      {data.kpis.map((kpi) => <article key={kpi.label} className="erp-semantic-kpi min-h-[76px] border-l-2 px-3 py-2" data-tone={kpi.tone ? semanticTone[kpi.tone] : "neutral"}>
         <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-zinc-500">{kpi.label}</span>
-        <strong className="mt-1.5 block truncate text-[18px] font-semibold tracking-[-0.03em]">{kpi.value}</strong>
+        <strong className="erp-semantic-kpi-value mt-1.5 block truncate text-[18px] font-semibold tracking-[-0.03em]" data-kpi-value>{kpi.value}</strong>
         <span className="mt-0.5 block truncate text-[9px] text-zinc-500">{kpi.detail}</span>
       </article>)}
     </section>
@@ -164,7 +179,7 @@ export function RealDataTable({
         <thead className="bg-[#101114] text-[9px] uppercase tracking-[0.09em] text-zinc-500"><tr>{data.columns.map((column, index) => <th key={column} className="h-8 border-b border-[#292c31] px-3 font-semibold"><button type="button" onClick={() => { if (sortColumn === index) setSortAscending((current) => !current); else { setSortColumn(index); setSortAscending(true); } }} className="inline-flex items-center gap-1 hover:text-zinc-200">{column}<ArrowUpDown size={10} aria-hidden="true" /></button></th>)}<th className="w-28 border-b border-[#292c31]" /></tr></thead>
         <tbody className="divide-y divide-[#292c31]">
           {visibleRows.map(({ row, index }) => <tr key={data.rowIds[index] ?? `${row[0]}-${index}`} className="hover:bg-white/[0.025]">
-            {row.map((cell, cellIndex) => <td key={`${cellIndex}-${cell}`} className={`h-10 whitespace-nowrap px-3 ${cellIndex === 0 ? "font-semibold text-zinc-200" : "text-zinc-400"}`}>{cell}</td>)}
+            {row.map((cell, cellIndex) => <td key={`${cellIndex}-${cell}`} className={`h-10 whitespace-nowrap px-3 ${cellIndex === 0 ? "font-semibold text-zinc-200" : "text-zinc-400"}`}>{statusColumnPattern.test(data.columns[cellIndex] ?? "") ? <span className="erp-semantic-badge" data-tone={statusTone(cell)}>{cell}</span> : cell}</td>)}
             <td><div className="flex justify-end gap-1 pr-2">
               <button type="button" onClick={() => openRecord("view", index)} className="grid h-8 w-8 place-items-center text-zinc-500 hover:text-white" aria-label={`Consulter ${row[0]}`}><Eye size={14} /></button>
               {data.capabilities.update && <button type="button" onClick={() => openRecord("edit", index)} className="grid h-8 w-8 place-items-center text-[#3d92ff] hover:bg-blue-500/10" aria-label={`Modifier ${row[0]}`}><Pencil size={14} /></button>}

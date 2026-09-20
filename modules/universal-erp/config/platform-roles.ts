@@ -1,19 +1,21 @@
 import type { UniversalRoleDefinition } from '../types';
+import { defineErpTabs } from '@/modules/erp-navigation';
+const tab = (id: string, label: string) => ({ id, label, legacyIds: [label] });
 
 export const platformRoleDefinitions: UniversalRoleDefinition[] = [
   {
     id: 'super-admin', label: 'Super Admin', guardRole: 'super_admin', workspaceStatus: 'Plateforme opérationnelle',
     modules: [
       { id: 'overview', label: 'Vue d’ensemble', tabs: [], icon: 'overview' },
-      { id: 'platform', label: 'Plateforme', tabs: ['Santé système', 'Services', 'Environnements', 'Incidents'], icon: 'security' },
-      { id: 'users', label: 'Utilisateurs', tabs: ['Tous', 'Rôles système', 'Accès', 'Sessions', 'Demandes'], icon: 'users' },
-      { id: 'organizations', label: 'Organisations', tabs: ['Toutes', 'Fédérations', 'Ligues', 'Clubs', 'Partenaires'], icon: 'organizations' },
-      { id: 'governance', label: 'Gouvernance', tabs: ['Permissions', 'Politiques', 'Conformité', 'Audit'], icon: 'security' },
-      { id: 'content', label: 'Contenus', tabs: ['Actualités', 'Médias', 'Signalements', 'Modération'], icon: 'communication' },
-      { id: 'finance', label: 'Finances plateforme', tabs: ['Synthèse', 'Abonnements', 'Commissions', 'Paiements', 'Facturation'], icon: 'finance' },
-      { id: 'analytics', label: 'Analytics', tabs: ['Adoption', 'Usage', 'Revenus', 'Fiabilité', 'Rapports'], icon: 'performance' },
-      { id: 'settings', label: 'Configuration', tabs: ['Général', 'Référentiels', 'Intégrations', 'Fonctionnalités', 'Maintenance'], icon: 'settings' },
-      { id: 'live', label: 'Platform Control', tabs: ['Direct'], icon: 'live', live: true },
+      { id: 'platform', label: 'Plateforme', tabs: defineErpTabs([tab('system-health', 'Santé système'), tab('services', 'Services'), tab('environments', 'Environnements'), tab('incidents', 'Incidents')]), icon: 'security' },
+      { id: 'users', label: 'Utilisateurs', tabs: defineErpTabs([tab('all', 'Tous'), tab('system-roles', 'Rôles système'), tab('access', 'Accès'), tab('sessions', 'Sessions'), tab('requests', 'Demandes')]), icon: 'users' },
+      { id: 'organizations', label: 'Organisations', tabs: defineErpTabs([tab('all', 'Toutes'), tab('federations', 'Fédérations'), tab('leagues', 'Ligues'), tab('clubs', 'Clubs'), tab('partners', 'Partenaires')]), icon: 'organizations' },
+      { id: 'governance', label: 'Gouvernance', tabs: defineErpTabs([tab('permissions', 'Permissions'), tab('policies', 'Politiques'), tab('compliance', 'Conformité'), tab('audit', 'Audit')]), icon: 'security' },
+      { id: 'content', label: 'Contenus', tabs: defineErpTabs([tab('news', 'Actualités'), tab('media', 'Médias'), tab('reports', 'Signalements'), tab('moderation', 'Modération')]), icon: 'communication' },
+      { id: 'finance', label: 'Finances plateforme', tabs: defineErpTabs([tab('summary', 'Synthèse'), tab('subscriptions', 'Abonnements'), tab('commissions', 'Commissions'), tab('payments', 'Paiements'), tab('billing', 'Facturation')]), icon: 'finance' },
+      { id: 'analytics', label: 'Analytics', tabs: defineErpTabs([tab('adoption', 'Adoption'), tab('usage', 'Usage'), tab('revenue', 'Revenus'), tab('reliability', 'Fiabilité'), tab('reports', 'Rapports')]), icon: 'performance' },
+      { id: 'settings', label: 'Configuration', tabs: defineErpTabs([tab('general', 'Général'), tab('references', 'Référentiels'), tab('integrations', 'Intégrations'), tab('features', 'Fonctionnalités'), tab('maintenance', 'Maintenance')]), icon: 'settings' },
+      { id: 'live', label: 'Platform Control', tabs: defineErpTabs([tab('live', 'Direct')]), icon: 'live', live: true },
     ],
     overview: {
       kpis: [
@@ -57,15 +59,15 @@ export const platformRoleDefinitions: UniversalRoleDefinition[] = [
     id: 'admin', label: 'Admin', guardRole: 'admin', workspaceStatus: 'Administration active',
     modules: [
       { id: 'overview', label: 'Vue d’ensemble', tabs: [], icon: 'overview' },
-      { id: 'users', label: 'Utilisateurs', tabs: ['Comptes', 'Profils', 'Rôles', 'Suspensions', 'Demandes'], icon: 'users' },
-      { id: 'organizations', label: 'Organisations', tabs: ['Dossiers', 'Validations', 'Membres', 'Conformité'], icon: 'organizations' },
-      { id: 'moderation', label: 'Modération', tabs: ['Signalements', 'Contenus', 'Commentaires', 'Sanctions'], icon: 'security' },
-      { id: 'events', label: 'Événements', tabs: ['À valider', 'Publiés', 'Litiges', 'Archives'], icon: 'events' },
-      { id: 'support', label: 'Support', tabs: ['Tickets', 'Incidents', 'Escalades', 'Satisfaction'], icon: 'communication' },
-      { id: 'finance', label: 'Paiements', tabs: ['Synthèse', 'Transactions', 'Remboursements', 'Litiges'], icon: 'finance' },
-      { id: 'reports', label: 'Rapports', tabs: ['Activité', 'Sécurité', 'Conformité', 'Exports'], icon: 'performance' },
-      { id: 'settings', label: 'Paramètres', tabs: ['Préférences', 'Notifications', 'Modèles', 'Intégrations'], icon: 'settings' },
-      { id: 'live', label: 'Admin Desk', tabs: ['Direct'], icon: 'live', live: true },
+      { id: 'users', label: 'Utilisateurs', tabs: defineErpTabs([tab('accounts', 'Comptes'), tab('profiles', 'Profils'), tab('roles', 'Rôles'), tab('suspensions', 'Suspensions'), tab('requests', 'Demandes')]), icon: 'users' },
+      { id: 'organizations', label: 'Organisations', tabs: defineErpTabs([tab('files', 'Dossiers'), tab('validations', 'Validations'), tab('members', 'Membres'), tab('compliance', 'Conformité')]), icon: 'organizations' },
+      { id: 'moderation', label: 'Modération', tabs: defineErpTabs([tab('reports', 'Signalements'), tab('content', 'Contenus'), tab('comments', 'Commentaires'), tab('sanctions', 'Sanctions')]), icon: 'security' },
+      { id: 'events', label: 'Événements', tabs: defineErpTabs([tab('to-validate', 'À valider'), tab('published', 'Publiés'), tab('disputes', 'Litiges'), tab('archives', 'Archives')]), icon: 'events' },
+      { id: 'support', label: 'Support', tabs: defineErpTabs([tab('tickets', 'Tickets'), tab('incidents', 'Incidents'), tab('escalations', 'Escalades'), tab('satisfaction', 'Satisfaction')]), icon: 'communication' },
+      { id: 'finance', label: 'Paiements', tabs: defineErpTabs([tab('summary', 'Synthèse'), tab('transactions', 'Transactions'), tab('refunds', 'Remboursements'), tab('disputes', 'Litiges')]), icon: 'finance' },
+      { id: 'reports', label: 'Rapports', tabs: defineErpTabs([tab('activity', 'Activité'), tab('security', 'Sécurité'), tab('compliance', 'Conformité'), tab('exports', 'Exports')]), icon: 'performance' },
+      { id: 'settings', label: 'Paramètres', tabs: defineErpTabs([tab('preferences', 'Préférences'), tab('notifications', 'Notifications'), tab('templates', 'Modèles'), tab('integrations', 'Intégrations')]), icon: 'settings' },
+      { id: 'live', label: 'Admin Desk', tabs: defineErpTabs([tab('live', 'Direct')]), icon: 'live', live: true },
     ],
     overview: {
       kpis: [

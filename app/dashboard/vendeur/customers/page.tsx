@@ -1,1 +1,12 @@
-import{SellerDashboardFeature}from"@/modules/seller-dashboard";export default function Page(){return <SellerDashboardFeature view="customers"/>}
+import {
+  UniversalErpPrototype,
+} from "@/modules/universal-erp/components/UniversalErpPrototype";
+
+export default function SellerCustomersPage() {
+  return (
+    <UniversalErpPrototype
+      role="seller"
+      initialModule="customers"
+    />
+  );
+}

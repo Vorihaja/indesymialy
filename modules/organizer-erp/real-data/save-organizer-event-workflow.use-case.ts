@@ -18,6 +18,10 @@ export class SaveOrganizerEventWorkflowUseCase {
     return this.service.candidates();
   }
 
+  searchOfficialCandidates(query: string) {
+    return this.service.searchOfficialCandidates(query);
+  }
+
   invitations() {
     return this.service.invitations();
   }

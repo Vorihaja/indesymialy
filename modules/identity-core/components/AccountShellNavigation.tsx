@@ -54,9 +54,14 @@ const groups:
           icon: UserRound,
         },
         {
-          label: "Rôles",
+          label: "Rôles et accès",
           href: "/account/roles",
           icon: UsersRound,
+        },
+        {
+          label: "Vérification",
+          href: "/account/verification",
+          icon: FileCheck2,
         },
         {
           label: "Organisations",

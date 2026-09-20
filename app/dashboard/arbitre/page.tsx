@@ -1,6 +1,15 @@
-import { RoleGuard } from '@/modules/auth/guards';
-import { UniversalErpPrototype } from '@/modules/universal-erp';
+import {
+  redirectWithSearchParams,
+  type RouteSearchParams,
+} from "@/app/_routing/redirect-with-search-params";
 
-export default function Page() {
-  return <RoleGuard role='referee'><UniversalErpPrototype role='referee' /></RoleGuard>;
+export default function Page({
+  searchParams,
+}: {
+  searchParams: RouteSearchParams;
+}) {
+  return redirectWithSearchParams(
+    "/dashboard/officiel",
+    searchParams,
+  );
 }

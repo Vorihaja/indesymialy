@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import {
+  redirectWithSearchParams,
+  type RouteSearchParams,
+} from "@/app/_routing/redirect-with-search-params";
 import type { PublicProfileRole } from "@/modules/social-core";
 
 const roles: PublicProfileRole[] = [
@@ -8,6 +12,7 @@ const roles: PublicProfileRole[] = [
   "club",
   "coach",
   "organisateur",
+  "officiel",
   "arbitre",
   "juge",
   "sponsor",
@@ -20,6 +25,7 @@ const roleLabels: Record<PublicProfileRole, string> = {
   club: "Clubs",
   coach: "Coachs",
   organisateur: "Organisateurs",
+  officiel: "Officiels",
   arbitre: "Arbitres",
   juge: "Juges",
   sponsor: "Sponsors",
@@ -29,10 +35,19 @@ const roleLabels: Record<PublicProfileRole, string> = {
 
 export default async function Page({
   params,
+  searchParams,
 }: {
   params: Promise<{ role: string }>;
+  searchParams: RouteSearchParams;
 }) {
   const { role } = await params;
+
+  if (role === "arbitre") {
+    return redirectWithSearchParams(
+      "/social/profils/officiel",
+      searchParams,
+    );
+  }
 
   if (!roles.includes(role as PublicProfileRole)) {
     notFound();

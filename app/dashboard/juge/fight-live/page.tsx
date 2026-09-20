@@ -1,1 +1,5 @@
-import { RoleGuard } from "@/modules/auth/guards"; import { FightLiveListFeature } from "@/modules/fight-live"; export default function Page() { return <RoleGuard role="judge"><FightLiveListFeature mode="judge" /></RoleGuard>; }
+import { LegacyJudgeRedirect } from "@/modules/officials/components/LegacyJudgeRedirect";
+
+export default function Page() {
+  return <LegacyJudgeRedirect target="/dashboard/officiel/scorecards" />;
+}

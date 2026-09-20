@@ -1,1 +1,5 @@
-import{ProfessionalFinanceFeature}from"@/modules/professional-finance";export default function Page(){return <ProfessionalFinanceFeature role="organizer"/>;}
+import { FinanceFeature } from '@/modules/finance-erp';
+
+export default function FinancePage() {
+  return <FinanceFeature role='organisateur' />;
+}

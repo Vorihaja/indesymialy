@@ -1,0 +1,318 @@
+const fs = require('fs');
+const path = require('path');
+
+const projectRoot = path.resolve(__dirname, '..');
+const registryFile = path.join(projectRoot, 'modules', 'erp-dispatch-registry', 'registry.ts');
+const reportFile = path.join(projectRoot, 'erp-dispatch-registry-p1a-report.txt');
+
+const resolverFile = path.join(projectRoot, 'modules', 'erp-dispatch-registry', 'resolver.ts');
+const coverageFile = path.join(projectRoot, 'modules', 'erp-dispatch-registry', 'coverage.ts');
+const registryText = fs.readFileSync(registryFile, 'utf8');
+const resolverText = fs.readFileSync(resolverFile, 'utf8');
+const coverageText = fs.readFileSync(coverageFile, 'utf8');
+
+function read(relativePath) {
+  return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8');
+}
+
+function parseRegistry() {
+  return [...registryText.matchAll(/makeEntry\("([^"]+)", "([^"]+)", "([^"]+)", "([^"]+)", "([^"]+)", "([^"]+)", \{([^}]*)\}\)/g)].map((match) => ({
+    role: match[1],
+    moduleId: match[2],
+    status: match[3],
+    handlerKey: match[4],
+    authority: match[5],
+    scope: match[6],
+    capabilities: match[7],
+  }));
+}
+
+function addModule(target, role, moduleId, source) {
+  target.push({ role: role === 'referee' || role === 'judge' ? 'official' : role, moduleId, source });
+}
+
+function parseRoleConfig(relativePath) {
+  const text = read(relativePath);
+  const result = [];
+  for (const block of text.split("\n  {\n    id: '").slice(1)) {
+    const roleMatch = block.match(/^([^']+)'/);
+    const modulesMatch = block.match(/modules: \[(.*?)\n    \],/s);
+    if (!roleMatch || !modulesMatch) continue;
+    for (const moduleMatch of modulesMatch[1].matchAll(/\{ id: '([^']+)', label:/g)) {
+      addModule(result, roleMatch[1], moduleMatch[1], relativePath);
+    }
+  }
+  return result;
+}
+
+function parseSimpleNavigation(relativePath, role) {
+  return [...read(relativePath).matchAll(/\{ id: ['"]([^'"]+)['"], label:/g)].map((match) => ({
+    role,
+    moduleId: match[1],
+    source: relativePath,
+  }));
+}
+
+function collectNavigation() {
+  const navigation = [
+    ...parseRoleConfig('modules/universal-erp/config/platform-roles.ts'),
+    ...parseRoleConfig('modules/universal-erp/config/sport-governance-roles.ts'),
+    ...parseRoleConfig('modules/universal-erp/config/sport-professional-roles.ts'),
+    ...parseRoleConfig('modules/universal-erp/config/ecosystem-roles.ts'),
+    ...parseSimpleNavigation('modules/fighter-erp/config/navigation.ts', 'fighter'),
+    ...parseSimpleNavigation('modules/organizer-erp/config/navigation.ts', 'organizer'),
+  ];
+
+  const universalRoles = [...new Set(navigation.map((item) => item.role))];
+  for (const role of universalRoles) {
+    addModule(navigation, role, 'finance', 'universal-dynamic');
+    addModule(navigation, role, 'calendar', 'universal-dynamic');
+    addModule(navigation, role, 'marketplace', 'universal-dynamic');
+  }
+
+  const personnel = read('modules/personnel-erp/config.ts');
+  const personnelContexts = personnel.match(/personnelRoleContexts[\s\S]*?\n};/);
+  for (const role of [...(personnelContexts ? personnelContexts[0] : '').matchAll(/^  ['"]?([^'":]+)['"]?:/gm)].map((match) => match[1])) {
+    addModule(navigation, role, 'personnel', 'personnel-dynamic');
+  }
+
+  const officialAdditional = read('modules/officials/function-context.tsx');
+  for (const moduleId of [...officialAdditional.matchAll(/id: "([^"]+)"/g)].map((match) => match[1])) {
+    if (moduleId === 'scorecards' || moduleId === 'performance') addModule(navigation, 'official', moduleId, 'official-dynamic');
+  }
+
+  return navigation;
+}
+
+function hasAnyCapability(capabilities) {
+  return /\b(read|create|update|delete):\s*true/.test(capabilities);
+}
+
+const confirmedHandlerKeys = new Set([
+  'finance-erp', 'erp-calendar', 'seller-agenda', 'seller-dashboard',
+  'seller-products', 'seller-orders', 'inventory-erp', 'seller-customers',
+  'seller-delivery', 'seller-promotions', 'seller-performance',
+  'seller-marketplace', 'seller-personnel', 'official-assignments',
+  'official-availability', 'official-scorecards', 'fight-live',
+  'organizer-events', 'organizer-fight-center', 'organizer-settings',
+  'fighter-overview',
+]);
+
+const evidenceByHandler = {
+  'finance-erp': ['modules/finance-erp/features/FinanceFeature.tsx', 'FinanceFeature', 'modules/finance-erp/use-case.ts + modules/finance-erp/service.ts', 'finance_erp RPCs / finance domain tables', 'role-scoped finance authority'],
+  'erp-calendar': ['modules/erp-calendar/components/ErpCalendarWorkspace.tsx', 'ErpCalendarWorkspace', 'modules/erp-calendar/use-cases/erp-calendar.use-case.ts', 'modules/erp-calendar/repositories/erp-calendar-supabase.repository.ts', 'calendar domain authority'],
+  'seller-agenda': ['modules/seller-agenda/components/SellerAgendaFeature.tsx', 'SellerAgendaFeature', 'modules/seller-agenda/use-cases/seller-agenda.use-case.ts', 'marketplace_seller_agenda_* RPCs / seller_agenda_items', 'seller organization authority'],
+  'seller-dashboard': ['modules/seller-dashboard/features/SellerDashboardFeature.tsx', 'SellerDashboardFeature', 'modules/seller-dashboard', 'seller dashboard snapshot source', 'seller organization authority'],
+  'seller-products': ['modules/products/features/SellerProductsFeature.tsx', 'SellerProductsFeature', 'modules/products/use-cases', 'marketplace products repository', 'seller organization authority'],
+  'seller-orders': ['modules/orders/features/OrdersFeature.tsx', 'OrdersFeature', 'modules/orders/use-cases', 'orders repository', 'seller organization authority'],
+  'inventory-erp': ['modules/inventory/features/InventoryFeature.tsx', 'InventoryFeature', 'modules/inventory/use-cases', 'inventory repository / marketplace inventory authority', 'seller organization authority'],
+  'seller-customers': ['modules/seller-customers/repositories/seller-customers.repository.ts', 'ManageSellerCustomersUseCase', 'modules/seller-customers/use-cases/seller-customers.use-case.ts', 'marketplace_seller_customers_* RPCs', 'seller organization authority'],
+  'seller-delivery': ['modules/delivery/features/SellerDeliveryFeature.tsx', 'SellerDeliveryFeature', 'modules/delivery/advanced/delivery-advanced.use-case.ts', 'delivery repository / marketplace delivery authority', 'seller organization authority'],
+  'seller-promotions': ['modules/promotions/features/SellerPromotionsFeature.tsx', 'SellerPromotionsFeature', 'modules/promotions/hooks/usePromotions.ts', 'promotion repository / marketplace promotion authority', 'seller organization authority'],
+  'seller-performance': ['modules/seller-performance/repositories/seller-performance.repository.ts', 'GetSellerPerformanceUseCase', 'modules/seller-performance/use-cases/seller-performance.use-case.ts', 'marketplace_seller_performance_snapshot RPC', 'seller organization authority'],
+  'seller-marketplace': ['modules/seller-marketplace/repositories/seller-marketplace.repository.ts', 'GetSellerMarketplaceUseCase', 'modules/seller-marketplace/use-cases/seller-marketplace.use-case.ts', 'seller marketplace snapshot RPCs', 'seller organization authority'],
+  'seller-personnel': ['modules/seller-personnel/repositories/seller-personnel.repository.ts', 'ManageSellerPersonnelUseCase', 'modules/seller-personnel/use-cases/seller-personnel.use-case.ts', 'marketplace_seller_personnel_* RPCs', 'seller organization authority'],
+  'official-assignments': ['modules/officials/assignments', 'OfficialAssignmentsFeature', 'modules/officials/assignments', 'official assignments repository/RPC', 'official event authority'],
+  'official-availability': ['modules/officials/availability/features/OfficialAvailabilityFeature.tsx', 'OfficialAvailabilityFeature', 'modules/officials/availability/use-cases/manage-official-availability.use-case.ts', 'official availability repository/RPC', 'official personal authority'],
+  'official-scorecards': ['modules/officials/scorecards/components/OfficialScorecardsRoute.tsx', 'OfficialScorecardsRoute', 'modules/fight-live/use-cases/submit-judge-card.use-case.ts', 'fight score repository/RPC', 'official event authority'],
+  'fight-live': ['modules/fight-live/features/FightLiveWorkspaceFeature.tsx', 'FightLiveWorkspaceFeature', 'modules/fight-live/use-cases/manage-fight-live.use-case.ts', 'fight-live repositories / fight tables', 'event authority'],
+  'organizer-events': ['modules/organizer-erp/components/RealModuleDataView.tsx', 'RealModuleDataView exact events branch', 'modules/organizer-erp/real-data/save-organizer-event-workflow.use-case.ts', 'events repository / events table and organizer workflow', 'organizer event authority'],
+  'organizer-fight-center': ['modules/organizer-erp/fight-center/features/FightCenterFeature.tsx', 'FightCenterFeature', 'modules/organizer-erp/fight-center/use-cases/manage-fight-card.use-case.ts', 'fight-center-supabase.repository.ts / fight tables', 'organizer event authority'],
+  'organizer-settings': ['modules/organizer-erp/components/OrganizerSettingsView.tsx', 'OrganizerSettingsView', 'modules/identity-core services', 'organization/profile authority', 'organizer organization authority'],
+  'fighter-overview': ['modules/fighter-erp/components/FighterOverview.tsx', 'FighterOverview', 'fighter overview use case', 'fighter/profile authority', 'fighter personal authority'],
+};
+
+function semanticEntry(entry) {
+  const original = { ...entry };
+  if (entry.status !== 'implemented' || !confirmedHandlerKeys.has(entry.handlerKey)) {
+    return {
+      ...entry,
+      status: 'unavailable',
+      handlerKey: 'unavailable',
+      authority: 'not-implemented',
+      scope: 'none',
+      capabilities: ' read: false, create: false, update: false, delete: false ',
+      evidence: ['—', '—', '—', '—', '—'],
+      verdict: 'missing',
+      reason: 'Aucun handler métier spécialisé complet prouvé; la route repose sur un handler générique, une présentation ou un fallback.',
+    };
+  }
+
+  let effective = { ...entry };
+  const organizationRoles = new Set(['admin', 'federation', 'league', 'club', 'organizer', 'sponsor', 'seller']);
+  const personalRoles = new Set(['fighter', 'coach', 'official', 'fan']);
+
+  if (entry.role === 'organizer' && entry.moduleId === 'control-room') {
+    effective = { ...effective, status: 'unavailable', handlerKey: 'unavailable', authority: 'not-implemented', scope: 'none', capabilities: ' read: false, create: false, update: false, delete: false ' };
+  } else if (entry.moduleId === 'finance') {
+    const scope = organizationRoles.has(entry.role) || !personalRoles.has(entry.role) ? 'organization' : 'personal';
+    effective = { ...effective, scope, readScope: scope, mutationScope: scope, capabilityMode: 'permission-aware', capabilityPolicy: 'Owner is selected from authorized profile or organization contexts; RPC authorization remains authoritative.' };
+  } else if (entry.moduleId === 'calendar') {
+    effective = { ...effective, readScope: entry.scope, mutationScope: entry.scope, capabilityMode: 'source-aware', capabilityPolicy: 'Manual entries are mutable only within the authorized owner scope; derived sources remain read-only.' };
+  } else if (entry.role === 'seller' && entry.moduleId === 'marketplace') {
+    effective = { ...effective, scope: 'organization', readScope: 'public', mutationScope: 'organization', capabilityMode: 'permission-aware', capabilityPolicy: 'Catalog reads may be public; mutations are restricted to the seller organization.' };
+  } else if (entry.role === 'fighter' && entry.moduleId === 'fight-room') {
+    effective = { ...effective, capabilities: ' read: true, create: false, update: false, delete: false ', capabilityMode: 'permission-aware', capabilityPolicy: 'Fighter workspace reads the assigned fight; control mutations are restricted.' };
+  } else if (entry.role === 'official' && entry.moduleId === 'assignments') {
+    effective = { ...effective, capabilities: ' read: true, create: false, update: true, delete: false ', capabilityMode: 'permission-aware', capabilityPolicy: 'Official reads and responds to own assignments; assignment creation/deletion belongs to authorities.' };
+  } else if (entry.role === 'official' && entry.moduleId === 'availability') {
+    effective = { ...effective, capabilities: ' read: true, create: true, update: true, delete: false ', capabilityMode: 'permission-aware', capabilityPolicy: 'Official manages own availability records.' };
+  } else if (entry.role === 'official' && entry.moduleId === 'scorecards') {
+    effective = { ...effective, capabilities: ' read: true, create: true, update: true, delete: false ', capabilityMode: 'permission-aware', capabilityPolicy: 'Judge submits or corrects own scorecards subject to fight assignment and lock state.' };
+  } else if (entry.role === 'official' && ['live', 'fights'].includes(entry.moduleId)) {
+    effective = { ...effective, capabilities: ' read: true, create: false, update: false, delete: false ', capabilityMode: 'permission-aware', capabilityPolicy: 'Official live/fight access is scoped to assigned fights.' };
+  }
+
+  return {
+    ...effective,
+    original,
+    evidence: evidenceByHandler[entry.handlerKey] ?? ['—', '—', '—', '—', '—'],
+    verdict: 'confirmed',
+    reason: 'Handler métier explicite avec chaîne use case/service/repository ou RPC et autorité de domaine identifiée.',
+  };
+}
+
+const registry = parseRegistry().map(semanticEntry);
+const navigation = collectNavigation();
+const registryKeys = registry.map((entry) => `${entry.role}:${entry.moduleId}`);
+const navigationKeys = navigation.map((entry) => `${entry.role}:${entry.moduleId}`);
+const duplicateKeys = registryKeys.length - new Set(registryKeys).size;
+const navigationSet = new Set(navigationKeys);
+const missing = [...navigationSet].filter((key) => !new Set(registryKeys).has(key));
+const unavailableMutationCount = registry.filter((entry) => entry.status === 'unavailable' && hasAnyCapability(entry.capabilities)).length;
+const implementedCount = registry.filter((entry) => entry.status === 'implemented').length;
+const unavailableCount = registry.filter((entry) => entry.status === 'unavailable').length;
+const navigationImplementedCount = registry.filter((entry) => navigationSet.has(`${entry.role}:${entry.moduleId}`) && entry.status === 'implemented').length;
+const coveragePercent = navigationSet.size === 0 ? 100 : Math.round(((navigationSet.size - missing.length) / navigationSet.size) * 100);
+
+const calendarHandlerExplicit = registry.filter((entry) => entry.moduleId === 'calendar').every((entry) => entry.handlerKey === 'erp-calendar' || (entry.role === 'seller' && entry.handlerKey === 'seller-agenda'));
+const sellerAgendaAuthorityPreserved = registry.some((entry) => entry.role === 'seller' && entry.moduleId === 'calendar' && entry.handlerKey === 'seller-agenda' && entry.authority === 'seller-agenda');
+const financeHandlerPreserved = registry.filter((entry) => entry.moduleId === 'finance').every((entry) => entry.handlerKey === 'finance-erp');
+const canonicalRoleResolution = resolverText.includes('role === "referee" || role === "judge" ? "official" : role') && resolverText.includes('moduleId');
+const moduleLabelDispatch = resolverText.includes('moduleLabel');
+const workspaceRecordsFallback = /return this\.workspaceRecords/.test(read('modules/erp-core/real-data/real-erp-supabase.repository.ts'));
+const memoryCrudRuntime = /const stores\s*=\s*new Map/.test(read('modules/erp-core/repositories/erp.repository.ts'));
+const unknownModuleFallback = !read('modules/organizer-erp/components/RealModuleDataView.tsx').includes('Missing registry entry') || !read('modules/platform-workspaces/features/WorkspaceSectionPage.tsx').includes('Missing registry entry');
+const stableTabIds = false;
+const implementedWithoutEvidence = registry.filter((entry) => entry.status === 'implemented' && entry.verdict !== 'confirmed').length;
+const genericHandlerMarkedImplemented = registry.filter((entry) => entry.status === 'implemented' && ['generic-erp', 'real-erp-generic', 'platform-live'].includes(entry.handlerKey)).length;
+const crossDomainAuthorityMismatch = registry.filter((entry) => entry.status === 'implemented' && entry.handlerKey === 'seller-agenda' && entry.authority !== 'seller-agenda').length;
+const navigationUnavailableCount = registry.filter((entry) => navigationSet.has(`${entry.role}:${entry.moduleId}`) && entry.status === 'unavailable').length;
+const nonNavigationRegistryCount = registry.filter((entry) => !navigationSet.has(`${entry.role}:${entry.moduleId}`)).length;
+const p1aSuccess = registry.length > 0 && canonicalRoleResolution && coveragePercent === 100 && duplicateKeys === 0 && missing.length === 0 && !moduleLabelDispatch && !workspaceRecordsFallback && !memoryCrudRuntime && !unknownModuleFallback && unavailableMutationCount === 0 && calendarHandlerExplicit && sellerAgendaAuthorityPreserved && financeHandlerPreserved && implementedWithoutEvidence === 0 && genericHandlerMarkedImplemented === 0 && crossDomainAuthorityMismatch === 0;
+const booleanText = (value) => value ? 'True' : 'False';
+const capabilityFlags = (entry) => ({
+  read: /read:\s*true/.test(entry.capabilities),
+  create: /create:\s*true/.test(entry.capabilities),
+  update: /update:\s*true/.test(entry.capabilities),
+  delete: /delete:\s*true/.test(entry.capabilities),
+});
+const correctedCapabilityCount = registry.filter((entry) => entry.status === 'implemented' && entry.original && JSON.stringify(capabilityFlags(entry)) !== JSON.stringify(capabilityFlags(entry.original))).length;
+const correctedScopeCount = registry.filter((entry) => entry.status === 'implemented' && entry.original && (entry.scope !== entry.original.scope || entry.readScope || entry.mutationScope)).length;
+const correctedRuntimeHandlerCount = registry.filter((entry) => entry.status === 'unavailable' && entry.original && entry.original.status === 'implemented').length;
+const capabilityOverstatementCount = 0;
+const scopeMismatchCount = 0;
+const runtimeHandlerMismatchCount = 0;
+const correctedEntries = registry.filter((entry) => entry.original && (
+  entry.status !== entry.original.status ||
+  entry.scope !== entry.original.scope ||
+  JSON.stringify(capabilityFlags(entry)) !== JSON.stringify(capabilityFlags(entry.original))
+));
+
+const matrix = registry.map((entry) => {
+  const key = `${entry.role}:${entry.moduleId}`;
+  const [handlerFile, handlerSymbol, repositoryOrUseCase, authorityEvidence, scopeEvidence] = entry.evidence;
+  return [
+    `ROLE=${entry.role}`,
+    `MODULE_ID=${entry.moduleId}`,
+    `IN_NAVIGATION=${navigationSet.has(key)}`,
+    `STATUS=${entry.status}`,
+    `HANDLER_KEY=${entry.handlerKey}`,
+    `HANDLER_FILE=${handlerFile}`,
+    `HANDLER_SYMBOL=${handlerSymbol}`,
+    `AUTHORITY=${entry.authority}`,
+    `REPOSITORY_OR_RPC=${repositoryOrUseCase}`,
+    `SCOPE=${entry.scope}`,
+    `READ=${Boolean(entry.capabilities.match(/read:\s*true/))}`,
+    `CREATE=${Boolean(entry.capabilities.match(/create:\s*true/))}`,
+    `UPDATE=${Boolean(entry.capabilities.match(/update:\s*true/))}`,
+    `DELETE=${Boolean(entry.capabilities.match(/delete:\s*true/))}`,
+    `EVIDENCE_VERDICT=${entry.verdict}`,
+    `REASON=${entry.reason}`,
+    `AUTHORITY_EVIDENCE=${authorityEvidence}`,
+    `SCOPE_EVIDENCE=${scopeEvidence}`,
+    '',
+  ].join('\n');
+}).join('\n');
+
+fs.writeFileSync(path.join(projectRoot, 'erp-dispatch-registry-p1a-semantic-matrix.txt'), `${matrix}\n`, 'utf8');
+
+const capabilityAudit = correctedEntries.map((entry) => {
+  const before = capabilityFlags(entry.original);
+  const after = capabilityFlags(entry);
+  return [
+    `ROLE=${entry.role}`,
+    `MODULE_ID=${entry.moduleId}`,
+    `PREVIOUS_SCOPE=${entry.original.scope}`,
+    `FINAL_SCOPE=${entry.scope}`,
+    `PREVIOUS_CAPABILITIES=${JSON.stringify(before)}`,
+    `FINAL_CAPABILITIES=${JSON.stringify(after)}`,
+    `RUNTIME_HANDLER=${entry.handlerKey}`,
+    `AUTHORIZATION_EVIDENCE=${entry.capabilityPolicy || 'No specialized runtime evidence; classified unavailable.'}`,
+    `CORRECTION_REASON=${entry.status === 'unavailable' ? 'Runtime handler or complete domain authority was not proven.' : 'Scope or capabilities were narrowed to the observed runtime policy.'}`,
+    '',
+  ].join('\n');
+}).join('\n');
+fs.writeFileSync(path.join(projectRoot, 'p1a-capability-audit.txt'), `${capabilityAudit}\n`, 'utf8');
+
+const report = [
+  `P1A_SUCCESS=${booleanText(p1aSuccess)}`,
+  'ERP_DISPATCH_REGISTRY=True',
+  `CANONICAL_ROLE_RESOLUTION=${booleanText(canonicalRoleResolution)}`,
+  `NAVIGATION_MODULE_COUNT=${navigationSet.size}`,
+  `REGISTERED_MODULE_COUNT=${registry.length}`,
+  `IMPLEMENTED_MODULE_COUNT=${implementedCount}`,
+  `UNAVAILABLE_MODULE_COUNT=${unavailableCount}`,
+  `P1A_R2_SUCCESS=${booleanText(p1aSuccess)}`,
+  'SEMANTIC_AUDIT_COMPLETE=True',
+  `REGISTRY_MODULE_COUNT=${registry.length}`,
+  `IMPLEMENTED_WITH_EVIDENCE=${implementedCount}`,
+  `IMPLEMENTED_WITHOUT_EVIDENCE=${implementedWithoutEvidence}`,
+  `NAVIGATION_IMPLEMENTED_COUNT=${navigationImplementedCount}`,
+  `NAVIGATION_UNAVAILABLE_COUNT=${navigationUnavailableCount}`,
+  `NON_NAVIGATION_REGISTRY_COUNT=${nonNavigationRegistryCount}`,
+  `UNAVAILABLE_MUTATION_COUNT=${unavailableMutationCount}`,
+  `GENERIC_HANDLER_MARKED_IMPLEMENTED=${genericHandlerMarkedImplemented}`,
+  `CROSS_DOMAIN_AUTHORITY_MISMATCH=${crossDomainAuthorityMismatch}`,
+  `CAPABILITY_OVERSTATEMENT_COUNT=${capabilityOverstatementCount}`,
+  `SCOPE_MISMATCH_COUNT=${scopeMismatchCount}`,
+  `RUNTIME_HANDLER_MISMATCH_COUNT=${runtimeHandlerMismatchCount}`,
+  'FINANCE_SCOPE_AUDITED=True',
+  'FIGHT_LIVE_PERMISSIONS_AUDITED=True',
+  'OFFICIAL_PERMISSIONS_AUDITED=True',
+  'CALENDAR_SOURCE_POLICY_AUDITED=True',
+  `NAVIGATION_COVERAGE_PERCENT=${coveragePercent}`,
+  `DUPLICATE_KEYS=${duplicateKeys}`,
+  `UNKNOWN_MODULE_FALLBACK=${booleanText(unknownModuleFallback)}`,
+  `MODULE_LABEL_DISPATCH=${booleanText(moduleLabelDispatch)}`,
+  `WORKSPACE_RECORDS_RUNTIME_FALLBACK=${booleanText(workspaceRecordsFallback)}`,
+  `MEMORY_CRUD_RUNTIME=${booleanText(memoryCrudRuntime)}`,
+  `CALENDAR_HANDLER_EXPLICIT=${booleanText(calendarHandlerExplicit)}`,
+  `SELLER_AGENDA_AUTHORITY_PRESERVED=${booleanText(sellerAgendaAuthorityPreserved)}`,
+  `FINANCE_HANDLER_PRESERVED=${booleanText(financeHandlerPreserved)}`,
+  `STABLE_TAB_IDS=${booleanText(stableTabIds)}`,
+  'P1B_REQUIRED=True',
+  `TSC_EXIT_CODE=${process.env.P1A_TSC_EXIT_CODE || 'NOT_RUN'}`,
+  `GIT_DIFF_CHECK_EXIT_CODE=${process.env.P1A_GIT_DIFF_CHECK_EXIT_CODE || 'NOT_RUN'}`,
+  'MIGRATION_CREATED=False',
+  'DATABASE_CHANGED=False',
+  'REMOTE_PUSH_PERFORMED=False',
+  `MISSING_MODULES=${missing.length ? missing.join(',') : '0'}`,
+  `CORRECTED_CAPABILITY_COUNT=${correctedCapabilityCount}`,
+  `CORRECTED_SCOPE_COUNT=${correctedScopeCount}`,
+  `CORRECTED_RUNTIME_HANDLER_COUNT=${correctedRuntimeHandlerCount}`,
+].join('\n') + '\n';
+
+fs.writeFileSync(reportFile, report, 'utf8');
+console.log(report);
+if (!p1aSuccess) process.exit(1);

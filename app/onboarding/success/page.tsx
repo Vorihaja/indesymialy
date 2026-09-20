@@ -1,1 +1,7 @@
-import{OnboardingFeature}from"@/modules/identity-core/features/OnboardingFeature";export default function Page(){return <OnboardingFeature step="success"/>;}
+import {
+  redirect,
+} from "next/navigation";
+
+export default function Page() {
+  redirect("/account");
+}

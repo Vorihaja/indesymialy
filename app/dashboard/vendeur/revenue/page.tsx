@@ -1,1 +1,9 @@
-import{SellerDashboardFeature}from"@/modules/seller-dashboard";export default function Page(){return <SellerDashboardFeature view="revenue"/>}
+"use client";
+
+import {
+  SellerRevenueFeature,
+} from "@/modules/seller-finance";
+
+export default function Page() {
+  return <SellerRevenueFeature />;
+}

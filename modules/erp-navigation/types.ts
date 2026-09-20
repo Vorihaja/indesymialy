@@ -1,6 +1,9 @@
+import type { ErpTabDefinition } from "./tab-definitions";
+
 export type ErpNavigationModule<TModuleId extends string = string> = {
   id: TModuleId;
-  tabs: readonly string[];
+  tabs: readonly ErpTabDefinition[];
+  defaultTabId?: string;
 };
 
 export type ErpNavigationState<TModuleId extends string = string> = {
@@ -35,5 +38,5 @@ export type UseErpNavigationStateResult<
   activeTab: string;
   navigationRestored: boolean;
   selectModule: (moduleId: TModuleId, tab?: string) => void;
-  setActiveTab: (tab: string) => void;
+  setActiveTab: (tabId: string) => void;
 };

@@ -29,4 +29,4 @@ export type SocialRecordInput = Omit<SocialRecord, "id" | "likes" | "shares" | "
 export interface SocialFilters { search: string; discipline: string; region: string; category: string; date: string; }
 export interface SocialStatistics { total: number; published: number; interactions: number; reported: number; }
 export interface SocialModuleDefinition { key: string; label: string; entityLabel: string; entityLabelPlural: string; basePath: string; kind: SocialEntityKind; capabilities: readonly string[]; }
-export type PublicProfileRole = "combattant" | "club" | "coach" | "organisateur" | "arbitre" | "juge" | "sponsor" | "vendeur" | "fan";
+export type PublicProfileRole = "combattant" | "club" | "coach" | "organisateur" | "officiel" | "arbitre" | "juge" | "sponsor" | "vendeur" | "fan";

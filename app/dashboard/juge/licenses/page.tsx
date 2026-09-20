@@ -1,1 +1,5 @@
-import{LicensesFeature}from"@/modules/licenses";export default function Page(){return <LicensesFeature role="judge"/>;}
+import { LegacyJudgeRedirect } from "@/modules/officials/components/LegacyJudgeRedirect";
+
+export default function Page() {
+  return <LegacyJudgeRedirect target="/dashboard/officiel/licenses" />;
+}

@@ -1,10 +1,5 @@
-import { redirect } from 'next/navigation';
-
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  redirect(`/dashboard/organisateur/events/${id}`);
+export default function Page() {
+  // The organizer layout owns the routed ERP workspace and opens the
+  // existing event editor for this pathname.
+  return null;
 }

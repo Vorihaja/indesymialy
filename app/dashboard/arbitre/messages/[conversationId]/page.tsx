@@ -1,1 +1,19 @@
-import { RoleGuard } from "@/modules/auth/guards"; import { MessagingFeature } from "@/modules/communication-core/features/CommunicationFeatures"; export default async function Page({ params }: { params: Promise<{ conversationId: string }> }) { const { conversationId } = await params; return <RoleGuard role="referee"><MessagingFeature conversationId={conversationId} role="referee" basePath="/dashboard/arbitre/messages" /></RoleGuard>; }
+import {
+  redirectWithSearchParams,
+  type RouteSearchParams,
+} from "@/app/_routing/redirect-with-search-params";
+
+export default async function Page({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ conversationId: string }>;
+  searchParams: RouteSearchParams;
+}) {
+  const { conversationId } = await params;
+
+  return redirectWithSearchParams(
+    `/dashboard/officiel/messages/${encodeURIComponent(conversationId)}`,
+    searchParams,
+  );
+}

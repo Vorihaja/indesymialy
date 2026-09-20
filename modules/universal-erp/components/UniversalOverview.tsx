@@ -5,8 +5,8 @@ import { AlertTriangle, ArrowRight, Check, ChevronRight, CircleAlert, Clock3, Ga
 import { OrganizerDialog, OrganizerToast, organizerButtonClass, organizerPrimaryButtonClass, type OrganizerToastState } from '@/modules/organizer-erp/components/OrganizerFeedback';
 import type { UniversalRoleDefinition } from '../types';
 
-const toneBorder = { red: 'border-l-[#ff1638]', blue: 'border-l-[#087cff]', green: 'border-l-emerald-500', amber: 'border-l-amber-500' };
-const severityTone = { critical: 'text-[#ff4058]', warning: 'text-amber-400', info: 'text-[#3d92ff]' };
+const semanticTone = { red: 'danger', blue: 'info', green: 'success', amber: 'warning' } as const;
+const severityTone = { critical: 'erp-text-danger', warning: 'erp-text-warning', info: 'erp-text-info' };
 
 export function UniversalOverview({ definition, onNavigate }: { definition: UniversalRoleDefinition; onNavigate: (moduleId: string, tab?: string) => void }) {
   const [toast, setToast] = useState<OrganizerToastState>(null);
@@ -21,7 +21,7 @@ export function UniversalOverview({ definition, onNavigate }: { definition: Univ
   return <div className='grid gap-3'>
     <OrganizerToast toast={toast} onClose={() => setToast(null)} />
     <section className='grid grid-cols-2 gap-px border border-[#303238] bg-[#303238] md:grid-cols-3 xl:grid-cols-6'>
-      {definition.overview.kpis.map((kpi) => <article key={kpi.label} className={`min-h-[74px] border-l-2 bg-[#151619] px-3 py-2 ${toneBorder[kpi.tone]}`}><span className='text-[7px] font-bold uppercase tracking-[0.1em] text-zinc-500'>{kpi.label}</span><strong className='mt-1.5 block truncate text-[17px] font-semibold tracking-[-0.03em]'>{kpi.value}</strong><span className='mt-0.5 block truncate text-[8px] text-zinc-500'>{kpi.detail}</span></article>)}
+      {definition.overview.kpis.map((kpi) => <article key={kpi.label} className='erp-semantic-kpi min-h-[74px] border-l-2 px-3 py-2' data-tone={semanticTone[kpi.tone]}><span className='text-[7px] font-bold uppercase tracking-[0.1em] text-zinc-500'>{kpi.label}</span><strong className='erp-semantic-kpi-value mt-1.5 block truncate text-[17px] font-semibold tracking-[-0.03em]' data-kpi-value>{kpi.value}</strong><span className='mt-0.5 block truncate text-[8px] text-zinc-500'>{kpi.detail}</span></article>)}
     </section>
 
     <section className='grid gap-3 xl:grid-cols-[1.35fr_1fr_1fr]'>

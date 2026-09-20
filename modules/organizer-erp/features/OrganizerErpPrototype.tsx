@@ -4,6 +4,7 @@ import {
   useEffect,
   useRef,
 } from "react";
+import type { ReactNode } from "react";
 
 import {
   organizerModules,
@@ -30,10 +31,6 @@ import {
 } from "../components/OrganizerSettingsView";
 
 import {
-  OrganizerOverviewFeature,
-} from "./OrganizerOverviewFeature";
-
-import {
   FightCenterFeature,
 } from "../fight-center";
 
@@ -44,17 +41,25 @@ import {
 import {
   ErpWorkspaceFrame,
 } from "@/modules/erp-core";
+import { ErpCalendarWorkspace } from "@/modules/erp-calendar";
+import {
+  FinanceFeature,
+} from "@/modules/finance-erp/features/FinanceFeature";
 
 type OrganizerErpPrototypeProps = {
   initialModule?: OrganizerModuleId;
+  initialTab?: string;
   initialEventAction?: "create";
   initialEventId?: string;
+  routeContent?: ReactNode;
 };
 
 export function OrganizerErpPrototype({
   initialModule: initialModuleProp,
+  initialTab,
   initialEventAction,
   initialEventId,
+  routeContent,
 }: OrganizerErpPrototypeProps) {
   const {
     moduleId,
@@ -66,6 +71,7 @@ export function OrganizerErpPrototype({
     modules: organizerModules,
     defaultModuleId: "overview",
     initialModuleId: initialModuleProp,
+    initialTab,
     legacyStorageKeys: [
       "indesy:organizer-erp:navigation:v2",
     ],
@@ -92,15 +98,35 @@ export function OrganizerErpPrototype({
 
   const renderContent = () => {
     if (
+      routeContent !== undefined &&
+      activeModule.id === (initialModuleProp ?? "overview") &&
+      (
+        activeModule.id === "finance" ||
+        !initialTab ||
+        activeTab === initialTab
+      )
+    ) {
+      return routeContent;
+    }
+
+    if (
       activeModule.id ===
-        "overview" &&
-      activeTab === "Synthèse"
+      "calendar"
     ) {
       return (
-        <OrganizerOverviewFeature
-          onNavigate={
-            selectModule
-          }
+        <ErpCalendarWorkspace
+          role="organizer"
+        />
+      );
+    }
+
+    if (
+      activeModule.id ===
+      "finance"
+    ) {
+      return (
+        <FinanceFeature
+          role="organisateur"
         />
       );
     }
@@ -113,7 +139,7 @@ export function OrganizerErpPrototype({
         <FightCenterFeature
           tab={
             activeTab ||
-            "Fight Card"
+            "fight-card"
           }
           onTabChange={
             setActiveTab
@@ -130,7 +156,7 @@ export function OrganizerErpPrototype({
         <OrganizerSettingsView
           tab={
             activeTab ||
-            "Organisation"
+            "organization"
           }
           onTabChange={
             setActiveTab

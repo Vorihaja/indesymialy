@@ -5,6 +5,7 @@ const labels: Record<PublicProfileRole, string> = {
   club: "Club",
   coach: "Coach",
   organisateur: "Organisateur",
+  officiel: "Officiel",
   arbitre: "Arbitre",
   juge: "Juge",
   sponsor: "Sponsor",

@@ -66,7 +66,7 @@ function availabilityLabel(
     case 'pending':
       return 'À confirmer';
     default:
-      return 'Disponibilité N/C';
+      return 'Demande non créée';
   }
 }
 

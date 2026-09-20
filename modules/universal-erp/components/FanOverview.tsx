@@ -37,7 +37,7 @@ export function FanOverview({ onNavigate }: { onNavigate: Navigate }) {
         <div className='p-4'>
           <div className='flex flex-wrap items-start justify-between gap-3'>
             <div><strong className='block text-[16px] font-semibold'>Mahajanga Fight Night Vol.3</strong><span className='mt-1 block text-[9px] text-zinc-500'>30 août 2026 · Stade Rabemananjara</span></div>
-            <span className='border border-[#ff1638]/50 bg-red-500/10 px-2 py-1 text-[8px] font-bold uppercase text-[#ff4058]'>Main card</span>
+            <span className='border border-[#167EFF]/50 bg-blue-500/10 px-2 py-1 text-[8px] font-bold uppercase text-[#4094FF]'>Main card</span>
           </div>
 
           <div className='my-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3 border-y border-[#342d31] py-4'>

@@ -1,1 +1,11 @@
-import { RefereeManagementFeature } from "@/modules/referees"; export default function Page() { return <RefereeManagementFeature/>; }
+import {
+  redirectWithSearchParams,
+  type RouteSearchParams,
+} from "@/app/_routing/redirect-with-search-params";
+
+export default function Page({ searchParams }: { searchParams: RouteSearchParams }) {
+  return redirectWithSearchParams(
+    "/dashboard/officiel/management",
+    searchParams,
+  );
+}

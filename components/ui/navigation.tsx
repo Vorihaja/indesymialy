@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronRight, Laptop, Moon, Sun } from 'lucide-react';
+import { ChevronRight, Moon, Sun } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { IconButton } from './core';
 import { useTheme } from './theme';
@@ -17,7 +17,7 @@ const segmentLabels: Record<string, string> = {
   dashboard: 'Dashboard', admin: 'Administration', club: 'Club',
   combattant: 'Combattant', organisateur: 'Organisateur',
   federation: 'Fédération', ligue: 'Ligue', juge: 'Juge',
-  arbitre: 'Arbitre', sponsor: 'Sponsor', vendeur: 'Vendeur',
+  officiel: 'Officiel', arbitre: 'Arbitre', sponsor: 'Sponsor', vendeur: 'Vendeur',
   coach: 'Coach', fan: 'Fan', messages: 'Messages',
   notifications: 'Notifications', settings: 'Paramètres',
   management: 'Gestion', events: 'Événements', profile: 'Profil',
@@ -35,8 +35,8 @@ export function Breadcrumb({ items, className }: { items?: BreadcrumbItem[]; cla
 
 export function ThemeToggle({ compact=false }: { compact?: boolean }) {
   const { theme, setTheme } = useTheme();
-  const next = theme === 'dark' ? 'light' : theme === 'light' ? 'system' : 'dark';
-  const Icon = theme === 'dark' ? Moon : theme === 'light' ? Sun : Laptop;
+  const next = theme === 'dark' ? 'light' : 'dark';
+  const Icon = theme === 'dark' ? Moon : Sun;
   return <IconButton variant='ghost' aria-label={'Thème actuel : '+theme+'. Passer à '+next} title={'Thème : '+theme} onClick={()=>setTheme(next)}><Icon size={17}/>{!compact&&<span className='ds-sr-only'>{theme}</span>}</IconButton>;
 }
 

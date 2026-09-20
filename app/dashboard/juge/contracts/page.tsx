@@ -1,1 +1,5 @@
-import{ContractsFeature}from"@/modules/contracts";export default function Page(){return <ContractsFeature role="judge"/>;}
+import { LegacyJudgeRedirect } from "@/modules/officials/components/LegacyJudgeRedirect";
+
+export default function Page() {
+  return <LegacyJudgeRedirect target="/dashboard/officiel/contracts" />;
+}

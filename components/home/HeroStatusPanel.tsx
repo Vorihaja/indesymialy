@@ -195,9 +195,9 @@ font-mono
 px-3
 py-1
 border
-border-red-500/30
-text-red-500
-bg-red-500/10
+border-blue-500/30
+text-blue-500
+bg-blue-500/10
 "
 >
 

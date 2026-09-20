@@ -1,4 +1,9 @@
-import { isAuthApiError, type SupabaseClient, type User } from "@supabase/supabase-js";
+import {
+  isAuthApiError,
+  isAuthSessionMissingError,
+  type SupabaseClient,
+  type User,
+} from "@supabase/supabase-js";
 
 import type { Database, Json } from "@/infrastructure/supabase/database.types";
 import type { BusinessRole, Permission, SystemRole } from "@/modules/access-control/types";
@@ -32,7 +37,7 @@ export const EMPTY_AUTH_SNAPSHOT: AuthSnapshot = {
 
 const businessRoles = new Set<IdentityRole>([
   "federation", "league", "club", "coach", "fighter", "organizer",
-  "referee", "judge", "sponsor", "seller", "fan",
+  "official", "referee", "judge", "sponsor", "seller", "fan",
 ]);
 
 function record(value: Json | undefined): Record<string, Json | undefined> {
@@ -53,10 +58,21 @@ export async function loadAuthSnapshot(
   if (user === undefined) {
     const { data, error } = await supabase.auth.getUser();
     if (error) {
-      if (isAuthApiError(error) && [401, 403, 404].includes(error.status)) {
-        await supabase.auth.signOut({ scope: "local" });
+      if (isAuthSessionMissingError(error)) {
         return EMPTY_AUTH_SNAPSHOT;
       }
+
+      if (
+        isAuthApiError(error) &&
+        [401, 403, 404].includes(error.status)
+      ) {
+        await supabase.auth.signOut({
+          scope: "local",
+        });
+
+        return EMPTY_AUTH_SNAPSHOT;
+      }
+
       throw error;
     }
     user = data.user;

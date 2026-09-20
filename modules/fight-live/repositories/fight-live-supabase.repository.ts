@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/infrastructure/supabase/database.types";
 import { BackendError, normalizeBackendError } from "@/shared/errors/backend-error";
-import { FightLiveMemoryRepository } from "./fight-live-memory.repository";
+import type { FightLiveRepositoryPort } from "../services/fight-live-integration.service";
 import type {
   FightActionKind,
   FightCorner,
@@ -38,12 +38,11 @@ function actionKind(value: string): FightActionKind {
   ].includes(value) ? value as FightActionKind : "strike";
 }
 
-export class FightLiveSupabaseRepository extends FightLiveMemoryRepository {
+export class FightLiveSupabaseRepository implements FightLiveRepositoryPort {
   constructor(private readonly supabase: SupabaseClient<Database>) {
-    super();
   }
 
-  override async list(): Promise<FightLiveSnapshot[]> {
+  async list(): Promise<FightLiveSnapshot[]> {
     const { data, error } = await this.supabase
       .from("fights")
       .select("id")
@@ -52,8 +51,67 @@ export class FightLiveSupabaseRepository extends FightLiveMemoryRepository {
     return Promise.all((data ?? []).map((fight) => this.get(fight.id)));
   }
 
-  override async get(fightId: string): Promise<FightLiveSnapshot> {
+  async listJudgeAssignments(): Promise<FightLiveSnapshot[]> {
     try {
+      const userId = await this.authenticatedUserId();
+      const { data, error } = await this.supabase
+        .from("fight_official_assignments")
+        .select("fight_id,status")
+        .eq("user_id", userId)
+        .eq("role", "judge")
+        .or("status.is.null,status.in.(assigned,confirmed,completed)");
+      if (error) throw error;
+
+      return Promise.all((data ?? []).map(async (assignment) => {
+        const fight = await this.get(assignment.fight_id, userId);
+        const judgeCards = fight.judgeCards.filter(
+          (card) => card.judgeId === userId,
+        );
+
+        return {
+          ...fight,
+          assignmentStatus: assignment.status ?? "assigned",
+          scorecardStatus: judgeCards[0]?.status,
+          judgeCards,
+        };
+      }));
+    } catch (reason) {
+      throw normalizeBackendError(reason);
+    }
+  }
+
+  async getJudgeScorecard(fightId: string): Promise<FightLiveSnapshot> {
+    try {
+      const userId = await this.authenticatedUserId();
+      const assignmentStatus = await this.requireJudgeAssignment(
+        fightId,
+        userId,
+      );
+      const fight = await this.get(fightId, userId);
+      const judgeCards = fight.judgeCards.filter(
+        (card) => card.judgeId === userId,
+      );
+
+      return {
+        ...fight,
+        assignmentStatus,
+        scorecardStatus: judgeCards[0]?.status,
+        judgeCards,
+      };
+    } catch (reason) {
+      throw normalizeBackendError(reason);
+    }
+  }
+
+  async get(fightId: string, judgeId?: string): Promise<FightLiveSnapshot> {
+    try {
+      const cardsQuery = this.supabase
+        .from("fight_judge_cards")
+        .select("*")
+        .eq("fight_id", fightId);
+      const cardsRequest = judgeId
+        ? cardsQuery.eq("judge_id", judgeId).order("created_at")
+        : cardsQuery.order("created_at");
       const [
         fightResult,
         roundsResult,
@@ -70,7 +128,7 @@ export class FightLiveSupabaseRepository extends FightLiveMemoryRepository {
         this.supabase.from("fight_rounds").select("*").eq("fight_id", fightId).order("round_number"),
         this.supabase.from("fight_timer_events").select("*").eq("fight_id", fightId).order("created_at"),
         this.supabase.from("fight_official_assignments").select("*").eq("fight_id", fightId),
-        this.supabase.from("fight_judge_cards").select("*").eq("fight_id", fightId).order("created_at"),
+        cardsRequest,
         this.supabase.from("fight_live_actions").select("*").eq("fight_id", fightId).order("recorded_at", { ascending: false }),
         this.supabase.from("fight_statistics").select("*").eq("fight_id", fightId),
         this.supabase.from("fight_decisions").select("*").eq("fight_id", fightId).order("created_at", { ascending: false }),
@@ -88,7 +146,7 @@ export class FightLiveSupabaseRepository extends FightLiveMemoryRepository {
 
       const [eventResult, disciplineResult, redResult, blueResult] = await Promise.all([
         fight.event_id
-          ? this.supabase.from("events").select("id,title").eq("id", fight.event_id).maybeSingle()
+          ? this.supabase.from("events").select("id,title,starts_at").eq("id", fight.event_id).maybeSingle()
           : Promise.resolve({ data: null, error: null }),
         this.supabase.from("disciplines").select("id,name").eq("id", fight.discipline_id).maybeSingle(),
         fight.fighter_red_id
@@ -122,6 +180,7 @@ export class FightLiveSupabaseRepository extends FightLiveMemoryRepository {
           id: card.id,
           judgeId: card.judge_id,
           judgeName: profileNames.get(card.judge_id) ?? "Juge",
+          status: card.card_status ?? undefined,
           scores: (scores ?? []).map((score) => ({
             roundNumber: score.round_number,
             red: score.red_score,
@@ -175,6 +234,9 @@ export class FightLiveSupabaseRepository extends FightLiveMemoryRepository {
         fightId: fight.id,
         eventId: fight.event_id ?? "",
         eventName: eventResult.data?.title ?? "Événement",
+        eventStartsAt: eventResult.data?.starts_at ?? undefined,
+        fightOrder: fight.fight_order,
+        weightCategory: fight.weight_category ?? undefined,
         disciplineId: fight.discipline_id,
         disciplineName: disciplineResult.data?.name ?? "Discipline",
         redFighter: {
@@ -243,7 +305,7 @@ export class FightLiveSupabaseRepository extends FightLiveMemoryRepository {
     }
   }
 
-  override async getPublic(fightId: string): Promise<PublicFightLiveSnapshot> {
+  async getPublic(fightId: string): Promise<PublicFightLiveSnapshot> {
     const fight = await this.get(fightId);
     return {
       fightId: fight.fightId,
@@ -259,7 +321,7 @@ export class FightLiveSupabaseRepository extends FightLiveMemoryRepository {
     };
   }
 
-  override async updateTimer(
+  async updateTimer(
     fightId: string,
     action: "start" | "pause" | "resume" | "end_round" | "next_round" | "end_fight"
   ): Promise<FightLiveSnapshot> {
@@ -312,7 +374,7 @@ export class FightLiveSupabaseRepository extends FightLiveMemoryRepository {
     }
   }
 
-  override async recordAction(
+  async recordAction(
     fightId: string,
     kind: FightActionKind,
     corner?: FightCorner
@@ -355,7 +417,7 @@ export class FightLiveSupabaseRepository extends FightLiveMemoryRepository {
     }
   }
 
-  override async assignOfficial(fightId: string, officialId: string): Promise<FightLiveSnapshot> {
+  async assignOfficial(fightId: string, officialId: string): Promise<FightLiveSnapshot> {
     try {
       const { data: existing, error: readError } = await this.supabase
         .from("fight_official_assignments")
@@ -381,7 +443,7 @@ export class FightLiveSupabaseRepository extends FightLiveMemoryRepository {
     }
   }
 
-  override async saveRoundScore(
+  async saveRoundScore(
     fightId: string,
     cardId: string,
     roundNumber: number,
@@ -389,11 +451,14 @@ export class FightLiveSupabaseRepository extends FightLiveMemoryRepository {
     blue: number
   ): Promise<FightLiveSnapshot> {
     try {
+      const userId = await this.authenticatedUserId();
+      await this.requireJudgeAssignment(fightId, userId);
       const { data: card, error: cardError } = await this.supabase
         .from("fight_judge_cards")
         .select("id,card_status")
         .eq("id", cardId)
         .eq("fight_id", fightId)
+        .eq("judge_id", userId)
         .maybeSingle();
       if (cardError) throw cardError;
       if (!card) throw new BackendError("NOT_FOUND");
@@ -411,31 +476,77 @@ export class FightLiveSupabaseRepository extends FightLiveMemoryRepository {
         ? await this.supabase.from("fight_judge_round_scores").update({
             red_score: red,
             blue_score: blue,
-          }).eq("id", existing.id)
+          }).eq("id", existing.id).select("id").maybeSingle()
         : await this.supabase.from("fight_judge_round_scores").insert({
             judge_card_id: cardId,
             round_number: roundNumber,
             red_score: red,
             blue_score: blue,
-          });
+          }).select("id").maybeSingle();
       if (result.error) throw result.error;
-      return this.get(fightId);
+      if (!result.data) {
+        throw new BackendError("FORBIDDEN", "Le score n'a pas pu être enregistré.");
+      }
+      return this.getJudgeScorecard(fightId);
     } catch (reason) {
       throw normalizeBackendError(reason);
     }
   }
 
-  override async submitCard(fightId: string, cardId: string): Promise<FightLiveSnapshot> {
-    const { error } = await this.supabase
-      .from("fight_judge_cards")
-      .update({ card_status: "submitted", submitted_at: new Date().toISOString() })
-      .eq("id", cardId)
-      .eq("fight_id", fightId);
-    if (error) throw normalizeBackendError(error);
-    return this.get(fightId);
+  async submitCard(fightId: string, cardId: string): Promise<FightLiveSnapshot> {
+    try {
+      const userId = await this.authenticatedUserId();
+      await this.requireJudgeAssignment(fightId, userId);
+      const { data, error } = await this.supabase
+        .from("fight_judge_cards")
+        .update({ card_status: "submitted", submitted_at: new Date().toISOString() })
+        .eq("id", cardId)
+        .eq("fight_id", fightId)
+        .eq("judge_id", userId)
+        .select("id")
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) {
+        throw new BackendError("FORBIDDEN", "La scorecard n'a pas pu être soumise.");
+      }
+      return this.getJudgeScorecard(fightId);
+    } catch (reason) {
+      throw normalizeBackendError(reason);
+    }
   }
 
-  override async decide(
+  private async authenticatedUserId(): Promise<string> {
+    const { data, error } = await this.supabase.auth.getUser();
+    if (error) throw error;
+    if (!data.user) {
+      throw new BackendError("UNAUTHENTICATED");
+    }
+    return data.user.id;
+  }
+
+  private async requireJudgeAssignment(
+    fightId: string,
+    userId: string,
+  ): Promise<string> {
+    const { data, error } = await this.supabase
+      .from("fight_official_assignments")
+      .select("status")
+      .eq("fight_id", fightId)
+      .eq("user_id", userId)
+      .eq("role", "judge")
+      .or("status.is.null,status.in.(assigned,confirmed,completed)")
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) {
+      throw new BackendError(
+        "FORBIDDEN",
+        "Cette scorecard ne fait pas partie de vos désignations de juge.",
+      );
+    }
+    return data.status ?? "assigned";
+  }
+
+  async decide(
     fightId: string,
     winnerId: string | null,
     method: FightDecisionMethod
@@ -471,7 +582,7 @@ export class FightLiveSupabaseRepository extends FightLiveMemoryRepository {
     }
   }
 
-  override async publish(fightId: string): Promise<FightLiveSnapshot> {
+  async publish(fightId: string): Promise<FightLiveSnapshot> {
     const fight = await this.get(fightId);
     if (!fight.decision) throw new BackendError("VALIDATION_ERROR", "La décision doit être validée avant publication.");
     const { error } = await this.supabase

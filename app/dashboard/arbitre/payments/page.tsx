@@ -1,1 +1,11 @@
-import{PaymentsFeature}from"@/modules/payments";export default function Page(){return <PaymentsFeature role="referee"/>;}
+import {
+  redirectWithSearchParams,
+  type RouteSearchParams,
+} from "@/app/_routing/redirect-with-search-params";
+
+export default function Page({ searchParams }: { searchParams: RouteSearchParams }) {
+  return redirectWithSearchParams(
+    "/dashboard/officiel/payments",
+    searchParams,
+  );
+}

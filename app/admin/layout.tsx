@@ -1,45 +1,9 @@
-import {
-  ReactNode
-} from "react";
+import type { ReactNode } from "react";
 
+import { AdminShell } from "@/modules/admin";
+import { requirePrivateAccess } from "@/modules/auth/private-access/server";
 
-import {
-  AdminGuard
-} from "@/components/auth";
-
-
-import {
-  AdminShell
-} from "@/modules/admin";
-
-
-
-
-
-export default function AdminLayout({
-
-children
-
-}:{
-
-children:ReactNode;
-
-}){
-
-
-return (
-
-<AdminGuard>
-
-<AdminShell>
-
-{children}
-
-</AdminShell>
-
-</AdminGuard>
-
-);
-
-
+export default async function AdminLayout({ children }: { children: ReactNode }) {
+  await requirePrivateAccess("admin");
+  return <AdminShell>{children}</AdminShell>;
 }

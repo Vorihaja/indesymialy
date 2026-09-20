@@ -1,1 +1,11 @@
-import{ContractsFeature}from"@/modules/contracts";export default function Page(){return <ContractsFeature role="referee"/>;}
+import {
+  redirectWithSearchParams,
+  type RouteSearchParams,
+} from "@/app/_routing/redirect-with-search-params";
+
+export default function Page({ searchParams }: { searchParams: RouteSearchParams }) {
+  return redirectWithSearchParams(
+    "/dashboard/officiel/contracts",
+    searchParams,
+  );
+}

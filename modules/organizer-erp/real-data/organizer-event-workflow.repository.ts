@@ -11,6 +11,13 @@ export type CoorganizerCandidate = {
   cityId: string | null;
 };
 
+export type EventOfficialCandidate = {
+  profileId: string;
+  fullName: string;
+  username: string;
+  photoUrl: string | null;
+};
+
 export type OrganizerEventListItem = {
   id: string;
   title: string;
@@ -140,6 +147,22 @@ const ticketStatus = (value: string) =>
       ? 'Actif'
       : 'Brouillon';
 
+export function normalizeEventOfficialRole(value: string): string {
+  const normalized = value
+    .trim()
+    .toLocaleLowerCase('fr-FR')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  if (normalized === 'arbitre' || normalized === 'arbitre central') return 'referee';
+  if (normalized === 'juge') return 'judge';
+  if (normalized === 'chronometreur' || normalized === 'chronometre') return 'timekeeper';
+  if (normalized === 'medecin') return 'doctor';
+  if (normalized === 'superviseur') return 'supervisor';
+  if (normalized === 'annonceur') return 'announcer';
+  return normalized;
+}
+
 function relationName(value: unknown): string | null {
   if (!value) return null;
 
@@ -249,6 +272,25 @@ export class OrganizerEventWorkflowRepository {
       type: item.type,
       regionId: item.region_id,
       cityId: item.city_id,
+    }));
+  }
+
+  async searchOfficialCandidates(query: string): Promise<EventOfficialCandidate[]> {
+    const { data, error } = await this.supabase.rpc(
+      'search_event_official_candidates',
+      {
+        p_limit: 8,
+        p_query: query.trim(),
+      },
+    );
+
+    if (error) throw error;
+
+    return (data ?? []).map((item) => ({
+      profileId: item.profile_id,
+      fullName: item.full_name,
+      username: item.username,
+      photoUrl: item.photo_url,
     }));
   }
 
@@ -936,7 +978,7 @@ export class OrganizerEventWorkflowRepository {
 
       this.supabase
         .from('event_official_assignments')
-        .select('mention,role')
+        .select('id,profile_id,mention,role,status')
         .eq('event_id', eventId)
         .order('created_at'),
 
@@ -988,7 +1030,15 @@ export class OrganizerEventWorkflowRepository {
       ),
     );
 
-    const [disciplinesResult, linesResult] = await Promise.all([
+    const officialProfileIds = Array.from(
+      new Set(
+        (officialsResult.data ?? []).flatMap((item) =>
+          item.profile_id ? [item.profile_id] : [],
+        ),
+      ),
+    );
+
+    const [disciplinesResult, linesResult, officialProfilesResult] = await Promise.all([
       disciplineIds.length
         ? this.supabase
             .from('disciplines')
@@ -1003,13 +1053,24 @@ export class OrganizerEventWorkflowRepository {
             .eq('event_budget_id', budgetsResult.data[0].id)
             .order('position')
         : Promise.resolve({ data: [], error: null }),
+
+      officialProfileIds.length
+        ? this.supabase
+            .from('profiles')
+            .select('id,full_name')
+            .in('id', officialProfileIds)
+        : Promise.resolve({ data: [], error: null }),
     ]);
 
     if (disciplinesResult.error) throw disciplinesResult.error;
     if (linesResult.error) throw linesResult.error;
+    if (officialProfilesResult.error) throw officialProfilesResult.error;
 
     const disciplineNames = new Map(
       (disciplinesResult.data ?? []).map((item) => [item.id, item.name]),
+    );
+    const officialNames = new Map(
+      (officialProfilesResult.data ?? []).map((item) => [item.id, item.full_name]),
     );
 
     const lines = linesResult.data ?? [];
@@ -1050,8 +1111,17 @@ export class OrganizerEventWorkflowRepository {
       })),
 
       officials: (officialsResult.data ?? []).map((item) => ({
-        name: item.mention ?? '',
-        role: item.role,
+        assignmentId: item.id,
+        profileId: item.profile_id ?? '',
+        name: (
+          (item.profile_id ? officialNames.get(item.profile_id) : null) ??
+          item.mention ??
+          ''
+        ).replace(/^@/, ''),
+        role: normalizeEventOfficialRole(item.role),
+        status: item.status,
+        legacyMention: !item.profile_id && Boolean(item.mention?.trim()),
+        legacyMentionValue: !item.profile_id ? item.mention ?? undefined : undefined,
       })),
 
       team: (staffResult.data ?? []).map((item) => ({

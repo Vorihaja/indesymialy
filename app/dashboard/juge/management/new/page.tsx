@@ -1,1 +1,5 @@
-import { JudgeManagementFeature } from "@/modules/judges"; export default function Page() { return <JudgeManagementFeature mode="create"/>; }
+import { LegacyJudgeRedirect } from "@/modules/officials/components/LegacyJudgeRedirect";
+
+export default function Page() {
+  return <LegacyJudgeRedirect target="/dashboard/officiel/management/new" />;
+}

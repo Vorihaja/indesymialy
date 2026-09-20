@@ -1,1 +1,11 @@
-import { SellerManagementFeature } from "@/modules/sellers"; export default function Page() { return <SellerManagementFeature mode="create"/>; }
+import { redirect } from "next/navigation";
+
+/*
+ * INDESY CRUD FALLBACK P0
+ *
+ * L'ancien CRUD management generique est retire.
+ * Cette route historique conduit vers le module canonique.
+ */
+export default function Page() {
+  redirect("/dashboard/vendeur");
+}

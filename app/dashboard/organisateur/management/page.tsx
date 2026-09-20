@@ -1,1 +1,11 @@
-import { OrganizerManagementFeature } from "@/modules/organizers"; export default function Page() { return <OrganizerManagementFeature/>; }
+import { redirect } from "next/navigation";
+
+/*
+ * INDESY CRUD FALLBACK P0
+ *
+ * L'ancien CRUD management generique est retire.
+ * Cette route historique conduit vers le module canonique.
+ */
+export default function Page() {
+  redirect("/dashboard/organisateur/events");
+}

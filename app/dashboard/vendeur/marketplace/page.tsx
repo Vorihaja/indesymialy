@@ -1,1 +1,9 @@
-import{SellerDashboardFeature}from"@/modules/seller-dashboard";export default function Page(){return <SellerDashboardFeature/>}
+import {
+  SellerMarketplaceFeature,
+} from "@/modules/seller-marketplace";
+
+export default function Page() {
+  return (
+    <SellerMarketplaceFeature />
+  );
+}

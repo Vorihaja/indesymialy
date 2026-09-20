@@ -1,11 +1,11 @@
 import type{Database}from"@/infrastructure/supabase/database.types";
 export type ProfileRow=Database["public"]["Tables"]["profiles"]["Row"];export type RoleRow=Database["public"]["Tables"]["roles"]["Row"];export type SystemRoleRow=Database["public"]["Tables"]["system_roles"]["Row"];export type ProfileRoleRow=Database["public"]["Tables"]["profile_roles"]["Row"];export type ProfileSystemRoleRow=Database["public"]["Tables"]["profile_system_roles"]["Row"];export type OrganizationRow=Database["public"]["Tables"]["organizations"]["Row"];export type OrganizationMemberRow=Database["public"]["Tables"]["organization_members"]["Row"];export type UserDisciplineRow=Database["public"]["Tables"]["user_disciplines"]["Row"];export type RegionRow=Database["public"]["Tables"]["regions"]["Row"];export type CityRow=Database["public"]["Tables"]["cities"]["Row"];
 export type IdentityErrorCode="INVALID_CREDENTIALS"|"EMAIL_NOT_VERIFIED"|"SESSION_EXPIRED"|"ACCOUNT_SUSPENDED"|"ACCESS_DENIED"|"ROLE_REQUIRED"|"ONBOARDING_INCOMPLETE"|"VALIDATION_ERROR"|"NETWORK_ERROR"|"ALREADY_REGISTERED"|"WEAK_PASSWORD"|"RATE_LIMIT"|"UNKNOWN_ERROR";
-export type IdentityRole="super_admin"|"admin"|"federation"|"league"|"club"|"coach"|"fighter"|"organizer"|"referee"|"judge"|"sponsor"|"seller"|"fan";
+export type IdentityRole="super_admin"|"admin"|"federation"|"league"|"club"|"coach"|"fighter"|"organizer"|"official"|"referee"|"judge"|"sponsor"|"seller"|"fan";
 export type RoleRequestStatus="pending"|"approved"|"rejected"|"suspended"|"withdrawn";
 export type RoleAssignmentOutcome={kind:"assigned"|"pending"|"already_assigned"|"already_pending";role:IdentityRole};
 export type OnboardingStep="profile"|"disciplines"|"role"|"organization"|"documents"|"review"|"success";
-export type AccountSection="overview"|"profile"|"security"|"roles"|"organizations"|"preferences"|"notifications"|"privacy"|"sessions";
+export type AccountSection="overview"|"profile"|"security"|"roles"|"verification"|"organizations"|"preferences"|"notifications"|"privacy"|"sessions";
 export class IdentityError extends Error{constructor(public readonly code:IdentityErrorCode,message:string){super(message);this.name="IdentityError";}}
 export interface PrivateProfile{id:string;fullName:string;username:string;email:string;phone?:string;photoPrepared?:string;birthDate?:string;gender?:string;regionId:string;cityId:string;disciplineIds:string[];primaryRole:IdentityRole|null;secondaryRoles:IdentityRole[];experience?:string;availabilityPrepared?:string;status:"active"|"suspended"|"pending";onboardingComplete:boolean;}
 export interface PublicIdentityProfile{id:string;displayName:string;biography?:string;role:IdentityRole;disciplines:string[];publicStatistics:Record<string,number>;publicMediaIds:string[];}

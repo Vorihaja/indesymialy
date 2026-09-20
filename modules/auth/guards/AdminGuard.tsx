@@ -38,7 +38,7 @@ export default function AdminGuard({
   }
 
   const isAdmin =
-    hasSystemRole("admin") || hasSystemRole("super_admin");
+    hasSystemRole("admin") && !hasSystemRole("super_admin");
 
   if (!isAdmin) {
     return <>{fallback ?? <DeniedState />}</>;

@@ -1,19 +1,25 @@
 import type { SellerStatistics } from "../types";
 
-type SellerStatTone = "blue" | "green" | "amber" | "red" | "neutral";
+type SellerStatTone =
+  | "blue"
+  | "green"
+  | "amber"
+  | "red"
+  | "neutral";
 
 type SellerStat = {
   label: string;
   value: string | number;
+  detail: string;
   tone: SellerStatTone;
 };
 
 const toneClass: Record<SellerStatTone, string> = {
-  blue: "border-l-[#087cff]",
-  green: "border-l-emerald-500",
-  amber: "border-l-amber-400",
-  red: "border-l-[#ed1b2f]",
-  neutral: "border-l-transparent",
+  blue: "before:bg-[#087cff]",
+  green: "before:bg-emerald-500",
+  amber: "before:bg-amber-400",
+  red: "before:bg-[#ed1b2f]",
+  neutral: "before:bg-zinc-600",
 };
 
 export function SellerStats({
@@ -22,32 +28,71 @@ export function SellerStats({
   statistics: SellerStatistics;
 }) {
   const entries: SellerStat[] = [
-    { label: "Produits", value: statistics.products, tone: "blue" },
-    { label: "Ventes", value: statistics.sales, tone: "green" },
-    { label: "Locations", value: statistics.rentals, tone: "blue" },
-    { label: "Commandes", value: statistics.orders, tone: "neutral" },
     {
       label: "Revenus",
       value: `${statistics.revenue.toLocaleString("fr-FR")} Ar`,
+      detail: "Volume commercial enregistré",
       tone: "green",
     },
-    { label: "Stock faible", value: statistics.lowStock, tone: "amber" },
-    { label: "Clients", value: statistics.customers, tone: "neutral" },
+    {
+      label: "Commandes",
+      value: statistics.orders,
+      detail: "Commandes enregistrées",
+      tone: "blue",
+    },
+    {
+      label: "Produits",
+      value: statistics.products,
+      detail: "Références du catalogue",
+      tone: "neutral",
+    },
+    {
+      label: "Stock faible",
+      value: statistics.lowStock,
+      detail:
+        statistics.lowStock > 0
+          ? "Nécessite votre attention"
+          : "Aucune alerte stock",
+      tone: statistics.lowStock > 0 ? "amber" : "green",
+    },
+    {
+      label: "Ventes",
+      value: statistics.sales,
+      detail: "Opérations de vente",
+      tone: "green",
+    },
+    {
+      label: "Locations",
+      value: statistics.rentals,
+      detail: "Opérations de location",
+      tone: "blue",
+    },
+    {
+      label: "Clients",
+      value: statistics.customers,
+      detail: "Clients enregistrés",
+      tone: "neutral",
+    },
   ];
 
   return (
-    <section className="grid grid-cols-2 gap-px overflow-hidden border border-[#303238] bg-[#303238] md:grid-cols-3 xl:grid-cols-7">
-      {entries.map(({ label, value, tone }) => (
+    <section className="grid grid-cols-2 gap-px overflow-hidden border border-[#303238] bg-[#303238] md:grid-cols-4 xl:grid-cols-7">
+      {entries.map((entry) => (
         <article
-          key={label}
-          className={`min-h-[76px] border-l-2 bg-[#151619] px-3 py-2 ${toneClass[tone]}`}
+          key={entry.label}
+          className={`relative min-h-[106px] bg-[#151619] px-3 py-3 before:absolute before:inset-x-0 before:top-0 before:h-[2px] ${toneClass[entry.tone]}`}
         >
-          <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-zinc-500">
-            {label}
-          </span>
-          <strong className="mt-1.5 block truncate text-[18px] font-semibold tracking-[-0.03em] text-zinc-100">
-            {value}
-          </strong>
+          <p className="text-[8px] font-bold uppercase tracking-[0.12em] text-zinc-500">
+            {entry.label}
+          </p>
+
+          <p className="mt-2 truncate text-[19px] font-semibold tracking-[-0.03em] text-zinc-100">
+            {entry.value}
+          </p>
+
+          <p className="mt-2 text-[9px] leading-4 text-zinc-500">
+            {entry.detail}
+          </p>
         </article>
       ))}
     </section>

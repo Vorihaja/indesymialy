@@ -1,4 +1,29 @@
-"use client";
-import{useCallback,useEffect,useMemo,useState}from"react";import{createDiscoveryUseCase}from"../factories/discovery.factory";import type{DirectoryEntry,DiscoveryFilters,DiscoveryResult,DiscoverySnapshot}from"../types";
-const initialFilters:DiscoveryFilters={query:"",sort:"popular",page:1,pageSize:8};
-export function useDiscovery(){const useCase=useMemo(()=>createDiscoveryUseCase(),[]);const[snapshot,setSnapshot]=useState<DiscoverySnapshot|null>(null);const[loading,setLoading]=useState(true);const[error,setError]=useState<string|null>(null);const[filters,setFilters]=useState(initialFilters);const[directory,setDirectory]=useState<{items:DirectoryEntry[];total:number}>({items:[],total:0});const[results,setResults]=useState<DiscoveryResult[]>([]);const refresh=useCallback(async()=>{try{setLoading(true);const[nextSnapshot,nextDirectory]=await Promise.all([useCase.execute(),useCase.findDirectory(filters)]);setSnapshot(nextSnapshot);setDirectory(nextDirectory);setError(null);}catch(reason){setError(reason instanceof Error?reason.message:"Erreur inattendue");}finally{setLoading(false);}},[filters,useCase]);useEffect(() => { queueMicrotask(() => { void refresh(); }); }, [refresh]);const search=useCallback(async(query:string)=>{setResults(await useCase.globalSearch(query));},[useCase]);return{snapshot,loading,error,filters,setFilters,directory,results,search,toggleFavorite:(kind:"fighter"|"club"|"media",id:string)=>useCase.toggleFavorite(kind,id)};}
+'use client';
+
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { createDiscoveryUseCase } from '../factories/discovery.factory';
+import type { DirectoryEntry, DiscoveryFilters, DiscoveryResult, DiscoverySnapshot } from '../types';
+
+const initialFilters: DiscoveryFilters = { query: '', sort: 'popular', page: 1, pageSize: 8 };
+
+export function useDiscovery(role?: DiscoveryFilters['role']) {
+  const useCase = useMemo(() => createDiscoveryUseCase(), []);
+  const [snapshot, setSnapshot] = useState<DiscoverySnapshot | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<DiscoveryFilters>({ ...initialFilters, role });
+  const [directory, setDirectory] = useState<{ items: DirectoryEntry[]; total: number }>({ items: [], total: 0 });
+  const [results, setResults] = useState<DiscoveryResult[]>([]);
+  const refresh = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [nextSnapshot, nextDirectory] = await Promise.all([useCase.execute(), useCase.findDirectory(filters)]);
+      setSnapshot(nextSnapshot); setDirectory(nextDirectory); setError(null);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Erreur inattendue');
+    } finally { setLoading(false); }
+  }, [filters, useCase]);
+  useEffect(() => { queueMicrotask(() => { void refresh(); }); }, [refresh]);
+  const search = useCallback(async (query: string) => { setResults(await useCase.globalSearch(query)); }, [useCase]);
+  return { snapshot, loading, error, filters, setFilters, directory, results, search, toggleFavorite: (kind: 'fighter' | 'club' | 'media', id: string) => useCase.toggleFavorite(kind, id) };
+}

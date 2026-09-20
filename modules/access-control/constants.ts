@@ -15,6 +15,7 @@ export const BUSINESS_ROLES = {
   ORGANISATEUR: "organizer",
   SPONSOR: "sponsor",
   VENDEUR: "seller",
+  OFFICIEL: "official",
   ARBITRE: "referee",
   JUGE: "judge",
 } as const;

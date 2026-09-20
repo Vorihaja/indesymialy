@@ -1,5 +1,5 @@
 export type ProfessionalDomain = "licenses" | "memberships" | "medical" | "documents" | "contracts" | "sponsorship-contracts" | "payments" | "professional-finance" | "subscriptions" | "compliance";
-export type ProfessionalRole = "fighter" | "club" | "coach" | "organizer" | "referee" | "judge" | "sponsor" | "federation" | "league" | "admin";
+export type ProfessionalRole = "fighter" | "club" | "coach" | "organizer" | "official" | "referee" | "judge" | "sponsor" | "federation" | "league" | "admin";
 export type DataVisibility = "public" | "organization" | "private" | "medical_restricted" | "admin_only";
 export type RecordStatus = "draft" | "pending" | "active" | "expired" | "suspended" | "revoked" | "rejected" | "paid" | "unpaid" | "cancelled";
 export type PaymentStatus = "draft" | "pending" | "authorized" | "paid" | "failed" | "refunded" | "cancelled";

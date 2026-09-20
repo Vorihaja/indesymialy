@@ -1,21 +1,23 @@
 import type { UniversalRoleDefinition } from '../types';
+import { defineErpTabs } from '@/modules/erp-navigation';
+const tab = (id: string, label: string) => ({ id, label, legacyIds: [label] });
 
 export const sportProfessionalRoleDefinitions: UniversalRoleDefinition[] = [
   {
     id: 'coach', label: 'Coach', guardRole: 'coach', workspaceStatus: 'Encadrement actif',
     modules: [
       { id: 'overview', label: 'Vue d’ensemble', tabs: [], icon: 'overview' },
-      { id: 'athletes', label: 'Combattants', tabs: ['Roster', 'Profils', 'Disponibilités', 'Invitations'], icon: 'users' },
-      { id: 'training', label: 'Entraînement', tabs: ['Planning', 'Séances', 'Programmes', 'Présences', 'Charge'], icon: 'training' },
-      { id: 'camps', label: 'Fight camps', tabs: ['Actifs', 'Préparation', 'Sparring', 'Poids', 'Checklists'], icon: 'sport' },
-      { id: 'competitions', label: 'Compétitions', tabs: ['Calendrier', 'Propositions', 'Inscriptions', 'Résultats'], icon: 'events' },
-      { id: 'performance', label: 'Performance', tabs: ['Évaluations', 'Tests', 'Combat', 'Progression', 'Rapports'], icon: 'performance' },
-      { id: 'medical', label: 'Médical', tabs: ['Aptitudes', 'Blessures', 'Récupération', 'Alertes'], icon: 'medical' },
-      { id: 'team', label: 'Équipe technique', tabs: ['Staff', 'Affectations', 'Disponibilités', 'Invitations'], icon: 'organizations' },
-      { id: 'finance', label: 'Finances', tabs: ['Synthèse', 'Contrats', 'Honoraires', 'Paiements', 'Dépenses'], icon: 'finance' },
-      { id: 'communication', label: 'Communication', tabs: ['Messages', 'Consignes', 'Documents', 'Vidéos'], icon: 'communication' },
-      { id: 'settings', label: 'Paramètres', tabs: ['Profil', 'Droits', 'Notifications', 'Préférences'], icon: 'settings' },
-      { id: 'live', label: 'Corner Live', tabs: ['Direct'], icon: 'live', live: true },
+      { id: 'athletes', label: 'Combattants', tabs: defineErpTabs([tab('roster', 'Roster'), tab('profiles', 'Profils'), tab('availability', 'Disponibilités'), tab('invitations', 'Invitations')]), icon: 'users' },
+      { id: 'training', label: 'Entraînement', tabs: defineErpTabs([tab('planning', 'Planning'), tab('sessions', 'Séances'), tab('programs', 'Programmes'), tab('attendance', 'Présences'), tab('load', 'Charge')]), icon: 'training' },
+      { id: 'camps', label: 'Fight camps', tabs: defineErpTabs([tab('active', 'Actifs'), tab('preparation', 'Préparation'), tab('sparring', 'Sparring'), tab('weight', 'Poids'), tab('checklists', 'Checklists')]), icon: 'sport' },
+      { id: 'competitions', label: 'Compétitions', tabs: defineErpTabs([tab('calendar', 'Calendrier'), tab('proposals', 'Propositions'), tab('registrations', 'Inscriptions'), tab('results', 'Résultats')]), icon: 'events' },
+      { id: 'performance', label: 'Performance', tabs: defineErpTabs([tab('evaluations', 'Évaluations'), tab('tests', 'Tests'), tab('fight', 'Combat'), tab('progress', 'Progression'), tab('reports', 'Rapports')]), icon: 'performance' },
+      { id: 'medical', label: 'Médical', tabs: defineErpTabs([tab('fitness', 'Aptitudes'), tab('injuries', 'Blessures'), tab('recovery', 'Récupération'), tab('alerts', 'Alertes')]), icon: 'medical' },
+      { id: 'team', label: 'Équipe technique', tabs: defineErpTabs([tab('staff', 'Staff'), tab('assignments', 'Affectations'), tab('availability', 'Disponibilités'), tab('invitations', 'Invitations')]), icon: 'organizations' },
+      { id: 'finance', label: 'Finances', tabs: defineErpTabs([tab('summary', 'Synthèse'), tab('contracts', 'Contrats'), tab('fees', 'Honoraires'), tab('payments', 'Paiements'), tab('expenses', 'Dépenses')]), icon: 'finance' },
+      { id: 'communication', label: 'Communication', tabs: defineErpTabs([tab('messages', 'Messages'), tab('instructions', 'Consignes'), tab('documents', 'Documents'), tab('videos', 'Vidéos')]), icon: 'communication' },
+      { id: 'settings', label: 'Paramètres', tabs: defineErpTabs([tab('profile', 'Profil'), tab('permissions', 'Droits'), tab('notifications', 'Notifications'), tab('preferences', 'Préférences')]), icon: 'settings' },
+      { id: 'live', label: 'Corner Live', tabs: defineErpTabs([tab('live', 'Direct')]), icon: 'live', live: true },
     ],
     overview: {
       kpis: [
@@ -59,16 +61,16 @@ export const sportProfessionalRoleDefinitions: UniversalRoleDefinition[] = [
     id: 'referee', label: 'Arbitre', guardRole: 'referee', workspaceStatus: 'Arbitre disponible',
     modules: [
       { id: 'overview', label: 'Vue d’ensemble', tabs: [], icon: 'overview' },
-      { id: 'assignments', label: 'Désignations', tabs: ['À venir', 'Confirmées', 'Demandes', 'Remplacements'], icon: 'events' },
-      { id: 'fights', label: 'Combats', tabs: ['Fight cards', 'Briefings', 'Résultats', 'Incidents'], icon: 'sport' },
-      { id: 'availability', label: 'Disponibilités', tabs: ['Calendrier', 'Indisponibilités', 'Déplacements'], icon: 'events' },
-      { id: 'licenses', label: 'Licences', tabs: ['Licence', 'Certifications', 'Renouvellements', 'Documents'], icon: 'documents' },
-      { id: 'training', label: 'Formation', tabs: ['Modules', 'Séminaires', 'Examens', 'Règlements'], icon: 'training' },
-      { id: 'evaluations', label: 'Évaluations', tabs: ['Synthèse', 'Rapports', 'Feedback', 'Progression'], icon: 'performance' },
-      { id: 'finance', label: 'Indemnités', tabs: ['Synthèse', 'À recevoir', 'Paiements', 'Déplacements'], icon: 'finance' },
-      { id: 'communication', label: 'Communication', tabs: ['Messages', 'Convocations', 'Documents'], icon: 'communication' },
-      { id: 'settings', label: 'Paramètres', tabs: ['Profil', 'Zones', 'Notifications', 'Préférences'], icon: 'settings' },
-      { id: 'live', label: 'Fight Live', tabs: ['Direct'], icon: 'live', live: true },
+      { id: 'assignments', label: 'Désignations', tabs: defineErpTabs([tab('upcoming', 'À venir'), tab('confirmed', 'Confirmées'), tab('requests', 'Demandes'), tab('replacements', 'Remplacements')]), icon: 'events' },
+      { id: 'fights', label: 'Combats', tabs: defineErpTabs([tab('fight-cards', 'Fight cards'), tab('briefings', 'Briefings'), tab('results', 'Résultats'), tab('incidents', 'Incidents')]), icon: 'sport' },
+      { id: 'availability', label: 'Disponibilités', tabs: defineErpTabs([tab('calendar', 'Calendrier'), tab('unavailability', 'Indisponibilités'), tab('travel', 'Déplacements')]), icon: 'events' },
+      { id: 'licenses', label: 'Licences', tabs: defineErpTabs([tab('license', 'Licence'), tab('certifications', 'Certifications'), tab('renewals', 'Renouvellements'), tab('documents', 'Documents')]), icon: 'documents' },
+      { id: 'training', label: 'Formation', tabs: defineErpTabs([tab('modules', 'Modules'), tab('seminars', 'Séminaires'), tab('exams', 'Examens'), tab('rules', 'Règlements')]), icon: 'training' },
+      { id: 'evaluations', label: 'Évaluations', tabs: defineErpTabs([tab('summary', 'Synthèse'), tab('reports', 'Rapports'), tab('feedback', 'Feedback'), tab('progress', 'Progression')]), icon: 'performance' },
+      { id: 'finance', label: 'Indemnités', tabs: defineErpTabs([tab('summary', 'Synthèse'), tab('receivable', 'À recevoir'), tab('payments', 'Paiements'), tab('travel', 'Déplacements')]), icon: 'finance' },
+      { id: 'communication', label: 'Communication', tabs: defineErpTabs([tab('messages', 'Messages'), tab('summons', 'Convocations'), tab('documents', 'Documents')]), icon: 'communication' },
+      { id: 'settings', label: 'Paramètres', tabs: defineErpTabs([tab('profile', 'Profil'), tab('zones', 'Zones'), tab('notifications', 'Notifications'), tab('preferences', 'Préférences')]), icon: 'settings' },
+      { id: 'live', label: 'Fight Live', tabs: defineErpTabs([tab('live', 'Direct')]), icon: 'live', live: true },
     ],
     overview: {
       kpis: [
@@ -105,59 +107,6 @@ export const sportProfessionalRoleDefinitions: UniversalRoleDefinition[] = [
         { label: 'Juges', value: '3 / 3', tone: 'green' },
         { label: 'Chrono', value: 'Synchronisé', tone: 'blue' },
         { label: 'Incident', value: '0', tone: 'green' },
-      ],
-    },
-  },
-  {
-    id: 'judge', label: 'Juge', guardRole: 'judge', workspaceStatus: 'Juge disponible',
-    modules: [
-      { id: 'overview', label: 'Vue d’ensemble', tabs: [], icon: 'overview' },
-      { id: 'assignments', label: 'Désignations', tabs: ['À venir', 'Confirmées', 'Demandes', 'Remplacements'], icon: 'events' },
-      { id: 'scorecards', label: 'Scorecards', tabs: ['À compléter', 'Soumises', 'Validées', 'Archives'], icon: 'sport' },
-      { id: 'fights', label: 'Combats', tabs: ['Fight cards', 'Briefings', 'Décisions', 'Contestations'], icon: 'events' },
-      { id: 'availability', label: 'Disponibilités', tabs: ['Calendrier', 'Indisponibilités', 'Déplacements'], icon: 'events' },
-      { id: 'licenses', label: 'Licences', tabs: ['Licence', 'Certifications', 'Documents', 'Renouvellements'], icon: 'documents' },
-      { id: 'training', label: 'Formation', tabs: ['Scoring', 'Séminaires', 'Examens', 'Règlements'], icon: 'training' },
-      { id: 'performance', label: 'Évaluations', tabs: ['Précision', 'Cohérence', 'Feedback', 'Rapports'], icon: 'performance' },
-      { id: 'finance', label: 'Indemnités', tabs: ['Synthèse', 'À recevoir', 'Paiements', 'Déplacements'], icon: 'finance' },
-      { id: 'settings', label: 'Paramètres', tabs: ['Profil', 'Disciplines', 'Notifications', 'Préférences'], icon: 'settings' },
-      { id: 'live', label: 'Scoring Live', tabs: ['Direct'], icon: 'live', live: true },
-    ],
-    overview: {
-      kpis: [
-        { label: 'Désignations', value: '11', detail: '30 prochains jours', tone: 'blue' },
-        { label: 'Scorecards', value: '284', detail: 'carrière officielle', tone: 'green' },
-        { label: 'Cohérence', value: '96,2 %', detail: 'vs décision finale', tone: 'green' },
-        { label: 'Note moyenne', value: '4,7 / 5', detail: 'saison 2026', tone: 'blue' },
-        { label: 'Contestations', value: '1', detail: 'en analyse', tone: 'amber' },
-        { label: 'Indemnités dues', value: '720 000 Ar', detail: '2 événements', tone: 'red' },
-      ],
-      focusLabel: 'Prochaine désignation', focusTitle: 'Mahajanga Fight Night Vol.3', focusDetail: 'Table juge 2 · 8 combats programmés', readiness: 94,
-      alerts: [
-        { label: 'Calibration scoring requise', detail: 'Avant le briefing MFN', severity: 'critical' },
-        { label: 'Contestation combat TFL-052', detail: 'Réponse avant le 16 août', severity: 'warning' },
-        { label: 'Scorecards MFN disponibles', detail: 'Prévisualisation ouverte', severity: 'info' },
-      ],
-      activity: [
-        { label: 'Désignation MFN confirmée', detail: 'Il y a 9 min' },
-        { label: 'Évaluation juillet publiée', detail: 'Il y a 52 min' },
-        { label: 'Scorecard TFL archivée', detail: 'Hier · 19:18' },
-      ],
-      quickActions: [
-        { label: 'Voir les scorecards', moduleId: 'scorecards', tab: 'À compléter' },
-        { label: 'Confirmer les désignations', moduleId: 'assignments', tab: 'À venir' },
-        { label: 'Ouvrir la formation', moduleId: 'training', tab: 'Scoring' },
-      ],
-    },
-    live: {
-      title: 'Scoring Live · Table juge 2', subtitle: 'Rakoto vs Andriamahefa · Main card', metric: '10–9', metricLabel: 'Round 2 · score provisoire rouge',
-      secondary: [
-        { label: 'Round', value: '2 / 3', tone: 'blue' },
-        { label: 'Temps', value: '02:48', tone: 'blue' },
-        { label: 'Score rouge', value: '19', tone: 'red' },
-        { label: 'Score bleu', value: '19', tone: 'blue' },
-        { label: 'Synchronisation', value: 'Active', tone: 'green' },
-        { label: 'Soumission', value: 'En attente', tone: 'red' },
       ],
     },
   },

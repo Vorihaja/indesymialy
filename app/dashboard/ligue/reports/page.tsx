@@ -1,1 +1,10 @@
-import{ProfessionalFinanceFeature}from"@/modules/professional-finance";export default function Page(){return <ProfessionalFinanceFeature role="league"/>;}
+import { FinanceFeature } from '@/modules/finance-erp';
+
+export default function LeagueReportsPage() {
+  return (
+    <FinanceFeature
+      role="ligue"
+      initialTab="league-reports"
+    />
+  );
+}

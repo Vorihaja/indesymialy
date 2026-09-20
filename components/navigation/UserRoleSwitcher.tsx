@@ -24,10 +24,22 @@ export default function UserRoleSwitcher({
   const [isOpen, setIsOpen] = useState(false);
 
   const options = useMemo(
-    () => roles.map((role) => ({
-      slug: role.slug,
-      label: getWorkspaceLabel(role.slug) ?? role.label ?? role.slug,
-    })),
+    () => {
+      const hasCanonicalOfficial = roles.some(
+        (role) => role.slug === "official",
+      );
+
+      return roles
+        .filter(
+          (role) =>
+            role.slug !== "referee" ||
+            !hasCanonicalOfficial,
+        )
+        .map((role) => ({
+          slug: role.slug,
+          label: getWorkspaceLabel(role.slug) ?? role.label ?? role.slug,
+        }));
+    },
     [roles],
   );
 

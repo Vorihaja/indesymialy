@@ -83,13 +83,13 @@ const professionalNavigation: Partial<
     ["compliance", "Conformité"],
   ],
 
-  referee: [
+  official: [
     ["licenses", "Licences"],
     ["contracts", "Contrats"],
     ["payments", "Paiements"],
   ],
 
-  judge: [
+  referee: [
     ["licenses", "Licences"],
     ["contracts", "Contrats"],
     ["payments", "Paiements"],
@@ -502,7 +502,7 @@ export const organizerWorkspaceAreas:
    WORKSPACE DEFINITION
 ========================================================= */
 
-export function getWorkspaceDefinition(
+function getWorkspaceDefinitionBase(
   role: WorkspaceRole,
 ): WorkspaceDefinition {
   const definition =
@@ -702,8 +702,8 @@ export function getWorkspaceDefinition(
           ]
         : []),
 
-      ...(role === "referee" ||
-      role === "judge"
+      ...(role === "official" ||
+      role === "referee"
         ? [
             {
               href:
@@ -753,7 +753,12 @@ export function getWorkspaceDefinition(
 
       ...Object.entries(
         sectionLabels,
-      ).map(
+      )
+        .filter(
+          ([section]) =>
+            section !== "management",
+        )
+        .map(
         ([section, label]) => ({
           href:
             `${definition.basePath}/${section}`,
@@ -773,6 +778,113 @@ export function getWorkspaceDefinition(
 /* =========================================================
    HELPERS
 ========================================================= */
+
+/* INDESY FIN-2C UNIVERSAL FINANCE NAVIGATION START */
+
+/*
+ * Indesy Finance devient l'entrée financière canonique
+ * des ERP métier.
+ *
+ * Les anciennes routes restent physiquement disponibles :
+ * cette normalisation agit uniquement sur la navigation.
+ *
+ * Les modules métier spécialisés (Budget, Rapports,
+ * revenus vendeur, transactions vendeur, etc.) ne sont
+ * ni supprimés ni réécrits ici.
+ */
+const financeNavigationRoles =
+  new Set<WorkspaceRole>([
+    "federation",
+    "league",
+    "club",
+    "coach",
+    "fighter",
+    "organizer",
+    "official",
+    "referee",
+    "judge",
+    "sponsor",
+    "seller",
+    "fan",
+  ]);
+
+function withCanonicalFinanceNavigation(
+  definition: WorkspaceDefinition,
+): WorkspaceDefinition {
+  if (
+    !financeNavigationRoles.has(
+      definition.role,
+    )
+  ) {
+    return definition;
+  }
+
+  /*
+   * On retire seulement de la navigation :
+   * - les anciennes entrées finance dupliquées
+   * - les entrées génériques Paiements
+   *
+   * Aucune route n'est supprimée.
+   */
+  const navigation =
+    definition.navigation.filter(
+      (item) =>
+        item.section !== "finance" &&
+        item.section !== "payments",
+    );
+
+  const financeItem:
+    WorkspaceNavigationItem = {
+      href:
+        `${definition.basePath}/finance`,
+      label:
+        "Finances",
+      section:
+        "finance",
+    };
+
+  /*
+   * Finance se place juste avant Paramètres.
+   * Si Paramètres n'existe pas, Finance est ajoutée
+   * à la fin de la navigation.
+   */
+  const settingsIndex =
+    navigation.findIndex(
+      (item) =>
+        item.section === "settings",
+    );
+
+  navigation.splice(
+    settingsIndex < 0
+      ? navigation.length
+      : settingsIndex,
+    0,
+    financeItem,
+  );
+
+  return {
+    ...definition,
+    navigation,
+  };
+}
+
+export function getWorkspaceDefinition(
+  role: WorkspaceRole,
+): WorkspaceDefinition {
+  const canonicalRole =
+    role === "judge" ||
+    role === "referee"
+      ? "official"
+      : role;
+
+  return withCanonicalFinanceNavigation(
+    getWorkspaceDefinitionBase(
+      canonicalRole,
+    ),
+  );
+}
+
+/* INDESY FIN-2C UNIVERSAL FINANCE NAVIGATION END */
 
 export function getWorkspaceSectionLabel(
   section: WorkspaceSection,

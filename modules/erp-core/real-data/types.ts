@@ -1,9 +1,7 @@
-import type { OrganizerModuleMock } from "@/modules/organizer-erp/types";
-
 export type RealErpRole =
   | "super-admin" | "admin" | "organizer" | "fighter" | "federation"
   | "league" | "club" | "coach" | "referee" | "judge" | "sponsor"
-  | "seller" | "fan";
+  | "official" | "seller" | "fan";
 
 export type RealErpEntity =
   | "events" | "organization_transactions" | "fighter_transactions"
@@ -47,13 +45,48 @@ export type RealErpMutation = {
   scope?: Pick<RealErpQuery, "role" | "moduleId" | "tab">;
 };
 
-export type RealErpData = OrganizerModuleMock & {
+export type RealErpData = {
+  label: string;
+  action: string;
+  creationMode?: "event";
+  kpis: Array<{
+    label: string;
+    value: string;
+    detail: string;
+    tone?: "red" | "blue" | "green" | "amber";
+  }>;
+  columns: string[];
+  rows: string[][];
+  progress?: Array<{
+    label: string;
+    value: number;
+    detail: string;
+  }>;
+  focus?: {
+    title: string;
+    items: Array<{
+      label: string;
+      value: string;
+      status?: "done" | "warning" | "pending";
+    }>;
+  };
+  ticketTypes?: {
+    columns: string[];
+    rows: string[][];
+  };
+  workflow?: {
+    label: string;
+    stages: string[];
+    activeStage: number;
+  };
+  rowActions?: string[];
   source: "supabase";
   entity: RealErpEntity;
   rowIds: string[];
   records: RealErpRecord[];
   fields: RealErpField[];
   emptyMessage: string;
+  implementationStatus?: "available" | "unavailable";
   capabilities: {
     create: boolean;
     update: boolean;

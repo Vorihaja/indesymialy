@@ -1,22 +1,87 @@
-import { getWorkspaceDefinition, getWorkspaceSectionLabel } from '../config';
-import type { WorkspaceRole, WorkspaceSection } from '../types';
+import { ErpCalendarWorkspace } from "@/modules/erp-calendar";
+import {
+  resolveCanonicalErpRole,
+  resolveErpModuleEntry,
+} from "@/modules/erp-dispatch-registry";
+import { RealModuleDataView } from "@/modules/organizer-erp/components/RealModuleDataView";
+import { SellerAgendaFeature } from "@/modules/seller-agenda";
+import { FinanceFeature } from "@/modules/finance-erp";
+import { getWorkspaceDefinition, getWorkspaceSectionLabel } from "../config";
+import type { WorkspaceRole, WorkspaceSection } from "../types";
 
-export function WorkspaceSectionPage({ role, section }: { role: WorkspaceRole; section: WorkspaceSection }) {
+export function WorkspaceSectionPage({
+  role,
+  section,
+}: {
+  role: WorkspaceRole;
+  section: WorkspaceSection;
+}) {
+  /*
+   * INDESY CRUD FALLBACK P0
+   *
+   * Une route Agenda ne doit jamais etre resolue comme un CRUD events.
+   * Le vendeur conserve seller_agenda_items comme autorite.
+   */
+  const resolvedRegistryEntry = resolveErpModuleEntry(
+    resolveCanonicalErpRole(role) ?? role,
+    section,
+  );
+
+  if (!resolvedRegistryEntry) {
+    if (process.env.NODE_ENV === "development") {
+      throw new Error(
+        `[ERP dispatch] Missing registry entry for ${role}/${section}`,
+      );
+    }
+
+    return (
+      <section
+        role="status"
+        className="grid min-h-56 place-items-center border border-red-500/30 bg-[#151619] p-6 text-center"
+      >
+        <div>
+          <p className="mt-3 text-[12px] font-semibold text-zinc-100">
+            Module non modifiable
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  if (resolvedRegistryEntry.implementationStatus === "unavailable") {
+    return (
+      <section
+        role="status"
+        className="grid min-h-56 place-items-center border border-amber-500/30 bg-[#151619] p-6 text-center"
+      >
+        <div>
+          <p className="mt-3 text-[12px] font-semibold text-zinc-100">
+            Module en cours de développement
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  if (section === "calendar") {
+    return role === "seller"
+      ? <SellerAgendaFeature />
+      : <ErpCalendarWorkspace role={role} />;
+  }
+
+  if (resolvedRegistryEntry.handlerKey === "finance-erp") {
+    return <FinanceFeature role={role} />;
+  }
+
   const workspace = getWorkspaceDefinition(role);
+  const label = getWorkspaceSectionLabel(section);
+
   return (
-    <section className='erp-section-panel'>
-      <p className='public-card-kicker'>{workspace.label} · Module opérationnel</p>
-      <h2 className='ds-h2 mt-4'>{getWorkspaceSectionLabel(section)}</h2>
-      <p className='mt-4 max-w-2xl text-sm leading-6 text-[var(--ds-text-2)]'>
-        Fonctionnalité en cours de finalisation. La route, la navigation et l’architecture métier sont opérationnelles.
-      </p>
-      <div className='mt-8 grid grid-cols-3 gap-px bg-[var(--ds-border)]'>
-        {['Accès sécurisé', 'Données synchronisées', 'Espace actif'].map((label) => (
-          <div key={label} className='bg-[var(--ds-surface)] p-4'>
-            <span className='text-[9px] font-extrabold uppercase tracking-[.14em] text-[var(--ds-muted)]'>{label}</span>
-          </div>
-        ))}
-      </div>
-    </section>
+    <RealModuleDataView
+      role={role}
+      moduleId={section}
+      moduleLabel={`${workspace.label} · ${label}`}
+      tab={label}
+    />
   );
 }

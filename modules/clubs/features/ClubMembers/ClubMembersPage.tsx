@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useIndesyDialog } from "@/components/ui/indesy-dialog";
 import { useClubMembers } from "../../hooks/useClubMembers";
 
 const panelClass = "rounded-[2px] border border-[#303238] bg-[#151619] p-4";
@@ -10,6 +11,7 @@ const secondaryActionClass = "rounded-[2px] border border-[#3d92ff] bg-[#3d92ff]
 const roleLabels: Record<string, string> = { fighter: "Combattant", coach: "Coach", manager: "Responsable" };
 
 export default function ClubMembersPage({ organizationId }: { organizationId: string }) {
+  const dialog = useIndesyDialog();
   const { members, loading, error, refresh, addMember, removeMember } = useClubMembers(organizationId);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -24,6 +26,31 @@ export default function ClubMembersPage({ organizationId }: { organizationId: st
       setMessage("Membre ajouté.");
     } catch (cause: unknown) {
       setMessage(cause instanceof Error ? cause.message : "Erreur d’ajout");
+    }
+  }
+
+  async function requestMemberRemoval(
+    memberId: string,
+  ) {
+    const confirmed = await dialog.confirm({
+      title: "Retirer ce membre ?",
+      description:
+        "Le membre sera retiré de l’organisation.",
+      confirmLabel: "Retirer",
+      cancelLabel: "Annuler",
+      tone: "danger",
+    });
+
+    if (!confirmed) return;
+
+    try {
+      await removeMember(memberId);
+    } catch (cause: unknown) {
+      setMessage(
+        cause instanceof Error
+          ? cause.message
+          : "Impossible de retirer ce membre.",
+      );
     }
   }
 
@@ -53,7 +80,7 @@ export default function ClubMembersPage({ organizationId }: { organizationId: st
           {members.map((member) => (
             <li className="flex flex-wrap items-center justify-between gap-3 rounded-[2px] border border-[#303238] bg-[#151619] p-3" key={member.id}>
               <span className="text-sm">{member.full_name ?? `${member.first_name} ${member.last_name}`} · <span className="text-zinc-400">{roleLabels[member.role ?? ""] ?? member.role ?? "Membre"}</span></span>
-              <button className="rounded-[2px] border border-red-500/30 bg-red-500/5 px-3 py-1.5 text-sm font-semibold text-red-300 transition hover:bg-red-500/10" onClick={() => { if (confirm("Retirer ce membre ?")) void removeMember(member.id); }}>Retirer</button>
+              <button className="rounded-[2px] border border-red-500/30 bg-red-500/5 px-3 py-1.5 text-sm font-semibold text-red-300 transition hover:bg-red-500/10" onClick={() => void requestMemberRemoval(member.id)}>Retirer</button>
             </li>
           ))}
           {members.length === 0 && <li className="rounded-[2px] border border-dashed border-[#303238] bg-[#151619] p-4 text-sm text-zinc-500">Aucun membre enregistré.</li>}

@@ -1,20 +1,22 @@
 import type { UniversalRoleDefinition } from '../types';
+import { defineErpTabs } from '@/modules/erp-navigation';
+const tab = (id: string, label: string) => ({ id, label, legacyIds: [label] });
 
 export const ecosystemRoleDefinitions: UniversalRoleDefinition[] = [
   {
     id: 'sponsor', label: 'Sponsor', guardRole: 'sponsor', workspaceStatus: 'Partenariats actifs',
     modules: [
       { id: 'overview', label: 'Vue d’ensemble', tabs: [], icon: 'overview' },
-      { id: 'portfolio', label: 'Portfolio', tabs: ['Athlètes', 'Événements', 'Clubs', 'Organisations'], icon: 'organizations' },
-      { id: 'opportunities', label: 'Opportunités', tabs: ['Découverte', 'Reçues', 'Présélection', 'Négociation'], icon: 'sport' },
-      { id: 'contracts', label: 'Contrats', tabs: ['Actifs', 'À signer', 'Renouvellements', 'Archives'], icon: 'contracts' },
-      { id: 'campaigns', label: 'Campagnes', tabs: ['Actives', 'Planning', 'Contenus', 'Validations'], icon: 'communication' },
-      { id: 'deliverables', label: 'Livrables', tabs: ['À produire', 'À valider', 'Livrés', 'Preuves'], icon: 'documents' },
-      { id: 'activations', label: 'Activations', tabs: ['Événements', 'Digital', 'Terrain', 'Hospitalité'], icon: 'events' },
-      { id: 'finance', label: 'Budget & paiements', tabs: ['Synthèse', 'Budgets', 'Engagements', 'Paiements', 'Factures'], icon: 'finance' },
-      { id: 'performance', label: 'Performance', tabs: ['Audience', 'Visibilité', 'Engagement', 'ROI', 'Rapports'], icon: 'performance' },
-      { id: 'settings', label: 'Paramètres', tabs: ['Marque', 'Équipe', 'Droits', 'Notifications'], icon: 'settings' },
-      { id: 'live', label: 'Activation Live', tabs: ['Direct'], icon: 'live', live: true },
+      { id: 'portfolio', label: 'Portfolio', tabs: defineErpTabs([tab('athletes', 'Athlètes'), tab('events', 'Événements'), tab('clubs', 'Clubs'), tab('organizations', 'Organisations')]), icon: 'organizations' },
+      { id: 'opportunities', label: 'Opportunités', tabs: defineErpTabs([tab('discovery', 'Découverte'), tab('received', 'Reçues'), tab('shortlist', 'Présélection'), tab('negotiation', 'Négociation')]), icon: 'sport' },
+      { id: 'contracts', label: 'Contrats', tabs: defineErpTabs([tab('active', 'Actifs'), tab('to-sign', 'À signer'), tab('renewals', 'Renouvellements'), tab('archives', 'Archives')]), icon: 'contracts' },
+      { id: 'campaigns', label: 'Campagnes', tabs: defineErpTabs([tab('active', 'Actives'), tab('planning', 'Planning'), tab('content', 'Contenus'), tab('validations', 'Validations')]), icon: 'communication' },
+      { id: 'deliverables', label: 'Livrables', tabs: defineErpTabs([tab('to-produce', 'À produire'), tab('to-validate', 'À valider'), tab('delivered', 'Livrés'), tab('proofs', 'Preuves')]), icon: 'documents' },
+      { id: 'activations', label: 'Activations', tabs: defineErpTabs([tab('events', 'Événements'), tab('digital', 'Digital'), tab('field', 'Terrain'), tab('hospitality', 'Hospitalité')]), icon: 'events' },
+      { id: 'finance', label: 'Budget & paiements', tabs: defineErpTabs([tab('summary', 'Synthèse'), tab('budgets', 'Budgets'), tab('commitments', 'Engagements'), tab('payments', 'Paiements'), tab('invoices', 'Factures')]), icon: 'finance' },
+      { id: 'performance', label: 'Performance', tabs: defineErpTabs([tab('audience', 'Audience'), tab('visibility', 'Visibilité'), tab('engagement', 'Engagement'), tab('roi', 'ROI'), tab('reports', 'Rapports')]), icon: 'performance' },
+      { id: 'settings', label: 'Paramètres', tabs: defineErpTabs([tab('brand', 'Marque'), tab('team', 'Équipe'), tab('permissions', 'Droits'), tab('notifications', 'Notifications')]), icon: 'settings' },
+      { id: 'live', label: 'Activation Live', tabs: defineErpTabs([tab('live', 'Direct')]), icon: 'live', live: true },
     ],
     overview: {
       kpis: [
@@ -58,16 +60,16 @@ export const ecosystemRoleDefinitions: UniversalRoleDefinition[] = [
     id: 'seller', label: 'Vendeur', guardRole: 'seller', workspaceStatus: 'Boutique opérationnelle',
     modules: [
       { id: 'overview', label: 'Vue d’ensemble', tabs: [], icon: 'overview' },
-      { id: 'catalog', label: 'Catalogue', tabs: ['Produits', 'Catégories', 'Variantes', 'Médias', 'Tarifs'], icon: 'commerce' },
-      { id: 'orders', label: 'Commandes', tabs: ['Toutes', 'À préparer', 'Expédiées', 'Livrées', 'Annulées'], icon: 'commerce' },
-      { id: 'inventory', label: 'Stock', tabs: ['Inventaire', 'Mouvements', 'Alertes', 'Approvisionnement'], icon: 'documents' },
-      { id: 'customers', label: 'Clients', tabs: ['Tous', 'Segments', 'Fidélité', 'Litiges'], icon: 'users' },
-      { id: 'delivery', label: 'Livraison', tabs: ['Expéditions', 'Transporteurs', 'Zones', 'Retours'], icon: 'events' },
-      { id: 'promotions', label: 'Promotions', tabs: ['Campagnes', 'Codes promo', 'Bundles', 'Partenariats'], icon: 'communication' },
-      { id: 'finance', label: 'Finances', tabs: ['Synthèse', 'Revenus', 'Transactions', 'Commissions', 'Versements'], icon: 'finance' },
-      { id: 'performance', label: 'Performance', tabs: ['Ventes', 'Produits', 'Clients', 'Conversion', 'Rapports'], icon: 'performance' },
-      { id: 'settings', label: 'Paramètres', tabs: ['Boutique', 'Paiements', 'Livraison', 'Notifications'], icon: 'settings' },
-      { id: 'live', label: 'Sales Live', tabs: ['Direct'], icon: 'live', live: true },
+      { id: 'catalog', label: 'Catalogue', tabs: defineErpTabs([tab('products', 'Produits'), tab('categories', 'Catégories'), tab('variants', 'Variantes'), tab('media', 'Médias'), tab('pricing', 'Tarifs')]), icon: 'commerce' },
+      { id: 'orders', label: 'Commandes', tabs: defineErpTabs([tab('all', 'Toutes'), tab('to-prepare', 'À préparer'), tab('shipped', 'Expédiées'), tab('delivered', 'Livrées'), tab('cancelled', 'Annulées')]), icon: 'commerce' },
+      { id: 'inventory', label: 'Stock', tabs: defineErpTabs([tab('inventory', 'Inventaire'), tab('movements', 'Mouvements'), tab('alerts', 'Alertes'), tab('supply', 'Approvisionnement')]), icon: 'documents' },
+      { id: 'customers', label: 'Clients', tabs: defineErpTabs([tab('all', 'Tous'), tab('segments', 'Segments'), tab('loyalty', 'Fidélité'), tab('disputes', 'Litiges')]), icon: 'users' },
+      { id: 'delivery', label: 'Livraison', tabs: defineErpTabs([tab('shipments', 'Expéditions'), tab('carriers', 'Transporteurs'), tab('zones', 'Zones'), tab('returns', 'Retours')]), icon: 'events' },
+      { id: 'promotions', label: 'Promotions', tabs: defineErpTabs([tab('campaigns', 'Campagnes'), tab('promo-codes', 'Codes promo'), tab('bundles', 'Bundles'), tab('partnerships', 'Partenariats')]), icon: 'communication' },
+      { id: 'finance', label: 'Finances', tabs: defineErpTabs([tab('summary', 'Synthèse'), tab('revenue', 'Revenus'), tab('transactions', 'Transactions'), tab('commissions', 'Commissions'), tab('payouts', 'Versements')]), icon: 'finance' },
+      { id: 'performance', label: 'Performance', tabs: defineErpTabs([tab('sales', 'Ventes'), tab('products', 'Produits'), tab('customers', 'Clients'), tab('conversion', 'Conversion'), tab('reports', 'Rapports')]), icon: 'performance' },
+      { id: 'settings', label: 'Paramètres', tabs: defineErpTabs([tab('store', 'Boutique'), tab('payments', 'Paiements'), tab('delivery', 'Livraison'), tab('notifications', 'Notifications')]), icon: 'settings' },
+      { id: 'live', label: 'Sales Live', tabs: defineErpTabs([tab('live', 'Direct')]), icon: 'live', live: true },
     ],
     overview: {
       kpis: [
@@ -111,15 +113,15 @@ export const ecosystemRoleDefinitions: UniversalRoleDefinition[] = [
     id: 'fan', label: 'Fan', guardRole: 'fan', workspaceStatus: 'Expérience personnalisée',
     modules: [
       { id: 'overview', label: 'Vue d’ensemble', tabs: [], icon: 'overview' },
-      { id: 'following', label: 'Mes suivis', tabs: ['Combattants', 'Clubs', 'Événements', 'Disciplines'], icon: 'users' },
-      { id: 'events', label: 'Événements', tabs: ['À venir', 'Mes billets', 'Calendrier', 'Résultats'], icon: 'events' },
-      { id: 'live', label: 'Live Center', tabs: ['Direct'], icon: 'live', live: true },
-      { id: 'content', label: 'Actualités', tabs: ['Pour vous', 'Vidéos', 'Interviews', 'Résumés'], icon: 'communication' },
-      { id: 'community', label: 'Communauté', tabs: ['Discussions', 'Pronostics', 'Classements', 'Activité'], icon: 'communication' },
-      { id: 'tickets', label: 'Billetterie', tabs: ['Mes billets', 'Invitations', 'Transferts', 'Historique'], icon: 'tickets' },
-      { id: 'marketplace', label: 'Marketplace', tabs: ['Favoris', 'Commandes', 'Offres', 'Avis'], icon: 'commerce' },
-      { id: 'rewards', label: 'Récompenses', tabs: ['Points', 'Niveaux', 'Avantages', 'Historique'], icon: 'performance' },
-      { id: 'settings', label: 'Paramètres', tabs: ['Profil', 'Préférences', 'Notifications', 'Confidentialité'], icon: 'settings' },
+      { id: 'following', label: 'Mes suivis', tabs: defineErpTabs([tab('fighters', 'Combattants'), tab('clubs', 'Clubs'), tab('events', 'Événements'), tab('disciplines', 'Disciplines')]), icon: 'users' },
+      { id: 'events', label: 'Événements', tabs: defineErpTabs([tab('upcoming', 'À venir'), tab('tickets', 'Mes billets'), tab('calendar', 'Calendrier'), tab('results', 'Résultats')]), icon: 'events' },
+      { id: 'live', label: 'Live Center', tabs: defineErpTabs([tab('live', 'Direct')]), icon: 'live', live: true },
+      { id: 'content', label: 'Actualités', tabs: defineErpTabs([tab('for-you', 'Pour vous'), tab('videos', 'Vidéos'), tab('interviews', 'Interviews'), tab('summaries', 'Résumés')]), icon: 'communication' },
+      { id: 'community', label: 'Communauté', tabs: defineErpTabs([tab('discussions', 'Discussions'), tab('predictions', 'Pronostics'), tab('rankings', 'Classements'), tab('activity', 'Activité')]), icon: 'communication' },
+      { id: 'tickets', label: 'Billetterie', tabs: defineErpTabs([tab('my-tickets', 'Mes billets'), tab('invitations', 'Invitations'), tab('transfers', 'Transferts'), tab('history', 'Historique')]), icon: 'tickets' },
+      { id: 'marketplace', label: 'Marketplace', tabs: defineErpTabs([tab('favorites', 'Favoris'), tab('orders', 'Commandes'), tab('offers', 'Offres'), tab('reviews', 'Avis')]), icon: 'commerce' },
+      { id: 'rewards', label: 'Récompenses', tabs: defineErpTabs([tab('points', 'Points'), tab('levels', 'Niveaux'), tab('benefits', 'Avantages'), tab('history', 'Historique')]), icon: 'performance' },
+      { id: 'settings', label: 'Paramètres', tabs: defineErpTabs([tab('profile', 'Profil'), tab('preferences', 'Préférences'), tab('notifications', 'Notifications'), tab('privacy', 'Confidentialité')]), icon: 'settings' },
     ],
     overview: {
       kpis: [

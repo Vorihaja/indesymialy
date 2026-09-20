@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.17"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -1897,6 +1897,78 @@ export type Database = {
             columns: ["fighter_id"]
             isOneToOne: false
             referencedRelation: "fighters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      erp_calendar_items: {
+        Row: {
+          all_day: boolean
+          archived_at: string | null
+          context_role: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          ends_at: string
+          event_type: string
+          id: string
+          location: string | null
+          owner_profile_id: string
+          source: string
+          starts_at: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          all_day?: boolean
+          archived_at?: string | null
+          context_role?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ends_at: string
+          event_type?: string
+          id?: string
+          location?: string | null
+          owner_profile_id: string
+          source?: string
+          starts_at: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          all_day?: boolean
+          archived_at?: string | null
+          context_role?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string
+          event_type?: string
+          id?: string
+          location?: string | null
+          owner_profile_id?: string
+          source?: string
+          starts_at?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "erp_calendar_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "erp_calendar_items_owner_profile_id_fkey"
+            columns: ["owner_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -5916,6 +5988,194 @@ export type Database = {
           },
         ]
       }
+      finance_categories: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+          operation_type: string
+          organization_id: string | null
+          owner_type: string
+          profile_id: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+          operation_type: string
+          organization_id?: string | null
+          owner_type: string
+          profile_id?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
+          operation_type?: string
+          organization_id?: string | null
+          owner_type?: string
+          profile_id?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_categories_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_categories_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_categories_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      finance_manual_operations: {
+        Row: {
+          amount: number
+          category_id: string | null
+          category_name: string
+          counterparty_name: string | null
+          created_at: string
+          created_by: string
+          currency_code: string
+          description: string
+          financial_payment_id: string | null
+          id: string
+          idempotency_key: string
+          notes: string | null
+          occurred_at: string
+          operation_type: string
+          organization_id: string | null
+          owner_type: string
+          payment_method: string | null
+          profile_id: string | null
+          receipt_path: string | null
+          reference: string | null
+          reversal_payment_id: string | null
+          reversal_reason: string | null
+          reversed_at: string | null
+        }
+        Insert: {
+          amount: number
+          category_id?: string | null
+          category_name: string
+          counterparty_name?: string | null
+          created_at?: string
+          created_by: string
+          currency_code?: string
+          description: string
+          financial_payment_id?: string | null
+          id?: string
+          idempotency_key: string
+          notes?: string | null
+          occurred_at?: string
+          operation_type: string
+          organization_id?: string | null
+          owner_type: string
+          payment_method?: string | null
+          profile_id?: string | null
+          receipt_path?: string | null
+          reference?: string | null
+          reversal_payment_id?: string | null
+          reversal_reason?: string | null
+          reversed_at?: string | null
+        }
+        Update: {
+          amount?: number
+          category_id?: string | null
+          category_name?: string
+          counterparty_name?: string | null
+          created_at?: string
+          created_by?: string
+          currency_code?: string
+          description?: string
+          financial_payment_id?: string | null
+          id?: string
+          idempotency_key?: string
+          notes?: string | null
+          occurred_at?: string
+          operation_type?: string
+          organization_id?: string | null
+          owner_type?: string
+          payment_method?: string | null
+          profile_id?: string | null
+          receipt_path?: string | null
+          reference?: string | null
+          reversal_payment_id?: string | null
+          reversal_reason?: string | null
+          reversed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_manual_operations_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "finance_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_manual_operations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_manual_operations_financial_payment_id_fkey"
+            columns: ["financial_payment_id"]
+            isOneToOne: true
+            referencedRelation: "financial_payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_manual_operations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_manual_operations_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_manual_operations_reversal_payment_id_fkey"
+            columns: ["reversal_payment_id"]
+            isOneToOne: true
+            referencedRelation: "financial_payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_accounts: {
         Row: {
           created_at: string
@@ -5924,6 +6184,7 @@ export type Database = {
           organization_id: string | null
           owner_type: string
           profile_id: string | null
+          system_key: string | null
         }
         Insert: {
           created_at?: string
@@ -5932,6 +6193,7 @@ export type Database = {
           organization_id?: string | null
           owner_type: string
           profile_id?: string | null
+          system_key?: string | null
         }
         Update: {
           created_at?: string
@@ -5940,6 +6202,7 @@ export type Database = {
           organization_id?: string | null
           owner_type?: string
           profile_id?: string | null
+          system_key?: string | null
         }
         Relationships: [
           {
@@ -6900,6 +7163,111 @@ export type Database = {
           },
         ]
       }
+      marketplace_bundle_items: {
+        Row: {
+          bundle_id: string
+          created_at: string
+          product_id: string
+          quantity: number
+          sort_order: number
+        }
+        Insert: {
+          bundle_id: string
+          created_at?: string
+          product_id: string
+          quantity: number
+          sort_order?: number
+        }
+        Update: {
+          bundle_id?: string
+          created_at?: string
+          product_id?: string
+          quantity?: number
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_bundle_items_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_bundles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_bundle_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_bundles: {
+        Row: {
+          created_at: string
+          created_by: string
+          currency: string
+          description: string | null
+          discount_percent: number | null
+          ends_at: string | null
+          fixed_price: number | null
+          id: string
+          name: string
+          pricing_mode: string
+          seller_organization_id: string
+          starts_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          currency?: string
+          description?: string | null
+          discount_percent?: number | null
+          ends_at?: string | null
+          fixed_price?: number | null
+          id?: string
+          name: string
+          pricing_mode: string
+          seller_organization_id: string
+          starts_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          currency?: string
+          description?: string | null
+          discount_percent?: number | null
+          ends_at?: string | null
+          fixed_price?: number | null
+          id?: string
+          name?: string
+          pricing_mode?: string
+          seller_organization_id?: string
+          starts_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_bundles_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_bundles_seller_organization_id_fkey"
+            columns: ["seller_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketplace_cart_items: {
         Row: {
           cart_id: string
@@ -7027,10 +7395,238 @@ export type Database = {
           },
         ]
       }
+      marketplace_customer_disputes: {
+        Row: {
+          created_at: string
+          created_by: string
+          customer_id: string
+          description: string | null
+          id: string
+          order_id: string | null
+          resolution: string | null
+          resolved_at: string | null
+          seller_organization_id: string
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          customer_id: string
+          description?: string | null
+          id?: string
+          order_id?: string | null
+          resolution?: string | null
+          resolved_at?: string | null
+          seller_organization_id: string
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          customer_id?: string
+          description?: string | null
+          id?: string
+          order_id?: string | null
+          resolution?: string | null
+          resolved_at?: string | null
+          seller_organization_id?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_customer_disputes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_customer_disputes_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_customer_disputes_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_customer_disputes_seller_organization_id_fkey"
+            columns: ["seller_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_customer_loyalty_ledger: {
+        Row: {
+          created_at: string
+          created_by: string
+          customer_id: string
+          id: string
+          order_id: string | null
+          points_delta: number
+          reason: string
+          seller_organization_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          customer_id: string
+          id?: string
+          order_id?: string | null
+          points_delta: number
+          reason: string
+          seller_organization_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          customer_id?: string
+          id?: string
+          order_id?: string | null
+          points_delta?: number
+          reason?: string
+          seller_organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_customer_loyalty_ledger_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_customer_loyalty_ledger_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_customer_loyalty_ledger_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_customer_loyalty_ledger_seller_organization_id_fkey"
+            columns: ["seller_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_customer_segment_members: {
+        Row: {
+          added_by: string
+          created_at: string
+          customer_id: string
+          segment_id: string
+        }
+        Insert: {
+          added_by: string
+          created_at?: string
+          customer_id: string
+          segment_id: string
+        }
+        Update: {
+          added_by?: string
+          created_at?: string
+          customer_id?: string
+          segment_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_customer_segment_members_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_customer_segment_members_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_customer_segment_members_segment_id_fkey"
+            columns: ["segment_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_customer_segments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_customer_segments: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+          seller_organization_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+          seller_organization_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
+          seller_organization_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_customer_segments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_customer_segments_seller_organization_id_fkey"
+            columns: ["seller_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketplace_deliveries: {
         Row: {
           address: string | null
           carrier: string | null
+          carrier_id: string | null
           id: string
           method: string
           order_id: string
@@ -7041,6 +7637,7 @@ export type Database = {
         Insert: {
           address?: string | null
           carrier?: string | null
+          carrier_id?: string | null
           id?: string
           method: string
           order_id: string
@@ -7051,6 +7648,7 @@ export type Database = {
         Update: {
           address?: string | null
           carrier?: string | null
+          carrier_id?: string | null
           id?: string
           method?: string
           order_id?: string
@@ -7060,10 +7658,203 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "marketplace_deliveries_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_delivery_carriers"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "marketplace_deliveries_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: true
             referencedRelation: "marketplace_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_delivery_carriers: {
+        Row: {
+          created_at: string
+          created_by: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          seller_organization_id: string
+          status: string
+          tracking_url_template: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          seller_organization_id: string
+          status?: string
+          tracking_url_template?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          seller_organization_id?: string
+          status?: string
+          tracking_url_template?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_delivery_carriers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_delivery_carriers_seller_organization_id_fkey"
+            columns: ["seller_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_delivery_zone_areas: {
+        Row: {
+          city_id: string | null
+          commune_id: string | null
+          created_at: string
+          district_id: string | null
+          id: string
+          region_id: string | null
+          zone_id: string
+        }
+        Insert: {
+          city_id?: string | null
+          commune_id?: string | null
+          created_at?: string
+          district_id?: string | null
+          id?: string
+          region_id?: string | null
+          zone_id: string
+        }
+        Update: {
+          city_id?: string | null
+          commune_id?: string | null
+          created_at?: string
+          district_id?: string | null
+          id?: string
+          region_id?: string | null
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_delivery_zone_areas_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_delivery_zone_areas_commune_id_fkey"
+            columns: ["commune_id"]
+            isOneToOne: false
+            referencedRelation: "communes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_delivery_zone_areas_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_delivery_zone_areas_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "regions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_delivery_zone_areas_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_delivery_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_delivery_zones: {
+        Row: {
+          created_at: string
+          created_by: string
+          currency: string
+          delivery_fee: number
+          free_delivery_threshold: number | null
+          id: string
+          max_delivery_days: number
+          min_delivery_days: number
+          name: string
+          seller_organization_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          currency?: string
+          delivery_fee?: number
+          free_delivery_threshold?: number | null
+          id?: string
+          max_delivery_days?: number
+          min_delivery_days?: number
+          name: string
+          seller_organization_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          currency?: string
+          delivery_fee?: number
+          free_delivery_threshold?: number | null
+          id?: string
+          max_delivery_days?: number
+          min_delivery_days?: number
+          name?: string
+          seller_organization_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_delivery_zones_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_delivery_zones_seller_organization_id_fkey"
+            columns: ["seller_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -7129,6 +7920,111 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: true
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_inventory_count_lines: {
+        Row: {
+          applied_delta: number
+          count_id: string
+          counted_at: string | null
+          counted_physical: number | null
+          created_at: string
+          id: string
+          product_id: string
+          theoretical_available: number
+          theoretical_physical: number
+          theoretical_reserved: number
+        }
+        Insert: {
+          applied_delta?: number
+          count_id: string
+          counted_at?: string | null
+          counted_physical?: number | null
+          created_at?: string
+          id?: string
+          product_id: string
+          theoretical_available: number
+          theoretical_physical: number
+          theoretical_reserved: number
+        }
+        Update: {
+          applied_delta?: number
+          count_id?: string
+          counted_at?: string | null
+          counted_physical?: number | null
+          created_at?: string
+          id?: string
+          product_id?: string
+          theoretical_available?: number
+          theoretical_physical?: number
+          theoretical_reserved?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_inventory_count_lines_count_id_fkey"
+            columns: ["count_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_inventory_counts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_inventory_count_lines_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_inventory_counts: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          id: string
+          note: string | null
+          seller_organization_id: string
+          started_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          note?: string | null
+          seller_organization_id: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          note?: string | null
+          seller_organization_id?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_inventory_counts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_inventory_counts_seller_organization_id_fkey"
+            columns: ["seller_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -7362,6 +8258,172 @@ export type Database = {
           },
         ]
       }
+      marketplace_partnership_products: {
+        Row: {
+          created_at: string
+          partnership_id: string
+          product_id: string
+        }
+        Insert: {
+          created_at?: string
+          partnership_id: string
+          product_id: string
+        }
+        Update: {
+          created_at?: string
+          partnership_id?: string
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_partnership_products_partnership_id_fkey"
+            columns: ["partnership_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_partnerships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_partnership_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_partnership_status_history: {
+        Row: {
+          changed_by: string
+          created_at: string
+          from_status: string | null
+          id: string
+          note: string | null
+          partnership_id: string
+          to_status: string
+        }
+        Insert: {
+          changed_by: string
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          note?: string | null
+          partnership_id: string
+          to_status: string
+        }
+        Update: {
+          changed_by?: string
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          note?: string | null
+          partnership_id?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_partnership_status_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_partnership_status_history_partnership_id_fkey"
+            columns: ["partnership_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_partnerships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_partnerships: {
+        Row: {
+          benefit_type: string
+          benefit_value: number | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string
+          created_by: string
+          currency: string
+          description: string | null
+          ends_at: string | null
+          id: string
+          partner_name: string
+          partner_organization_id: string | null
+          partnership_type: string
+          promotion_code: string | null
+          seller_organization_id: string
+          starts_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          benefit_type: string
+          benefit_value?: number | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          created_by: string
+          currency?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          partner_name: string
+          partner_organization_id?: string | null
+          partnership_type: string
+          promotion_code?: string | null
+          seller_organization_id: string
+          starts_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          benefit_type?: string
+          benefit_value?: number | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          created_by?: string
+          currency?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          partner_name?: string
+          partner_organization_id?: string | null
+          partnership_type?: string
+          promotion_code?: string | null
+          seller_organization_id?: string
+          starts_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_partnerships_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_partnerships_partner_organization_id_fkey"
+            columns: ["partner_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_partnerships_seller_organization_id_fkey"
+            columns: ["seller_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketplace_payments: {
         Row: {
           created_at: string
@@ -7444,6 +8506,50 @@ export type Database = {
           },
         ]
       }
+      marketplace_product_variants: {
+        Row: {
+          attributes: Json
+          created_at: string
+          id: string
+          is_active: boolean
+          label: string
+          product_id: string
+          sku: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          attributes?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label: string
+          product_id: string
+          sku: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          attributes?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          product_id?: string
+          sku?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_product_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketplace_products: {
         Row: {
           category_id: string | null
@@ -7507,6 +8613,217 @@ export type Database = {
           },
         ]
       }
+      marketplace_promotion_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          promotion_id: string
+          status: string
+          updated_at: string
+          usage_count: number
+          usage_limit: number | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          promotion_id: string
+          status?: string
+          updated_at?: string
+          usage_count?: number
+          usage_limit?: number | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          promotion_id?: string
+          status?: string
+          updated_at?: string
+          usage_count?: number
+          usage_limit?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_promotion_codes_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_promotions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_promotion_products: {
+        Row: {
+          created_at: string
+          product_id: string
+          promotion_id: string
+        }
+        Insert: {
+          created_at?: string
+          product_id: string
+          promotion_id: string
+        }
+        Update: {
+          created_at?: string
+          product_id?: string
+          promotion_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_promotion_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_promotion_products_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_promotions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_promotion_redemptions: {
+        Row: {
+          currency: string
+          customer_id: string
+          discount_amount: number
+          id: string
+          order_id: string
+          promotion_code_id: string | null
+          promotion_id: string
+          redeemed_at: string
+        }
+        Insert: {
+          currency: string
+          customer_id: string
+          discount_amount: number
+          id?: string
+          order_id: string
+          promotion_code_id?: string | null
+          promotion_id: string
+          redeemed_at?: string
+        }
+        Update: {
+          currency?: string
+          customer_id?: string
+          discount_amount?: number
+          id?: string
+          order_id?: string
+          promotion_code_id?: string | null
+          promotion_id?: string
+          redeemed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_promotion_redemptions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_promotion_redemptions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_promotion_redemptions_promotion_code_id_fkey"
+            columns: ["promotion_code_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_promotion_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_promotion_redemptions_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_promotions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_promotions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          currency: string
+          description: string | null
+          discount_type: string
+          discount_value: number
+          ends_at: string | null
+          id: string
+          max_discount_amount: number | null
+          min_order_amount: number
+          name: string
+          seller_organization_id: string
+          starts_at: string | null
+          status: string
+          updated_at: string
+          usage_count: number
+          usage_limit: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          discount_type: string
+          discount_value: number
+          ends_at?: string | null
+          id?: string
+          max_discount_amount?: number | null
+          min_order_amount?: number
+          name: string
+          seller_organization_id: string
+          starts_at?: string | null
+          status?: string
+          updated_at?: string
+          usage_count?: number
+          usage_limit?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          ends_at?: string | null
+          id?: string
+          max_discount_amount?: number | null
+          min_order_amount?: number
+          name?: string
+          seller_organization_id?: string
+          starts_at?: string | null
+          status?: string
+          updated_at?: string
+          usage_count?: number
+          usage_limit?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_promotions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_promotions_seller_organization_id_fkey"
+            columns: ["seller_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketplace_rentals: {
         Row: {
           created_at: string
@@ -7544,6 +8861,170 @@ export type Database = {
             columns: ["order_line_id"]
             isOneToOne: true
             referencedRelation: "marketplace_order_lines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_return_items: {
+        Row: {
+          condition: string
+          created_at: string
+          id: string
+          note: string | null
+          order_line_id: string
+          quantity: number
+          return_id: string
+        }
+        Insert: {
+          condition?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          order_line_id: string
+          quantity: number
+          return_id: string
+        }
+        Update: {
+          condition?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          order_line_id?: string
+          quantity?: number
+          return_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_return_items_order_line_id_fkey"
+            columns: ["order_line_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_order_lines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_return_items_return_id_fkey"
+            columns: ["return_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_returns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_return_status_history: {
+        Row: {
+          changed_by: string
+          created_at: string
+          from_status: string | null
+          id: string
+          note: string | null
+          return_id: string
+          to_status: string
+        }
+        Insert: {
+          changed_by: string
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          note?: string | null
+          return_id: string
+          to_status: string
+        }
+        Update: {
+          changed_by?: string
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          note?: string | null
+          return_id?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_return_status_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_return_status_history_return_id_fkey"
+            columns: ["return_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_returns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_returns: {
+        Row: {
+          created_by: string
+          customer_id: string
+          id: string
+          order_id: string
+          reason: string
+          received_at: string | null
+          requested_at: string
+          resolution: string | null
+          resolved_at: string | null
+          seller_organization_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_by: string
+          customer_id: string
+          id?: string
+          order_id: string
+          reason: string
+          received_at?: string | null
+          requested_at?: string
+          resolution?: string | null
+          resolved_at?: string | null
+          seller_organization_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_by?: string
+          customer_id?: string
+          id?: string
+          order_id?: string
+          reason?: string
+          received_at?: string | null
+          requested_at?: string
+          resolution?: string | null
+          resolved_at?: string | null
+          seller_organization_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_returns_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_returns_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_returns_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_returns_seller_organization_id_fkey"
+            columns: ["seller_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -9406,6 +10887,408 @@ export type Database = {
           slug?: string
         }
         Relationships: []
+      }
+      seller_agenda_items: {
+        Row: {
+          all_day: boolean
+          created_at: string
+          created_by: string
+          description: string | null
+          ends_at: string | null
+          id: string
+          kind: string
+          location: string | null
+          organization_id: string
+          priority: string
+          starts_at: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          all_day?: boolean
+          created_at?: string
+          created_by: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          kind?: string
+          location?: string | null
+          organization_id: string
+          priority?: string
+          starts_at: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          all_day?: boolean
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          kind?: string
+          location?: string | null
+          organization_id?: string
+          priority?: string
+          starts_at?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_agenda_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_agenda_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seller_personnel_assignments: {
+        Row: {
+          created_at: string
+          created_by: string
+          ends_at: string | null
+          id: string
+          mission: string
+          organization_id: string
+          profile_id: string
+          scope: string | null
+          starts_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          ends_at?: string | null
+          id?: string
+          mission: string
+          organization_id: string
+          profile_id: string
+          scope?: string | null
+          starts_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          ends_at?: string | null
+          id?: string
+          mission?: string
+          organization_id?: string
+          profile_id?: string
+          scope?: string | null
+          starts_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_personnel_assignments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_personnel_assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_personnel_assignments_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seller_personnel_attendance: {
+        Row: {
+          check_in_at: string | null
+          check_out_at: string | null
+          created_at: string
+          id: string
+          note: string | null
+          organization_id: string
+          profile_id: string
+          recorded_by: string
+          updated_at: string
+          work_date: string
+        }
+        Insert: {
+          check_in_at?: string | null
+          check_out_at?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          organization_id: string
+          profile_id: string
+          recorded_by: string
+          updated_at?: string
+          work_date: string
+        }
+        Update: {
+          check_in_at?: string | null
+          check_out_at?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          organization_id?: string
+          profile_id?: string
+          recorded_by?: string
+          updated_at?: string
+          work_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_personnel_attendance_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_personnel_attendance_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_personnel_attendance_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seller_personnel_documents: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          file_name: string
+          id: string
+          mime_type: string | null
+          name: string
+          organization_id: string
+          profile_id: string
+          status: string
+          storage_path: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          file_name: string
+          id?: string
+          mime_type?: string | null
+          name: string
+          organization_id: string
+          profile_id: string
+          status?: string
+          storage_path: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          file_name?: string
+          id?: string
+          mime_type?: string | null
+          name?: string
+          organization_id?: string
+          profile_id?: string
+          status?: string
+          storage_path?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_personnel_documents_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_personnel_documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_personnel_documents_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seller_personnel_leaves: {
+        Row: {
+          created_at: string
+          created_by: string
+          decision_at: string | null
+          decision_by: string | null
+          ends_on: string
+          id: string
+          leave_type: string
+          organization_id: string
+          profile_id: string
+          starts_on: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          decision_at?: string | null
+          decision_by?: string | null
+          ends_on: string
+          id?: string
+          leave_type: string
+          organization_id: string
+          profile_id: string
+          starts_on: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          decision_at?: string | null
+          decision_by?: string | null
+          ends_on?: string
+          id?: string
+          leave_type?: string
+          organization_id?: string
+          profile_id?: string
+          starts_on?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_personnel_leaves_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_personnel_leaves_decision_by_fkey"
+            columns: ["decision_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_personnel_leaves_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_personnel_leaves_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seller_personnel_profiles: {
+        Row: {
+          availability: string | null
+          contract_type: string | null
+          created_at: string
+          currency_code: string
+          department: string | null
+          employment_status: string
+          location: string | null
+          monthly_compensation: number | null
+          organization_id: string
+          profile_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          availability?: string | null
+          contract_type?: string | null
+          created_at?: string
+          currency_code?: string
+          department?: string | null
+          employment_status?: string
+          location?: string | null
+          monthly_compensation?: number | null
+          organization_id: string
+          profile_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          availability?: string | null
+          contract_type?: string | null
+          created_at?: string
+          currency_code?: string
+          department?: string | null
+          employment_status?: string
+          location?: string | null
+          monthly_compensation?: number | null
+          organization_id?: string
+          profile_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_personnel_profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_personnel_profiles_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_personnel_profiles_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sponsor_activations: {
         Row: {
@@ -11344,6 +13227,10 @@ export type Database = {
         Args: { p_reason: string; p_required: boolean }
         Returns: string
       }
+      _indesy_public_identifier_reserved: {
+        Args: { p_identifier: string }
+        Returns: boolean
+      }
       _korana_allocate_handle: {
         Args: {
           p_base: string
@@ -11376,6 +13263,10 @@ export type Database = {
         Args: { p_post_id: string }
         Returns: Json
       }
+      _korana_public_profile_post_json: {
+        Args: { p_post_id: string; p_viewer_actor_id?: string }
+        Returns: Json
+      }
       _korana_set_post_hashtags: {
         Args: { p_hashtags: string[]; p_post_id: string }
         Returns: undefined
@@ -11392,6 +13283,10 @@ export type Database = {
         Args: { p_codes: string[] }
         Returns: string[]
       }
+      archive_finance_category: {
+        Args: { p_category_id: string }
+        Returns: string
+      }
       assign_event_official_to_fight: {
         Args: {
           p_fight_id: string
@@ -11406,6 +13301,10 @@ export type Database = {
         Returns: undefined
       }
       calculate_judge_decision: { Args: { p_fight_id: string }; Returns: Json }
+      can_access_finance_owner: {
+        Args: { p_owner_id: string; p_owner_type: string }
+        Returns: boolean
+      }
       can_access_financial_account: {
         Args: { p_account_id: string }
         Returns: boolean
@@ -11418,6 +13317,17 @@ export type Database = {
       can_manage_organization: {
         Args: { p_organization_id: string }
         Returns: boolean
+      }
+      create_finance_category: {
+        Args: {
+          p_description?: string
+          p_name: string
+          p_operation_type: string
+          p_owner_id: string
+          p_owner_type: string
+          p_sort_order?: number
+        }
+        Returns: string
       }
       create_my_organization: {
         Args: {
@@ -11450,9 +13360,123 @@ export type Database = {
         }
         Returns: string
       }
+      ensure_financial_system_account: {
+        Args: { p_currency_code: string; p_system_key: string }
+        Returns: string
+      }
+      erp_calendar_archive_item: {
+        Args: { p_item_id: string }
+        Returns: string
+      }
+      erp_calendar_create_item: {
+        Args: {
+          p_all_day?: boolean
+          p_context_role?: string
+          p_description?: string
+          p_ends_at: string
+          p_event_type?: string
+          p_location?: string
+          p_starts_at: string
+          p_status?: string
+          p_title: string
+        }
+        Returns: string
+      }
+      erp_calendar_list_items: {
+        Args: { p_from?: string; p_to?: string }
+        Returns: {
+          all_day: boolean
+          context_role: string
+          created_at: string
+          description: string
+          ends_at: string
+          event_type: string
+          id: string
+          location: string
+          source: string
+          starts_at: string
+          status: string
+          title: string
+          updated_at: string
+        }[]
+      }
+      erp_calendar_update_item: {
+        Args: {
+          p_all_day?: boolean
+          p_context_role?: string
+          p_description?: string
+          p_ends_at: string
+          p_event_type?: string
+          p_item_id: string
+          p_location?: string
+          p_starts_at: string
+          p_status?: string
+          p_title: string
+        }
+        Returns: string
+      }
       fight_official_role_matches_event_role: {
         Args: { p_event_role: string; p_fight_role: string }
         Returns: boolean
+      }
+      get_finance_account_snapshot: {
+        Args: {
+          p_currency_code?: string
+          p_owner_id: string
+          p_owner_type: string
+        }
+        Returns: Json
+      }
+      get_finance_categories: {
+        Args: {
+          p_operation_type?: string
+          p_owner_id: string
+          p_owner_type: string
+        }
+        Returns: {
+          archived_at: string
+          created_at: string
+          description: string
+          id: string
+          name: string
+          operation_type: string
+          sort_order: number
+        }[]
+      }
+      get_finance_ledger_entries: {
+        Args: {
+          p_currency_code?: string
+          p_from?: string
+          p_limit?: number
+          p_owner_id: string
+          p_owner_type: string
+          p_to?: string
+        }
+        Returns: {
+          amount: number
+          category_id: string
+          category_name: string
+          counterparty_name: string
+          counterparty_organization_id: string
+          counterparty_owner_type: string
+          counterparty_profile_id: string
+          currency_code: string
+          description: string
+          entry_id: string
+          entry_type: string
+          is_manual: boolean
+          manual_operation_id: string
+          manual_operation_type: string
+          occurred_at: string
+          payment_id: string
+          payment_kind: string
+          payment_method: string
+          receipt_path: string
+          reference: string
+          reversed_at: string
+          source_id: string
+          source_type: string
+        }[]
       }
       get_my_admin_permissions: {
         Args: never
@@ -11469,10 +13493,94 @@ export type Database = {
         Args: { p_round_id: string }
         Returns: number
       }
+      get_user_calendar_feed: {
+        Args: { p_from?: string; p_to?: string }
+        Returns: {
+          all_day: boolean
+          calendar_key: string
+          context_role: string
+          description: string
+          editable: boolean
+          ends_at: string
+          event_type: string
+          location: string
+          metadata: Json
+          relation_kind: string
+          source_id: string
+          source_kind: string
+          source_table: string
+          starts_at: string
+          status: string
+          title: string
+        }[]
+      }
+      get_user_calendar_feed_base: {
+        Args: { p_from?: string; p_to?: string }
+        Returns: {
+          all_day: boolean
+          calendar_key: string
+          context_role: string
+          description: string
+          editable: boolean
+          ends_at: string
+          event_type: string
+          location: string
+          metadata: Json
+          relation_kind: string
+          source_id: string
+          source_kind: string
+          source_table: string
+          starts_at: string
+          status: string
+          title: string
+        }[]
+      }
+      get_user_remaining_business_calendar_feed: {
+        Args: { p_from?: string; p_to?: string }
+        Returns: {
+          all_day: boolean
+          calendar_key: string
+          context_role: string
+          description: string
+          editable: boolean
+          ends_at: string
+          event_type: string
+          location: string
+          metadata: Json
+          relation_kind: string
+          source_id: string
+          source_kind: string
+          source_table: string
+          starts_at: string
+          status: string
+          title: string
+        }[]
+      }
       get_user_roles: {
         Args: never
         Returns: {
           role_name: string
+        }[]
+      }
+      get_user_training_calendar_feed: {
+        Args: { p_from?: string; p_to?: string }
+        Returns: {
+          all_day: boolean
+          calendar_key: string
+          context_role: string
+          description: string
+          editable: boolean
+          ends_at: string
+          event_type: string
+          location: string
+          metadata: Json
+          relation_kind: string
+          source_id: string
+          source_kind: string
+          source_table: string
+          starts_at: string
+          status: string
+          title: string
         }[]
       }
       has_admin_permission: { Args: { p_code: string }; Returns: boolean }
@@ -11572,6 +13680,14 @@ export type Database = {
       }
       korana_foundation_snapshot: { Args: never; Returns: Json }
       korana_owns_actor: { Args: { p_actor_id: string }; Returns: boolean }
+      korana_public_identifier_availability: {
+        Args: { p_identifier: string }
+        Returns: Json
+      }
+      korana_public_profile_snapshot: {
+        Args: { p_handle: string; p_limit?: number; p_viewer_actor_id?: string }
+        Returns: Json
+      }
       korana_saved_posts_snapshot: {
         Args: { p_actor_id?: string; p_before?: string; p_limit?: number }
         Returns: Json
@@ -11616,6 +13732,23 @@ export type Database = {
           type: string
         }[]
       }
+      search_event_official_candidates: {
+        Args: { p_limit?: number; p_query?: string }
+        Returns: {
+          full_name: string
+          photo_url: string
+          profile_id: string
+          username: string
+        }[]
+      }
+      list_finance_owners: {
+        Args: never
+        Returns: {
+          label: string
+          owner_id: string
+          owner_type: string
+        }[]
+      }
       list_my_event_coorganizations: {
         Args: never
         Returns: {
@@ -11633,6 +13766,56 @@ export type Database = {
         Args: { p_conversation_id: string }
         Returns: undefined
       }
+      marketplace_adjust_customer_loyalty: {
+        Args: {
+          p_customer_id: string
+          p_order_id?: string
+          p_points: number
+          p_reason: string
+        }
+        Returns: string
+      }
+      marketplace_adjust_stock: {
+        Args: {
+          p_delta: number
+          p_product_id: string
+          p_reason: string
+          p_seller_organization_id: string
+        }
+        Returns: number
+      }
+      marketplace_archive_delivery_carrier: {
+        Args: { p_id: string }
+        Returns: undefined
+      }
+      marketplace_archive_delivery_zone: {
+        Args: { p_id: string }
+        Returns: undefined
+      }
+      marketplace_archive_personnel_document: {
+        Args: { p_id: string }
+        Returns: undefined
+      }
+      marketplace_assign_delivery_carrier: {
+        Args: {
+          p_carrier_id: string
+          p_delivery_id: string
+          p_tracking_number?: string
+        }
+        Returns: undefined
+      }
+      marketplace_can_manage_seller_organization: {
+        Args: { p_seller_organization_id: string }
+        Returns: boolean
+      }
+      marketplace_can_manage_seller_personnel: {
+        Args: { p_organization_id: string }
+        Returns: boolean
+      }
+      marketplace_cancel_inventory_count: {
+        Args: { p_count_id: string; p_seller_organization_id: string }
+        Returns: string
+      }
       marketplace_checkout: {
         Args: {
           p_cart_id: string
@@ -11647,6 +13830,427 @@ export type Database = {
         Returns: {
           order_id: string
         }[]
+      }
+      marketplace_checkout_impl: {
+        Args: {
+          p_cart_id: string
+          p_customer_email: string
+          p_customer_name: string
+          p_customer_phone: string
+          p_delivery_address: string
+          p_fulfillment_method: string
+          p_idempotency_key: string
+          p_payment_method: string
+        }
+        Returns: {
+          order_id: string
+        }[]
+      }
+      marketplace_confirm_payment_paid: {
+        Args: {
+          p_payment_id: string
+          p_provider_reference?: string
+          p_reason?: string
+        }
+        Returns: string
+      }
+      marketplace_consume_order_reservation: {
+        Args: { p_order_id: string; p_reason: string }
+        Returns: number
+      }
+      marketplace_create_product: {
+        Args: {
+          p_category: string
+          p_condition: string
+          p_deposit_amount: number
+          p_description: string
+          p_images?: string[]
+          p_listing_type: string
+          p_location: string
+          p_rental_price_per_day: number
+          p_sale_price: number
+          p_seller_organization_id: string
+          p_status: string
+          p_stock: number
+          p_title: string
+        }
+        Returns: string
+      }
+      marketplace_create_return: {
+        Args: { p_items: Json; p_order_id: string; p_reason: string }
+        Returns: string
+      }
+      marketplace_current_seller_organization: { Args: never; Returns: string }
+      marketplace_decide_personnel_leave: {
+        Args: { p_id: string; p_status: string }
+        Returns: undefined
+      }
+      marketplace_delivery_management_snapshot: { Args: never; Returns: Json }
+      marketplace_finalize_inventory_count: {
+        Args: { p_count_id: string; p_seller_organization_id: string }
+        Returns: string
+      }
+      marketplace_invite_seller_personnel: {
+        Args: {
+          p_expires_days?: number
+          p_identifier: string
+          p_member_role?: string
+        }
+        Returns: string
+      }
+      marketplace_list_inventory_reservations: {
+        Args: { p_seller_organization_id: string }
+        Returns: {
+          customer_name: string
+          order_created_at: string
+          order_id: string
+          order_status: string
+          product_id: string
+          product_title: string
+          quantity: number
+        }[]
+      }
+      marketplace_mark_personnel_attendance: {
+        Args: {
+          p_action: string
+          p_note?: string
+          p_profile_id: string
+          p_work_date: string
+        }
+        Returns: undefined
+      }
+      marketplace_order_reservation_remaining: {
+        Args: { p_order_id: string; p_product_id: string }
+        Returns: number
+      }
+      marketplace_promotions_v2_snapshot: { Args: never; Returns: Json }
+      marketplace_release_order_reservation: {
+        Args: { p_order_id: string; p_reason: string }
+        Returns: number
+      }
+      marketplace_release_order_reservation_impl: {
+        Args: { p_order_id: string; p_reason: string }
+        Returns: number
+      }
+      marketplace_respond_seller_personnel_invitation: {
+        Args: { p_accept: boolean; p_invitation_id: string }
+        Returns: undefined
+      }
+      marketplace_revoke_seller_personnel_invitation: {
+        Args: { p_invitation_id: string }
+        Returns: undefined
+      }
+      marketplace_save_bundle: {
+        Args: {
+          p_bundle_id: string
+          p_currency: string
+          p_description: string
+          p_discount_percent: number
+          p_ends_at: string
+          p_fixed_price: number
+          p_items: Json
+          p_name: string
+          p_pricing_mode: string
+          p_starts_at: string
+          p_status: string
+        }
+        Returns: string
+      }
+      marketplace_save_customer_dispute: {
+        Args: {
+          p_customer_id: string
+          p_description: string
+          p_id: string
+          p_order_id: string
+          p_resolution?: string
+          p_status?: string
+          p_subject: string
+        }
+        Returns: string
+      }
+      marketplace_save_customer_segment: {
+        Args: { p_description?: string; p_id: string; p_name: string }
+        Returns: string
+      }
+      marketplace_save_delivery_carrier: {
+        Args: {
+          p_email?: string
+          p_id: string
+          p_name: string
+          p_notes?: string
+          p_phone?: string
+          p_status?: string
+          p_tracking_url_template?: string
+          p_website?: string
+        }
+        Returns: string
+      }
+      marketplace_save_delivery_zone: {
+        Args: {
+          p_areas: Json
+          p_currency: string
+          p_delivery_fee: number
+          p_free_delivery_threshold: number
+          p_id: string
+          p_max_delivery_days: number
+          p_min_delivery_days: number
+          p_name: string
+          p_status: string
+        }
+        Returns: string
+      }
+      marketplace_save_inventory_count: {
+        Args: {
+          p_count_id: string
+          p_counts: Json
+          p_seller_organization_id: string
+        }
+        Returns: number
+      }
+      marketplace_save_partnership: {
+        Args: {
+          p_benefit_type: string
+          p_benefit_value: number
+          p_contact_email: string
+          p_contact_name: string
+          p_contact_phone: string
+          p_currency: string
+          p_description: string
+          p_ends_at: string
+          p_partner_name: string
+          p_partner_organization_id: string
+          p_partnership_id: string
+          p_partnership_type: string
+          p_product_ids: string[]
+          p_promotion_code: string
+          p_starts_at: string
+          p_status: string
+        }
+        Returns: string
+      }
+      marketplace_save_personnel_assignment: {
+        Args: {
+          p_ends_at: string
+          p_id: string
+          p_mission: string
+          p_profile_id: string
+          p_scope: string
+          p_starts_at: string
+          p_status?: string
+        }
+        Returns: string
+      }
+      marketplace_save_personnel_document: {
+        Args: {
+          p_category: string
+          p_expires_at: string
+          p_file_name: string
+          p_mime_type: string
+          p_name: string
+          p_profile_id: string
+          p_storage_path: string
+        }
+        Returns: string
+      }
+      marketplace_save_personnel_internal_role: {
+        Args: {
+          p_id: string
+          p_is_active?: boolean
+          p_label: string
+          p_permissions: string[]
+        }
+        Returns: string
+      }
+      marketplace_save_personnel_leave: {
+        Args: {
+          p_ends_on: string
+          p_id: string
+          p_leave_type: string
+          p_profile_id: string
+          p_starts_on: string
+        }
+        Returns: string
+      }
+      marketplace_save_personnel_profile: {
+        Args: {
+          p_availability: string
+          p_contract_type: string
+          p_currency: string
+          p_department: string
+          p_employment_status: string
+          p_location: string
+          p_monthly_compensation: number
+          p_profile_id: string
+        }
+        Returns: undefined
+      }
+      marketplace_save_promotion: {
+        Args: {
+          p_currency: string
+          p_description: string
+          p_discount_type: string
+          p_discount_value: number
+          p_ends_at: string
+          p_max_discount_amount: number
+          p_min_order_amount: number
+          p_name: string
+          p_product_ids: string[]
+          p_promotion_id: string
+          p_starts_at: string
+          p_status: string
+          p_usage_limit: number
+        }
+        Returns: string
+      }
+      marketplace_save_promotion_code: {
+        Args: {
+          p_code: string
+          p_code_id: string
+          p_promotion_id: string
+          p_status: string
+          p_usage_limit: number
+        }
+        Returns: string
+      }
+      marketplace_save_seller_agenda_item: {
+        Args: {
+          p_all_day: boolean
+          p_description: string
+          p_ends_at: string
+          p_id: string
+          p_kind: string
+          p_location: string
+          p_priority: string
+          p_starts_at: string
+          p_status: string
+          p_title: string
+        }
+        Returns: string
+      }
+      marketplace_seller_agenda_snapshot: {
+        Args: { p_from: string; p_to: string }
+        Returns: Json
+      }
+      marketplace_seller_customers_snapshot: { Args: never; Returns: Json }
+      marketplace_seller_performance_snapshot: {
+        Args: { p_from: string; p_to: string }
+        Returns: Json
+      }
+      marketplace_seller_personnel_assert_member: {
+        Args: { p_organization_id: string; p_profile_id: string }
+        Returns: undefined
+      }
+      marketplace_seller_personnel_snapshot: { Args: never; Returns: Json }
+      marketplace_seller_personnel_storage_access: {
+        Args: { p_name: string }
+        Returns: boolean
+      }
+      marketplace_seller_revenue_snapshot: { Args: never; Returns: Json }
+      marketplace_seller_transaction_snapshot: {
+        Args: { p_limit?: number }
+        Returns: {
+          amount: number
+          created_at: string
+          currency: string
+          external_reference: string
+          order_id: string
+          paid_at: string
+          payment_id: string
+          payment_method: string
+          payment_status: string
+          provider_reference: string
+          transaction_id: string
+          transaction_status: string
+          transaction_type: string
+        }[]
+      }
+      marketplace_set_bundle_status: {
+        Args: { p_bundle_id: string; p_status: string }
+        Returns: string
+      }
+      marketplace_set_customer_segment_members: {
+        Args: { p_customer_ids: string[]; p_segment_id: string }
+        Returns: number
+      }
+      marketplace_set_customer_segment_status: {
+        Args: { p_id: string; p_status: string }
+        Returns: undefined
+      }
+      marketplace_set_low_stock_threshold: {
+        Args: {
+          p_product_id: string
+          p_seller_organization_id: string
+          p_threshold: number
+        }
+        Returns: number
+      }
+      marketplace_set_partnership_status: {
+        Args: { p_note: string; p_partnership_id: string; p_status: string }
+        Returns: string
+      }
+      marketplace_set_personnel_access: {
+        Args: { p_active: boolean; p_profile_id: string }
+        Returns: undefined
+      }
+      marketplace_set_personnel_internal_role_members: {
+        Args: { p_profile_ids: string[]; p_role_id: string }
+        Returns: number
+      }
+      marketplace_set_product_status: {
+        Args: {
+          p_product_id: string
+          p_seller_organization_id: string
+          p_target_status: string
+        }
+        Returns: string
+      }
+      marketplace_set_promotion_code_status: {
+        Args: { p_code_id: string; p_status: string }
+        Returns: string
+      }
+      marketplace_set_promotion_status: {
+        Args: { p_promotion_id: string; p_status: string }
+        Returns: string
+      }
+      marketplace_set_seller_agenda_item_status: {
+        Args: { p_id: string; p_status: string }
+        Returns: undefined
+      }
+      marketplace_start_inventory_count: {
+        Args: { p_note?: string; p_seller_organization_id: string }
+        Returns: string
+      }
+      marketplace_transition_order_status: {
+        Args: { p_order_id: string; p_reason?: string; p_target_status: string }
+        Returns: string
+      }
+      marketplace_transition_return: {
+        Args: {
+          p_note?: string
+          p_resolution?: string
+          p_return_id: string
+          p_status: string
+        }
+        Returns: undefined
+      }
+      marketplace_update_product: {
+        Args: {
+          p_category: string
+          p_condition: string
+          p_deposit_amount: number
+          p_description: string
+          p_images?: string[]
+          p_listing_type: string
+          p_location: string
+          p_product_id: string
+          p_rental_price_per_day: number
+          p_sale_price: number
+          p_seller_organization_id: string
+          p_status: string
+          p_stock: number
+          p_title: string
+        }
+        Returns: string
       }
       messaging_can_access_conversation: {
         Args: { p_conversation_id: string }
@@ -11742,6 +14346,24 @@ export type Database = {
         }
         Returns: string
       }
+      post_financial_payment_accounts_internal: {
+        Args: {
+          p_amount: number
+          p_created_by?: string
+          p_currency_code: string
+          p_description: string
+          p_idempotency_key: string
+          p_occurred_at?: string
+          p_payee_account_id: string
+          p_payer_account_id: string
+          p_payment_kind?: string
+          p_reference: string
+          p_refunded_payment_id?: string
+          p_source_id: string
+          p_source_type: string
+        }
+        Returns: string
+      }
       post_financial_payment_internal: {
         Args: {
           p_amount: number
@@ -11759,6 +14381,26 @@ export type Database = {
           p_refunded_payment_id?: string
           p_source_id: string
           p_source_type: string
+        }
+        Returns: string
+      }
+      post_manual_financial_operation: {
+        Args: {
+          p_amount: number
+          p_category_id?: string
+          p_category_name: string
+          p_counterparty_name?: string
+          p_currency_code: string
+          p_description: string
+          p_idempotency_key: string
+          p_notes?: string
+          p_occurred_at?: string
+          p_operation_type: string
+          p_owner_id: string
+          p_owner_type: string
+          p_payment_method?: string
+          p_receipt_path?: string
+          p_reference?: string
         }
         Returns: string
       }
@@ -11880,6 +14522,15 @@ export type Database = {
       resume_round_timer: {
         Args: { p_round_id: string; p_user?: string }
         Returns: undefined
+      }
+      reverse_manual_financial_operation: {
+        Args: {
+          p_idempotency_key: string
+          p_occurred_at?: string
+          p_operation_id: string
+          p_reason?: string
+        }
+        Returns: string
       }
       review_event_ticket_refund: {
         Args: {
@@ -12072,6 +14723,15 @@ export type Database = {
         Args: { p_fighter_id: string }
         Returns: undefined
       }
+      update_finance_category: {
+        Args: {
+          p_category_id: string
+          p_description?: string
+          p_name: string
+          p_sort_order?: number
+        }
+        Returns: string
+      }
       update_my_organization: {
         Args: {
           p_city_id?: string
@@ -12127,7 +14787,7 @@ export type Database = {
         | "Sponsor"
         | "Vendeur"
         | "Club"
-        | "F├®d├®ration"
+        | "Fédération"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -12143,12 +14803,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -12172,11 +14832,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -12197,11 +14857,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -12222,11 +14882,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -12239,11 +14899,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -12296,7 +14956,7 @@ export const Constants = {
         "Sponsor",
         "Vendeur",
         "Club",
-        "F├®d├®ration",
+        "Fédération",
       ],
     },
   },

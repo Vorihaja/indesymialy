@@ -1,7 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/infrastructure/supabase/database.types";
 import { normalizeBackendError } from "@/shared/errors/backend-error";
-import { MarketplaceMemoryRepository } from "./marketplace-memory.repository";
 import type {
   InventoryItem,
   MarketplaceProduct,
@@ -12,12 +11,11 @@ import type {
 type ProductRow = Database["public"]["Tables"]["products"]["Row"];
 const overlays = new Map<string, Partial<MarketplaceProduct>>();
 
-export class MarketplaceSupabaseRepository extends MarketplaceMemoryRepository {
+export class MarketplaceSupabaseRepository {
   constructor(private readonly supabase: SupabaseClient<Database>) {
-    super();
   }
 
-  override async listProducts(): Promise<MarketplaceProduct[]> {
+  async listProducts(): Promise<MarketplaceProduct[]> {
     try {
       const [
         productsResult,
@@ -46,7 +44,7 @@ export class MarketplaceSupabaseRepository extends MarketplaceMemoryRepository {
     }
   }
 
-  override async findProduct(id: string): Promise<MarketplaceProduct | null> {
+  async findProduct(id: string): Promise<MarketplaceProduct | null> {
     try {
       const { data, error } = await this.supabase
         .from("products")
@@ -70,7 +68,7 @@ export class MarketplaceSupabaseRepository extends MarketplaceMemoryRepository {
     }
   }
 
-  override async createProduct(input: ProductInput): Promise<MarketplaceProduct> {
+  async createProduct(input: ProductInput): Promise<MarketplaceProduct> {
     try {
       const { data, error } = await this.supabase
         .from("products")
@@ -96,7 +94,7 @@ export class MarketplaceSupabaseRepository extends MarketplaceMemoryRepository {
     }
   }
 
-  override async updateProduct(id: string, input: ProductInput): Promise<MarketplaceProduct> {
+  async updateProduct(id: string, input: ProductInput): Promise<MarketplaceProduct> {
     try {
       const { data, error } = await this.supabase
         .from("products")
@@ -123,13 +121,15 @@ export class MarketplaceSupabaseRepository extends MarketplaceMemoryRepository {
     }
   }
 
-  override async deleteProduct(id: string): Promise<void> {
-    const { error } = await this.supabase.from("products").delete().eq("id", id);
-    if (error) throw normalizeBackendError(error);
-    overlays.delete(id);
+  async deleteProduct(_id: string): Promise<void> {
+    void _id;
+
+    throw new Error(
+      "La suppression physique des produits Indesy Bazar est interdite. Utilisez le cycle de vie du produit.",
+    );
   }
 
-  override async listInventory(): Promise<InventoryItem[]> {
+  async listInventory(): Promise<InventoryItem[]> {
     return (await this.listProducts()).map((product) => ({
       productId: product.id,
       title: product.title,
@@ -140,17 +140,21 @@ export class MarketplaceSupabaseRepository extends MarketplaceMemoryRepository {
     }));
   }
 
-  override async adjustStock(productId: string, quantity: number): Promise<void> {
-    const product = await this.findProduct(productId);
-    if (!product) return;
-    const { error } = await this.supabase
-      .from("products")
-      .update({ stock: Math.max(0, product.stock + quantity) })
-      .eq("id", productId);
-    if (error) throw normalizeBackendError(error);
+  async adjustStock(
+    _productId: string,
+    _quantity: number,
+    _reason: string,
+  ): Promise<void> {
+    void _productId;
+    void _quantity;
+    void _reason;
+
+    throw new Error(
+      "L’ajustement direct du stock est interdit. Utilisez l’autorité d’inventaire Marketplace.",
+    );
   }
 
-  override async sellerStatistics(): Promise<SellerStatistics> {
+  async sellerStatistics(): Promise<SellerStatistics> {
     const products = await this.listProducts();
     return {
       products: products.length,

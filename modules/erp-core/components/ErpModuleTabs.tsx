@@ -4,13 +4,14 @@ import {
   useEffect,
   useRef,
 } from "react";
+import type { ErpTabDefinition } from "@/modules/erp-navigation";
 
 type ErpModuleTabsProps = {
-  tabs: readonly string[];
+  tabs: readonly ErpTabDefinition[];
   active: string;
-  onChange: (tab: string) => void;
+  onChange: (tabId: string) => void;
   ariaLabel: string;
-  getDisplayLabel?: (tab: string) => string;
+  getDisplayLabel?: (tab: ErpTabDefinition) => string;
 };
 
 export function ErpModuleTabs({
@@ -18,7 +19,7 @@ export function ErpModuleTabs({
   active,
   onChange,
   ariaLabel,
-  getDisplayLabel = (tab) => tab,
+  getDisplayLabel = (tab) => tab.label,
 }: ErpModuleTabsProps) {
   const activeTabRef = useRef<HTMLButtonElement>(null);
 
@@ -37,20 +38,21 @@ export function ErpModuleTabs({
       aria-label={ariaLabel}
     >
       {tabs.map((tab) => {
-        const selected = active === tab;
+        const selected = active === tab.id;
 
         return (
           <button
-            key={tab}
+            key={tab.id}
             ref={selected ? activeTabRef : undefined}
             type="button"
-            onClick={() => onChange(tab)}
+            onClick={() => onChange(tab.id)}
             role="tab"
             aria-selected={selected}
+            data-active={selected}
             className={[
-              "relative flex-none px-3 text-[9px] font-semibold uppercase tracking-[0.04em] transition-colors",
+              "erp-module-tab relative flex-none px-3 text-[9px] font-semibold uppercase tracking-[0.04em] transition-colors",
               selected
-                ? "text-white"
+                ? "is-active"
                 : "text-zinc-500 hover:text-zinc-200",
             ].join(" ")}
           >
@@ -58,7 +60,7 @@ export function ErpModuleTabs({
 
             {selected && (
               <span
-                className="absolute inset-x-3 bottom-0 h-[2px] bg-[#ff1638]"
+                className="erp-module-tab-indicator absolute inset-x-3 bottom-0 h-[2px]"
                 aria-hidden="true"
               />
             )}

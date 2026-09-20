@@ -1,1 +1,11 @@
-import { CoachManagementFeature } from "@/modules/coaches"; export default async function Page({ params }: { params: Promise<{ id: string }> }) { const { id } = await params; return <CoachManagementFeature mode="detail" recordId={id}/>; }
+import { redirect } from "next/navigation";
+
+/*
+ * INDESY CRUD FALLBACK P0
+ *
+ * L'ancien CRUD management generique est retire.
+ * Cette route historique conduit vers le module canonique.
+ */
+export default function Page() {
+  redirect("/dashboard/coach");
+}

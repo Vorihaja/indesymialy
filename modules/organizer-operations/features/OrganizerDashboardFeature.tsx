@@ -8,8 +8,9 @@ import {
   OrganizerDashboard,
 } from "../components/OrganizerDashboard";
 
-import {
 import IndesyDualOrbitLoader from "@/components/loading/IndesyDualOrbitLoader";
+
+import {
   useOrganizerDashboard,
 } from "../hooks/useOrganizerOperations";
 

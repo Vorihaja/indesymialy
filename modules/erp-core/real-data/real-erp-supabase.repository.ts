@@ -14,20 +14,6 @@ const date = (value: unknown) => {
 };
 const normalize = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const asRows = (value: unknown[] | null) => (value ?? []) as Row[];
-const workspaceModules: Partial<Record<RealErpQuery["role"], Set<string>>> = {
-  "super-admin": new Set(["platform", "users", "organizations", "governance", "content", "analytics", "live"]),
-  admin: new Set(["users", "organizations", "moderation", "support", "reports", "live"]),
-  federation: new Set(["affiliations", "communication", "performance"]),
-  league: new Set(["clubs", "officials", "development", "performance"]),
-  club: new Set(["communication", "performance"]),
-  coach: new Set(["camps", "performance", "communication"]),
-  referee: new Set(["assignments", "availability", "evaluations", "communication"]),
-  judge: new Set(["assignments", "scorecards", "availability", "performance"]),
-  sponsor: new Set(["portfolio", "opportunities", "campaigns", "deliverables", "activations", "performance", "live"]),
-  seller: new Set(["orders", "customers", "delivery", "promotions", "performance", "live"]),
-  fan: new Set(["following", "live", "content", "community", "rewards"]),
-};
-
 function buildData(
   query: RealErpQuery,
   columns: string[],
@@ -76,6 +62,13 @@ function mutation(
 }
 export class RealErpSupabaseRepository {
   constructor(private readonly supabase: SupabaseClient<Database>) {}
+
+  private officialProfiles(limit = 50) {
+    return this.supabase.rpc("search_event_official_candidates", {
+      p_limit: limit,
+      p_query: "",
+    });
+  }
 
   private async context(): Promise<Context> {
     const { data, error } = await this.supabase.auth.getUser();
@@ -210,32 +203,34 @@ export class RealErpSupabaseRepository {
 
   async load(query: RealErpQuery): Promise<RealErpData> {
     const context = await this.context();
-    const key = normalize(`${query.moduleId} ${query.moduleLabel} ${query.tab}`);
+    // INDESY CRUD FALLBACK P0:
+    // les libelles de modules ne participent plus au dispatch.
+    const key = query.tab;
 
     if (query.role === "organizer" && query.moduleId === "events") {
-      if (/inscription/.test(key)) return this.eventRegistrations(query, context);
-      if (/categorie/.test(key)) return this.competitionCategories(query, context);
-      if (/club/.test(key)) return this.eventParticipants(query, context);
-      if (/planning/.test(key)) return this.eventSchedule(query, context);
-      if (/competition/.test(key)) return this.competitions(query, context);
+      if (["registrations", "registration"].includes(key)) return this.eventRegistrations(query, context);
+      if (key === "categories") return this.competitionCategories(query, context);
+      if (key === "engaged-clubs") return this.eventParticipants(query, context);
+      if (key === "planning") return this.eventSchedule(query, context);
+      if (key === "competitions") return this.competitions(query, context);
       return this.events(query, context);
     }
     if (query.role === "organizer" && query.moduleId === "fight-center") {
-      if (/pesee/.test(key)) return this.weighIns(query, context);
-      if (/remplacement/.test(key)) return this.fightReplacements(query, context);
-      if (/combattants/.test(key)) return this.eventFighters(query, context);
-      if (/fight card|matchmaking/.test(key)) return this.eventFightCards(query, context);
+      if (key === "weigh-in") return this.weighIns(query, context);
+      if (key === "replacements") return this.fightReplacements(query, context);
+      if (key === "fighters") return this.eventFighters(query, context);
+      if (["fight-card", "matchmaking"].includes(key)) return this.eventFightCards(query, context);
       return this.organizerFights(query, context);
     }
-    if (query.role === "organizer" && query.moduleId === "operations" && /checklist/.test(key)) return this.eventChecklists(query, context);
-    if (query.role === "organizer" && query.moduleId === "operations" && /planning/.test(key)) return this.eventSchedule(query, context);
+    if (query.role === "organizer" && query.moduleId === "operations" && key === "checklists") return this.eventChecklists(query, context);
+    if (query.role === "organizer" && query.moduleId === "operations" && key === "planning") return this.eventSchedule(query, context);
     if (query.role === "organizer" && query.moduleId === "operations") {
-      if (/logistique/.test(key)) return this.eventOperations(query, context, "logistics");
-      if (/securite/.test(key)) return this.eventOperations(query, context, "security");
-      if (/medical/.test(key)) return this.eventOperations(query, context, "medical");
-      if (/communication/.test(key)) return this.eventOperations(query, context, "communication");
-      if (/document/.test(key)) return this.eventOperations(query, context, "document");
-      if (/incident/.test(key)) return this.eventOperations(query, context, "incident");
+      if (key === "logistics") return this.eventOperations(query, context, "logistics");
+      if (key === "security") return this.eventOperations(query, context, "security");
+      if (key === "medical") return this.eventOperations(query, context, "medical");
+      if (key === "communication") return this.eventOperations(query, context, "communication");
+      if (key === "documents") return this.eventOperations(query, context, "document");
+      if (key === "incidents") return this.eventOperations(query, context, "incident");
     }
     if (query.role === "organizer" && query.moduleId === "partners") {
       if (/livrable/.test(key)) return this.organizerSponsorDeliverables(query, context);
@@ -269,10 +264,63 @@ export class RealErpSupabaseRepository {
       if (/transaction/.test(key)) return this.eventFinance(query, context);
       return this.eventFinanceOverview(query, context);
     }
-    if (workspaceModules[query.role]?.has(query.moduleId)) return this.workspaceRecords(query, context);
+    /*
+     * INDESY CRUD FALLBACK P0
+     *
+     * Ces modules ne doivent jamais etre interpretes comme une autre
+     * entite metier ni tomber dans erp_workspace_records.
+     */
+    if (
+      ["calendar", "management", "statistics"].includes(
+        query.moduleId,
+      )
+    ) {
+      return this.unsupported(query);
+    }
+
+    if (
+      ["profile", "settings", "notifications"].includes(
+        query.moduleId,
+      )
+    ) {
+      return this.identity(query, context);
+    }
+
+    if (query.moduleId === "performance") {
+      if (
+        query.role === "fighter" &&
+        /sport|combat/.test(normalize(query.tab))
+      ) {
+        return this.fights(query, context);
+      }
+
+      return this.unsupported(query);
+    }
+
+    if (
+      query.role === "organizer" &&
+      ["marketplace", "control-room"].includes(query.moduleId)
+    ) {
+      return this.unsupported(query);
+    }
+
+    if (
+      query.role === "sponsor" &&
+      [
+        "portfolio",
+        "opportunities",
+        "contracts",
+        "campaigns",
+        "deliverables",
+        "activations",
+        "live",
+      ].includes(query.moduleId)
+    ) {
+      return this.unsupported(query);
+    }
 
     if (/overview|vue d.ensemble/.test(key)) {
-      if (query.role === "fighter" || query.role === "referee" || query.role === "judge") return this.fights(query, context);
+      if (query.role === "fighter" || query.role === "official" || query.role === "referee" || query.role === "judge") return this.fights(query, context);
       if (query.role === "seller") return this.products(query, context);
       if (query.role === "sponsor") return this.sponsors(query);
       if (["club", "coach", "federation", "league"].includes(query.role)) return this.people(query, context);
@@ -291,7 +339,7 @@ export class RealErpSupabaseRepository {
     if (/licence|document|conformite|medical|certificat|suspension/.test(key)) return this.licenses(query);
     if (/parametre|profil|compte|organisation|preference|notification|integration/.test(key)) return this.identity(query, context);
 
-    return this.workspaceRecords(query, context);
+    return this.unsupported(query);
   }
 
   async create(entity: RealErpData["entity"], values: Record<string, string | number | null>, scope?: Pick<RealErpQuery, "role" | "moduleId" | "tab">) {
@@ -1223,7 +1271,7 @@ export class RealErpSupabaseRepository {
       { label: "Événements", value: String(rows.length), detail: "Total accessible", tone: "blue" },
       { label: "Publiés / actifs", value: String(rows.filter((row) => ["published", "active", "live"].includes(text(row.status))).length), detail: "Visibles ou en cours", tone: "green" },
       { label: "Brouillons", value: String(rows.filter((row) => text(row.status) === "draft").length), detail: "À finaliser", tone: "amber" },
-    ], query.role === "fan" ? undefined : mutation("events", rows, fields));
+    ], query.role === "organizer" ? mutation("events", rows, fields) : undefined);
   }
 
   private async fights(query: RealErpQuery, context: Context) {
@@ -1352,7 +1400,7 @@ export class RealErpSupabaseRepository {
     return buildData(query, ["Produit", "Prix", "Stock"], rows.map((row) => [text(row.name), money(row.price), text(row.stock)]), rows.map((row) => text(row.id)), [
       { label: "Articles", value: String(rows.length), detail: "Catalogue réel", tone: "blue" },
       { label: "Stock total", value: rows.reduce((sum, row) => sum + Number(row.stock ?? 0), 0).toLocaleString("fr-FR"), detail: "Unités disponibles", tone: "green" },
-    ], mutation("products", rows, fields));
+    ], query.role === "seller" ? mutation("products", rows, fields) : undefined);
   }
 
   private async contracts(query: RealErpQuery) {
@@ -2089,22 +2137,22 @@ export class RealErpSupabaseRepository {
     if (request && /juge/.test(tab)) request = request.eq("role", "judge");
     const [result, profilesResult, availabilityResult] = await Promise.all([
       request ? request.order("created_at", { ascending: false }) : Promise.resolve({ data: [], error: null }),
-      this.supabase.from("profiles").select("id,full_name,email").order("full_name"),
+      this.officialProfiles(),
       eventId ? this.supabase.from("official_availability").select("*").eq("event_id", eventId) : Promise.resolve({ data: [], error: null }),
     ]);
     const error = result.error ?? profilesResult.error ?? availabilityResult.error;
     if (error) throw error;
     const rows = asRows(result.data);
-    const names = new Map((profilesResult.data ?? []).map((item) => [item.id, item.full_name]));
+    const names = new Map((profilesResult.data ?? []).map((item) => [item.profile_id, item.full_name]));
     const availability = new Map((availabilityResult.data ?? []).map((item) => [item.official_profile_id, item.availability_status]));
     const fields: RealErpData["fields"] = [
-      { name: "profile_id", label: "Profil officiel", type: "select", options: [{ label: "Mention externe", value: "" }, ...(profilesResult.data ?? []).map((item) => ({ label: `${item.full_name} · ${item.email}`, value: item.id }))] },
+      { name: "profile_id", label: "Profil officiel", type: "select", options: [{ label: "Mention externe", value: "" }, ...(profilesResult.data ?? []).map((item) => ({ label: item.full_name, value: item.profile_id }))] },
       { name: "mention", label: "Nom / mention", type: "text" },
-      { name: "role", label: "Fonction", type: "select", required: true, options: [{ label: "Arbitre", value: "referee" }, { label: "Juge", value: "judge" }, { label: "Chronométreur", value: "timekeeper" }, { label: "Médecin", value: "doctor" }, { label: "Superviseur", value: "supervisor" }] },
+      { name: "role", label: "Fonction", type: "select", required: true, options: [{ label: "Arbitre", value: "referee" }, { label: "Juge", value: "judge" }, { label: "Chronométreur", value: "timekeeper" }, { label: "Médecin", value: "doctor" }, { label: "Superviseur", value: "supervisor" }, { label: "Annonceur", value: "announcer" }] },
       { name: "status", label: "Statut", type: "select", required: true, options: [{ label: "Invité", value: "invited" }, { label: "Confirmé", value: "confirmed" }, { label: "Refusé", value: "declined" }, { label: "Annulé", value: "cancelled" }] },
     ];
     return buildData(query, ["Officiel", "Fonction", "Disponibilité", "Statut"], rows.map((row) => [
-      names.get(text(row.profile_id)) ?? text(row.mention), text(row.role), availability.get(text(row.profile_id)) ?? "À confirmer", text(row.status),
+      names.get(text(row.profile_id)) ?? text(row.mention), text(row.role), availability.get(text(row.profile_id)) ?? (row.profile_id ? "Demande non créée" : "Non applicable"), text(row.status),
     ]), rows.map((row) => text(row.id)), undefined, mutation("event_official_assignments", rows, fields));
   }
 
@@ -2115,16 +2163,16 @@ export class RealErpSupabaseRepository {
     const fightIds = (fightsResult.data ?? []).map((item) => item.id);
     const [assignmentsResult, profilesResult] = await Promise.all([
       fightIds.length ? this.supabase.from("fight_official_assignments").select("*").in("fight_id", fightIds).order("assigned_at", { ascending: false }) : Promise.resolve({ data: [], error: null }),
-      this.supabase.from("profiles").select("id,full_name,email").order("full_name"),
+      this.officialProfiles(),
     ]);
     const error = assignmentsResult.error ?? profilesResult.error;
     if (error) throw error;
     const rows = asRows(assignmentsResult.data);
-    const names = new Map((profilesResult.data ?? []).map((item) => [item.id, item.full_name]));
+    const names = new Map((profilesResult.data ?? []).map((item) => [item.profile_id, item.full_name]));
     const fights = new Map((fightsResult.data ?? []).map((item) => [item.id, `#${item.fight_order} · ${item.weight_category}`]));
     const fields: RealErpData["fields"] = [
       { name: "fight_id", label: "Combat", type: "select", required: true, options: (fightsResult.data ?? []).map((item) => ({ label: `#${item.fight_order} · ${item.weight_category}`, value: item.id })) },
-      { name: "user_id", label: "Officiel", type: "select", required: true, options: (profilesResult.data ?? []).map((item) => ({ label: `${item.full_name} · ${item.email}`, value: item.id })) },
+      { name: "user_id", label: "Officiel", type: "select", required: true, options: (profilesResult.data ?? []).map((item) => ({ label: item.full_name, value: item.profile_id })) },
       { name: "role", label: "Fonction", type: "select", required: true, options: [{ label: "Arbitre", value: "referee" }, { label: "Juge", value: "judge" }, { label: "Chronométreur", value: "timekeeper" }, { label: "Médecin", value: "doctor" }, { label: "Superviseur", value: "supervisor" }] },
       { name: "position", label: "Position", type: "number" },
       { name: "status", label: "Statut", type: "select", options: [{ label: "Affecté", value: "assigned" }, { label: "Confirmé", value: "confirmed" }, { label: "Refusé", value: "declined" }, { label: "Terminé", value: "completed" }] },
@@ -2302,6 +2350,37 @@ export class RealErpSupabaseRepository {
       { label:"Engagements",value:money(committed),detail:"À décaisser/encaisser",tone:"amber" },
       { label:"Budgets",value:String((budgets.data??[]).length),detail:"Versions enregistrées",tone:"blue" },
     ]);
+  }
+
+  /*
+   * INDESY CRUD FALLBACK P0
+   *
+   * Un handler absent produit un etat non modifiable explicite.
+   * Il ne lit et n'ecrit aucune entite metier de remplacement.
+   */
+  private unsupported(
+    query: RealErpQuery,
+  ): RealErpData {
+    return {
+      ...buildData(
+        query,
+        [],
+        [],
+        [],
+        [
+          {
+            label: "Etat",
+            value: "INDISPONIBLE",
+            detail: "Aucun handler metier explicite",
+            tone: "amber",
+          },
+        ],
+      ),
+      action: "Indisponible",
+      implementationStatus: "unavailable",
+      emptyMessage:
+        "Ce module n'est pas encore relie a une autorite metier.",
+    };
   }
 
   private async workspaceRecords(query: RealErpQuery, context: Context) {

@@ -1,9 +1,11 @@
+import type { ErpTabDefinition } from "@/modules/erp-navigation";
+
 export type OrganizerModuleId = 'overview' | 'events' | 'fight-center' | 'ticketing' | 'team' | 'operations' | 'partners' | 'finance' | 'performance' | 'personnel' | 'marketplace' | 'calendar' | 'settings' | 'control-room';
 
 export type OrganizerModule = {
   id: OrganizerModuleId;
   label: string;
-  tabs: string[];
+  tabs: readonly ErpTabDefinition[];
   live?: boolean;
 };
 

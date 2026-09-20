@@ -54,7 +54,7 @@ export function FighterOverview({ onNavigate }: { onNavigate: (id: FighterModule
           <div className='p-3'>
             <div className='flex items-center justify-between gap-4'>
               <div><strong className='text-[14px] font-semibold'>Mahajanga Fight Night Vol.3</strong><span className='mt-1 block text-[9px] text-zinc-500'>30 août 2026 · Stade Rabemananjara</span></div>
-              <span className='border border-[#ff1638]/50 bg-[#ff1638]/10 px-2 py-1 text-[8px] font-bold uppercase text-[#ff4058]'>Main card</span>
+              <span className='border border-[#167EFF]/50 bg-[#167EFF]/10 px-2 py-1 text-[8px] font-bold uppercase text-[#4094FF]'>Main card</span>
             </div>
             <div className='my-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3 border-y border-[#292c31] py-3'>
               <div><span className='text-[8px] uppercase text-zinc-500'>Coin rouge</span><button type='button' onClick={() => setToast({ message: 'Profil public de Tiana Rakoto ouvert.', tone: 'info' })} className='mt-1 block text-left text-[12px] font-semibold hover:text-[#3d92ff]'>Tiana Rakoto</button><span className='text-[8px] text-zinc-500'>11–2–1 · Dojo Sakura</span></div>

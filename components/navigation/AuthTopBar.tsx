@@ -8,6 +8,7 @@ import {
 } from "react";
 
 import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
 
 import {
   usePathname,
@@ -46,6 +47,14 @@ import {
   useRole,
 } from "@/modules/auth";
 
+import {
+  getOfficialModuleIdFromPath,
+  isOfficialAccountRole,
+  isOfficialModuleVisible,
+  OFFICIAL_FUNCTION_OPTIONS,
+  useOfficialFunction,
+} from "@/modules/officials/function-context";
+
 
 interface WorkspaceOption {
   slug: string;
@@ -55,6 +64,33 @@ interface WorkspaceOption {
   kind:
     | "business"
     | "system";
+}
+
+
+function getPublicRoleLabel(slug: string, fallback: string) {
+  const normalized = slug.trim().toLocaleLowerCase("fr");
+  const labels: Record<string, string> = {
+    coach: "Coach",
+    entraineur: "Coach",
+    "entraîneur": "Coach",
+    fighter: "Combattant",
+    combattant: "Combattant",
+    referee: "Officiel",
+    arbitre: "Officiel",
+    official: "Officiel",
+    officiel: "Officiel",
+    seller: "Vendeur",
+    vendeur: "Vendeur",
+    organizer: "Organisateur",
+    organisateur: "Organisateur",
+    federation: "Fédération",
+    ligue: "Ligue",
+    club: "Club",
+    sponsor: "Sponsor",
+    fan: "Fan",
+  };
+
+  return labels[normalized] ?? fallback;
 }
 
 
@@ -90,10 +126,10 @@ function pathMatchesWorkspace(
 export default function AuthTopBar() {
 
   const [
-    open,
-    setOpen,
+    openPath,
+    setOpenPath,
   ] =
-    useState(false);
+    useState<string | null>(null);
 
 
   const ref =
@@ -108,6 +144,10 @@ export default function AuthTopBar() {
 
   const pathname =
     usePathname();
+
+
+  const open =
+    openPath === pathname;
 
 
   const {
@@ -136,29 +176,55 @@ export default function AuthTopBar() {
     useRoleRequest();
 
 
+  const {
+    officialFunction,
+    setOfficialFunction,
+  } =
+    useOfficialFunction();
+
+
   // =========================================================
   // BUSINESS WORKSPACES
   // =========================================================
 
   const businessOptions =
     useMemo<WorkspaceOption[]>(
-      () =>
-        roles.map(
-          (role) => ({
-            slug:
-              role.slug,
+      () => {
+        const canonicalOptions =
+          new Map<string, WorkspaceOption>();
 
-            label:
-              getWorkspaceLabel(
-                role.slug,
-              ) ??
-              role.label ??
+        for (const role of roles) {
+          const slug =
+            isOfficialAccountRole(
               role.slug,
+            )
+              ? "official"
+              : role.slug;
 
-            kind:
-              "business",
-          }),
-        ),
+          if (canonicalOptions.has(slug)) {
+            continue;
+          }
+
+          canonicalOptions.set(
+            slug,
+            {
+              slug,
+              label:
+                getPublicRoleLabel(
+                  slug,
+                  getWorkspaceLabel(slug) ??
+                    role.label ??
+                    slug,
+                ),
+              kind: "business",
+            },
+          );
+        }
+
+        return [
+          ...canonicalOptions.values(),
+        ];
+      },
       [
         roles,
       ],
@@ -292,9 +358,7 @@ export default function AuthTopBar() {
         )
       ) {
 
-        setOpen(
-          false,
-        );
+        setOpenPath(null);
       }
     };
 
@@ -307,9 +371,7 @@ export default function AuthTopBar() {
         event.key === "Escape"
       ) {
 
-        setOpen(
-          false,
-        );
+        setOpenPath(null);
       }
     };
 
@@ -342,16 +404,6 @@ export default function AuthTopBar() {
 
   }, []);
 
-
-  useEffect(() => {
-
-    setOpen(
-      false,
-    );
-
-  }, [
-    pathname,
-  ]);
 
 
   // =========================================================
@@ -403,8 +455,24 @@ export default function AuthTopBar() {
 
 
   const activeLabel =
-    active?.label ??
-    "Membre";
+    active
+      ? getPublicRoleLabel(
+          active.slug,
+          active.label,
+        )
+      : "Membre";
+
+  const activeOfficialFunctionLabel =
+    OFFICIAL_FUNCTION_OPTIONS.find(
+      (option) =>
+        option.value ===
+        officialFunction,
+    )?.label ??
+    officialFunction;
+
+  const isOfficialWorkspace =
+    active?.kind === "business" &&
+    active.slug === "official";
 
   const displayName =
     profile?.fullName?.trim() ||
@@ -422,7 +490,7 @@ export default function AuthTopBar() {
       .filter(Boolean)
       .slice(0, 2)
       .map(
-        (part) =>
+        (part: string) =>
           part
             .charAt(0)
             .toUpperCase(),
@@ -439,9 +507,7 @@ export default function AuthTopBar() {
     slug: string,
   ) {
 
-    setOpen(
-      false,
-    );
+    setOpenPath(null);
 
 
     router.push(
@@ -455,9 +521,7 @@ export default function AuthTopBar() {
   const signOut =
     async () => {
 
-      setOpen(
-        false,
-      );
+      setOpenPath(null);
 
 
       await logout();
@@ -503,9 +567,8 @@ export default function AuthTopBar() {
           open
         }
         onClick={() =>
-          setOpen(
-            (value) =>
-              !value,
+          setOpenPath(
+            open ? null : pathname,
           )
         }
         className={[
@@ -539,12 +602,26 @@ export default function AuthTopBar() {
             {displayName}
           </span>
 
-          <span
-            className="mt-1 inline-flex max-w-[138px] truncate border border-[#ff1638]/35 bg-[#ff1638]/10 px-1.5 py-[2px] text-[7px] font-black uppercase leading-none tracking-[0.10em] text-[#ff536b]"
-            title={activeLabel}
-          >
-            {activeLabel}
-          </span>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.span
+              key={`${active?.slug ?? "member"}-${isOfficialWorkspace ? activeOfficialFunctionLabel : "default"}`}
+              className="public-account-role-tag mt-1 inline-flex max-w-[138px] truncate px-1.5 py-[2px] text-[7px] font-black uppercase leading-none tracking-[0.10em]"
+              title={
+                isOfficialWorkspace
+                  ? `${activeLabel} - ${activeOfficialFunctionLabel}`
+                  : activeLabel
+              }
+              initial={{ opacity: 0, y: 3, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -2, scale: 0.98 }}
+              transition={{ duration: 0.18 }}
+            >
+              {activeLabel}
+              {isOfficialWorkspace
+                ? ` - ${activeOfficialFunctionLabel}`
+                : ""}
+            </motion.span>
+          </AnimatePresence>
 
         </span>
 
@@ -602,9 +679,7 @@ export default function AuthTopBar() {
                   )
                 }
                 onClick={() =>
-                  setOpen(
-                    false,
-                  )
+                  setOpenPath(null)
                 }
                 className={
                   menuItemClass
@@ -629,9 +704,7 @@ export default function AuthTopBar() {
               role="menuitem"
               href="/account"
               onClick={() =>
-                setOpen(
-                  false,
-                )
+                setOpenPath(null)
               }
               className={
                 menuItemClass
@@ -654,9 +727,7 @@ export default function AuthTopBar() {
               role="menuitem"
               href="/account/preferences"
               onClick={() =>
-                setOpen(
-                  false,
-                )
+                setOpenPath(null)
               }
               className={
                 menuItemClass
@@ -757,6 +828,84 @@ export default function AuthTopBar() {
           ) : null}
 
 
+          {isOfficialWorkspace ? (
+            <div className="border-t border-white/[0.06] px-1.5 pb-1.5">
+              <div className={
+                sectionLabelClass
+              }>
+                Fonction
+              </div>
+
+              {OFFICIAL_FUNCTION_OPTIONS.map(
+                (option) => {
+                  const selected =
+                    option.value ===
+                    officialFunction;
+
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      role="menuitemradio"
+                      aria-checked={selected}
+                      onClick={() => {
+                        setOfficialFunction(
+                          option.value,
+                        );
+
+                        const moduleId =
+                          getOfficialModuleIdFromPath(
+                            pathname,
+                          );
+
+                        if (
+                          moduleId &&
+                          !isOfficialModuleVisible(
+                            option.value,
+                            moduleId,
+                          )
+                        ) {
+                          router.replace(
+                            "/dashboard/officiel",
+                          );
+                        }
+
+                        setOpenPath(null);
+                      }}
+                      className={[
+                        menuItemClass,
+                        selected
+                          ? "bg-[#2588ff]/[0.055] text-zinc-100"
+                          : "",
+                      ].join(" ")}
+                    >
+                      <UserRound
+                        size={12}
+                        className={
+                          selected
+                            ? "text-[#4b9cff]"
+                            : "text-zinc-700"
+                        }
+                      />
+
+                      <span className="min-w-0 flex-1 truncate">
+                        {option.label}
+                      </span>
+
+                      {selected ? (
+                        <Check
+                          size={12}
+                          className="text-[#4b9cff]"
+                        />
+                      ) : null}
+                    </button>
+                  );
+                },
+              )}
+            </div>
+          ) : null}
+
+
           {/* =================================================
               SYSTEM ACCESS
           ================================================= */}
@@ -848,9 +997,7 @@ export default function AuthTopBar() {
               type="button"
               onClick={() => {
 
-                setOpen(
-                  false,
-                );
+                setOpenPath(null);
 
 
                 openModal();

@@ -23,6 +23,7 @@ export type CommunicationRole =
   | "coach"
   | "club"
   | "organizer"
+  | "official"
   | "referee"
   | "judge"
   | "sponsor"

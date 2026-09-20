@@ -1,1 +1,15 @@
-import { RoleGuard } from "@/modules/auth/guards"; import { FightLiveWorkspaceFeature } from "@/modules/fight-live"; export default async function Page({ params }: { params: Promise<{ fightId: string }> }) { const { fightId } = await params; return <RoleGuard role="judge"><FightLiveWorkspaceFeature fightId={fightId} mode="judge" section="scorecard" /></RoleGuard>; }
+import { LegacyJudgeRedirect } from "@/modules/officials/components/LegacyJudgeRedirect";
+
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ fightId: string }>;
+}) {
+  const { fightId } = await params;
+
+  return (
+    <LegacyJudgeRedirect
+      target={`/dashboard/officiel/scorecards/${fightId}`}
+    />
+  );
+}

@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from 'react';
 
 const cx = (...values: Array<string | false | null | undefined>) => values.filter(Boolean).join(' ');
 
-type Tone = 'neutral' | 'success' | 'warning' | 'danger' | 'info';
+export type SemanticTone = 'neutral' | 'success' | 'warning' | 'danger' | 'info';
 type BoxProps = HTMLAttributes<HTMLDivElement> & { glass?: boolean; interactive?: boolean };
 
 export function Card({ className, glass, interactive, ...props }: BoxProps) {
@@ -15,7 +15,7 @@ export const CardContent = CardHeader;
 export const CardFooter = CardHeader;
 
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+  variant?: 'primary' | 'secondary' | 'info' | 'success' | 'outline' | 'ghost' | 'danger';
   size?: 'sm' | 'md' | 'lg'; loading?: boolean; leftIcon?: ReactNode; rightIcon?: ReactNode;
 };
 export function Button({ variant='primary', size='md', loading, leftIcon, rightIcon, className, children, disabled, ...props }: ButtonProps) {
@@ -25,7 +25,7 @@ export function IconButton({ children, 'aria-label': label, className, ...props 
   return <Button className={cx('ds-icon-button', className)} aria-label={label} {...props}>{children}</Button>;
 }
 
-export function Badge({ tone='neutral', className, ...props }: HTMLAttributes<HTMLSpanElement> & { tone?: Tone }) {
+export function Badge({ tone='neutral', className, ...props }: HTMLAttributes<HTMLSpanElement> & { tone?: SemanticTone }) {
   return <span data-tone={tone} className={cx('ds-badge', tone !== 'neutral' && 'ds-'+tone+'-text', className)} {...props} />;
 }
 export function Avatar({ src, alt='', fallback, size='md', className }: { src?: string; alt?: string; fallback?: ReactNode; size?: 'sm'|'md'|'lg'; className?: string }) {
@@ -33,7 +33,7 @@ export function Avatar({ src, alt='', fallback, size='md', className }: { src?: 
   // eslint-disable-next-line @next/next/no-img-element
   return <span className={cx('ds-avatar','ds-avatar-'+size,className)}>{src ? <img src={src} alt={alt} /> : fallback}</span>;
 }
-export function Alert({ tone='info', title, children, className, ...props }: HTMLAttributes<HTMLDivElement> & { tone?: Tone; title?: ReactNode }) {
+export function Alert({ tone='info', title, children, className, ...props }: HTMLAttributes<HTMLDivElement> & { tone?: SemanticTone; title?: ReactNode }) {
   return <div role={tone === 'danger' ? 'alert' : 'status'} data-tone={tone} className={cx('ds-alert',className)} {...props}><div><div className='ds-label'>{title}</div>{children && <div className='ds-caption'>{children}</div>}</div></div>;
 }
 export function Progress({ value, label='Progression', className }: { value:number; label?:string; className?:string }) {
@@ -42,10 +42,10 @@ export function Progress({ value, label='Progression', className }: { value:numb
 export function Skeleton({ className, ...props }: HTMLAttributes<HTMLDivElement>) { return <div aria-hidden='true' className={cx('ds-skeleton',className)} {...props} />; }
 export function Loader({ label='Chargement', className }: { label?:string; className?:string }) { return <span role='status'><span className={cx('ds-loader',className)} /><span className='ds-sr-only'>{label}</span></span>; }
 
-export function Metric({ label, value, trend, direction }: { label:ReactNode; value:ReactNode; trend?:ReactNode; direction?:'up'|'down' }) {
-  return <div className='ds-metric'><div className='ds-metric-label'>{label}</div><div className='ds-metric-value'>{value}</div>{trend && <div className={direction === 'up' ? 'ds-success-text' : direction === 'down' ? 'ds-danger-text' : 'ds-caption'}>{trend}</div>}</div>;
+export function Metric({ label, value, trend, direction, tone='neutral' }: { label:ReactNode; value:ReactNode; trend?:ReactNode; direction?:'up'|'down'; tone?:SemanticTone }) {
+  return <div className='ds-metric' data-tone={tone}><div className='ds-metric-label'>{label}</div><div className='ds-metric-value' data-kpi-value>{value}</div>{trend && <div className={direction === 'up' ? 'ds-success-text' : direction === 'down' ? 'ds-danger-text' : 'ds-caption'}>{trend}</div>}</div>;
 }
-export function MetricCard(props: Parameters<typeof Metric>[0]) { return <Card className='ds-metric-card' interactive><div className='ds-pad'><Metric {...props} /></div></Card>; }
+export function MetricCard(props: Parameters<typeof Metric>[0]) { return <Card className='ds-metric-card' data-tone={props.tone ?? 'neutral'} interactive><div className='ds-pad'><Metric {...props} /></div></Card>; }
 export const StatCard = MetricCard;
 
 export function Section({ className, children, ...props }: HTMLAttributes<HTMLElement>) { return <section className={cx('ds-section',className)} {...props}><div className='ds-section-inner'>{children}</div></section>; }

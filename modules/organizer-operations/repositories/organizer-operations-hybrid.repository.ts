@@ -17,33 +17,15 @@ export class OrganizerOperationsHybridRepository
 
     private readonly persistentRepository:
       OrganizerOperationsPersistentRepository,
-
-    private readonly templateRepository:
-      OrganizerOperationsRepository,
   ) {}
 
   async getDashboard() {
     const context =
       await this.contextRepository.resolve();
 
-    const connected =
-      await this.persistentRepository.getDashboard(
-        context,
-      );
-
-    const templates =
-      await this.templateRepository.getDashboard();
-
-    return {
-      ...templates,
-      ...connected,
-
-      weather:
-        templates.weather,
-
-      quickActions:
-        templates.quickActions,
-    };
+    return this.persistentRepository.getDashboard(
+      context,
+    );
   }
 
   async getSection(
@@ -58,25 +40,20 @@ export class OrganizerOperationsHybridRepository
         section,
       );
 
-    const template =
-      await this.templateRepository.getSection(
-        section,
-      );
-
     return {
-      ...template,
       ...connected,
-
       section,
-
-      capabilities:
-        template.capabilities,
-
-      workflow:
-        template.workflow,
-
-      primaryAction:
-        template.primaryAction,
+      eyebrow: connected.eyebrow ?? "DONNÉES SUPABASE",
+      title: connected.title ?? section.replaceAll("-", " "),
+      description:
+        connected.description ??
+        "Données persistées accessibles dans le périmètre actif.",
+      readiness: connected.readiness ?? 0,
+      metrics: connected.metrics ?? [],
+      workflow: connected.workflow ?? [],
+      alerts: connected.alerts ?? [],
+      primaryAction: connected.primaryAction ?? "",
+      capabilities: connected.capabilities ?? [],
     };
   }
 
