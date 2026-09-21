@@ -12,7 +12,7 @@ export interface AdminDashboardStats {
 
   totalProducts: number;
 
-  activeUsersToday: number;
+  activeUsersToday: number | null;
 
   pendingRequests: number;
 
@@ -97,9 +97,9 @@ export interface AdminDashboardData {
 
   stats: AdminDashboardStats;
 
-  activities: AdminActivity[];
+  activities: AdminActivity[] | null;
 
-  alerts: AdminAlert[];
+  alerts: AdminAlert[] | null;
 
 }
 
