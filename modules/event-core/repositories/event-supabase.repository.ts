@@ -3,21 +3,19 @@ import type { Database } from '@/infrastructure/supabase/database.types';
 import { normalizeBackendError, storageNotImplemented } from '@/shared/errors/backend-error';
 import { OrganizerOperationsError } from '@/modules/organizer-operations/errors';
 import type { OrganizerContextRepository } from '@/modules/organizer-operations/repositories/organizer-operations.repository';
-import { EventMemoryRepository } from './event-memory.repository';
+import type { EventPlatformRepository } from './event-platform.repository';
 import type { EventChecklistItem, EventPlatformSnapshot, EventRecord, EventSponsor, EventStaffAssignment, EventStatus, FightCardEntry } from '../types';
 import type { EventMode } from '../types';
 
 type EventRow = Database['public']['Tables']['events']['Row'];
-const overlays = new Map<string, Partial<EventRecord>>();
-const asStatus = (value: string | null): EventStatus => ['draft', 'published', 'completed', 'cancelled', 'archived'].includes(value ?? '') ? value as EventStatus : 'draft';
+const asStatus = (value: string | null): EventStatus => ['draft', 'published', 'ongoing', 'completed', 'cancelled', 'archived'].includes(value ?? '') ? value as EventStatus : 'draft';
 
-export class EventSupabaseRepository extends EventMemoryRepository {
-  constructor(private readonly supabase: SupabaseClient<Database>, private readonly organizerContext?: OrganizerContextRepository, private readonly mode: EventMode = 'public') { super(); }
+export class EventSupabaseRepository implements EventPlatformRepository {
+  constructor(private readonly supabase: SupabaseClient<Database>, private readonly organizerContext?: OrganizerContextRepository, private readonly mode: EventMode = 'public') {}
   private async organizationId() { return this.organizerContext ? (await this.organizerContext.resolve()).organizationId : null; }
-  private overlayKey(id: string, organizationId: string | null) { return `${organizationId ?? 'unscoped'}:${id}`; }
   private rethrow(reason: unknown): never { if (reason instanceof OrganizerOperationsError) throw reason; throw normalizeBackendError(reason); }
 
-  override async getSnapshot(): Promise<EventPlatformSnapshot> {
+  async getSnapshot(): Promise<EventPlatformSnapshot> {
     // EVENT-PUBLIC-RLS-FIX-1
     //
     // Le site public ne doit jamais charger les données
@@ -273,8 +271,7 @@ export class EventSupabaseRepository extends EventMemoryRepository {
                     name:
                       item.name,
 
-                    category:
-                      item.name,
+                    category: item.category,
 
                     price:
                       item.price,
@@ -286,11 +283,8 @@ export class EventSupabaseRepository extends EventMemoryRepository {
                       item.sold_quantity ??
                       0,
 
-                    reserved:
-                      0,
 
-                    active:
-                      true,
+                    active: item.status === 'active' || item.status === 'published',
                   },
                 ];
               },
@@ -316,75 +310,585 @@ export class EventSupabaseRepository extends EventMemoryRepository {
       }
     }
 
-    const memory = await super.getSnapshot();
     try {
       const organizationId = await this.organizationId();
-      let eventQuery = this.supabase.from('events').select('*').order('created_at', { ascending: false });
-      if (organizationId) eventQuery = eventQuery.eq('organizer_id', organizationId);
+
+      let eventQuery = this.supabase
+        .from('events')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (organizationId) {
+        eventQuery = eventQuery.eq('organizer_id', organizationId);
+      }
+
       const eventsResult = await eventQuery;
-      if (eventsResult.error) throw eventsResult.error;
+
+      if (eventsResult.error) {
+        throw eventsResult.error;
+      }
+
       const events = eventsResult.data ?? [];
-      const eventIds = new Set(events.map((event) => event.id));
-      const [organizationsResult, checklistsResult, sponsorsResult, sponsorNamesResult, staffResult, ticketTypesResult, ticketsResult, salesResult, cardResult, fightsResult] = await Promise.all([
-        this.supabase.from('organizations').select('id,name'), this.supabase.from('event_checklists').select('*'),
-        this.supabase.from('event_sponsors').select('*'), this.supabase.from('sponsors').select('id,name'),
-        this.supabase.from('staff_assignments').select('*'), this.supabase.from('ticket_types').select('*'),
-        this.supabase.from('tickets').select('*'), this.supabase.from('ticket_sales').select('*'),
-        this.supabase.from('fight_card').select('*').order('fight_order'), this.supabase.from('fights').select('*').order('fight_order'),
+
+      if (events.length === 0) {
+        return {
+          events: [],
+          competitions: [],
+          fightCard: [],
+          registrations: [],
+          participants: [],
+          staff: [],
+          checklists: [],
+          sponsors: [],
+          ticketTypes: [],
+          tickets: [],
+          accessLogs: [],
+          schedule: [],
+          results: [],
+          reports: [],
+        };
+      }
+
+      const eventIdList = events.map((event) => event.id);
+      const eventIds = new Set(eventIdList);
+
+      const [
+        organizationsResult,
+        checklistsResult,
+        sponsorsResult,
+        sponsorNamesResult,
+        staffResult,
+        ticketTypesResult,
+        salesResult,
+        cardResult,
+        fightsResult,
+        competitionsResult,
+        registrationsResult,
+        participantsResult,
+        accessLogsResult,
+        scheduleResult,
+        reportsResult,
+      ] = await Promise.all([
+        this.supabase.from('organizations').select('id,name'),
+
+        this.supabase
+          .from('event_checklists')
+          .select('*')
+          .in('event_id', eventIdList),
+
+        this.supabase
+          .from('event_sponsors')
+          .select('*')
+          .in('event_id', eventIdList),
+
+        this.supabase
+          .from('sponsors')
+          .select('id,name'),
+
+        this.supabase
+          .from('staff_assignments')
+          .select('*')
+          .in('event_id', eventIdList),
+
+        this.supabase
+          .from('ticket_types')
+          .select('*')
+          .in('event_id', eventIdList),
+
+
+        this.supabase
+          .from('ticket_sales')
+          .select('*')
+          .in('event_id', eventIdList),
+
+        this.supabase
+          .from('fight_card')
+          .select('*')
+          .in('event_id', eventIdList)
+          .order('fight_order'),
+
+        this.supabase
+          .from('fights')
+          .select('*')
+          .in('event_id', eventIdList)
+          .order('fight_order'),
+
+        this.supabase
+          .from('competitions')
+          .select('*')
+          .in('event_id', eventIdList),
+
+        this.supabase
+          .from('event_registrations')
+          .select('*')
+          .in('event_id', eventIdList)
+          .order('submitted_at', { ascending: false }),
+
+        this.supabase
+          .from('event_participants')
+          .select('*')
+          .in('event_id', eventIdList),
+
+        this.supabase
+          .from('event_access_logs')
+          .select('*')
+          .in('event_id', eventIdList)
+          .order('occurred_at', { ascending: false }),
+
+        this.supabase
+          .from('event_schedule_items')
+          .select('*')
+          .in('event_id', eventIdList)
+          .order('starts_at'),
+
+        this.supabase
+          .from('event_reports')
+          .select('*')
+          .in('event_id', eventIdList)
+          .order('created_at', { ascending: false }),
       ]);
-      const error = [organizationsResult.error, checklistsResult.error, sponsorsResult.error, sponsorNamesResult.error, staffResult.error, ticketTypesResult.error, ticketsResult.error, salesResult.error, cardResult.error, fightsResult.error].find(Boolean);
-      if (error) throw error;
-      const organizationNames = new Map((organizationsResult.data ?? []).map((item) => [item.id, item.name]));
-      const sponsorNames = new Map((sponsorNamesResult.data ?? []).map((item) => [item.id, item.name]));
-      const salesByEvent = new Map<string, { sold: number; revenue: number }>();
-      (salesResult.data ?? []).filter((sale) => sale.event_id && eventIds.has(sale.event_id)).forEach((sale) => {
-        const eventId = sale.event_id as string; const current = salesByEvent.get(eventId) ?? { sold: 0, revenue: 0 };
-        current.sold += sale.quantity ?? 0; current.revenue += sale.total_amount ?? 0; salesByEvent.set(eventId, current);
-      });
+
+      const firstError = [
+        organizationsResult.error,
+        checklistsResult.error,
+        sponsorsResult.error,
+        sponsorNamesResult.error,
+        staffResult.error,
+        ticketTypesResult.error,
+        salesResult.error,
+        cardResult.error,
+        fightsResult.error,
+        competitionsResult.error,
+        registrationsResult.error,
+        participantsResult.error,
+        accessLogsResult.error,
+        scheduleResult.error,
+        reportsResult.error,
+      ].find(Boolean);
+
+      if (firstError) {
+        throw firstError;
+      }
+
+      const competitions = competitionsResult.data ?? [];
+      const registrations = registrationsResult.data ?? [];
+
+      const competitionIds = competitions.map((item) => item.id);
+      const registrationIds = registrations.map((item) => item.id);
+
+      const [
+        categoriesResult,
+        registrationHistoryResult,
+      ] = await Promise.all([
+        competitionIds.length
+          ? this.supabase
+              .from('competition_categories')
+              .select('*')
+              .in('competition_id', competitionIds)
+          : Promise.resolve({ data: [], error: null }),
+
+        registrationIds.length
+          ? this.supabase
+              .from('event_registration_history')
+              .select('*')
+              .in('registration_id', registrationIds)
+              .order('created_at')
+          : Promise.resolve({ data: [], error: null }),
+      ]);
+
+      if (categoriesResult.error) {
+        throw categoriesResult.error;
+      }
+
+      if (registrationHistoryResult.error) {
+        throw registrationHistoryResult.error;
+      }
+
+      const organizationNames = new Map(
+        (organizationsResult.data ?? []).map(
+          (item) => [item.id, item.name],
+        ),
+      );
+
+      const sponsorNames = new Map(
+        (sponsorNamesResult.data ?? []).map(
+          (item) => [item.id, item.name],
+        ),
+      );
+
+      const categoriesByCompetition = new Map<string, string[]>();
+
+      for (const category of categoriesResult.data ?? []) {
+        const current =
+          categoriesByCompetition.get(category.competition_id) ?? [];
+
+        current.push(category.name);
+
+        categoriesByCompetition.set(
+          category.competition_id,
+          current,
+        );
+      }
+
+      const categoryNames = new Map(
+        (categoriesResult.data ?? []).map(
+          (item) => [item.id, item.name],
+        ),
+      );
+
+      const historyByRegistration = new Map<string, string[]>();
+
+      for (const history of registrationHistoryResult.data ?? []) {
+        const current =
+          historyByRegistration.get(history.registration_id) ?? [];
+
+        current.push(
+          history.to_status +
+            ' — ' +
+            history.created_at +
+            (history.reason ? ' · ' + history.reason : ''),
+        );
+
+        historyByRegistration.set(
+          history.registration_id,
+          current,
+        );
+      }
+
+      const salesByEvent =
+        new Map<string, { sold: number; revenue: number }>();
+
+      for (const sale of salesResult.data ?? []) {
+        if (!sale.event_id || !eventIds.has(sale.event_id)) {
+          continue;
+        }
+
+        const current =
+          salesByEvent.get(sale.event_id) ??
+          { sold: 0, revenue: 0 };
+
+        current.sold += sale.quantity ?? 0;
+        current.revenue += sale.total_amount ?? 0;
+
+        salesByEvent.set(sale.event_id, current);
+      }
+
       const fightsByEvent = new Map<string, number>();
-      (fightsResult.data ?? []).filter((fight) => fight.event_id && eventIds.has(fight.event_id)).forEach((fight) => { const eventId = fight.event_id as string; fightsByEvent.set(eventId, (fightsByEvent.get(eventId) ?? 0) + 1); });
+
+      for (const fight of fightsResult.data ?? []) {
+        if (!fight.event_id || !eventIds.has(fight.event_id)) {
+          continue;
+        }
+
+        fightsByEvent.set(
+          fight.event_id,
+          (fightsByEvent.get(fight.event_id) ?? 0) + 1,
+        );
+      }
+
       return {
-        ...memory,
-        events: events.map((event) => this.mapEvent(event, organizationId, event.organizer_id ? organizationNames.get(event.organizer_id) : undefined, salesByEvent.get(event.id), fightsByEvent.get(event.id) ?? 0)),
-        checklists: (checklistsResult.data ?? []).flatMap((item) => item.event_id && eventIds.has(item.event_id) ? [this.mapChecklist(item)] : []),
-        sponsors: (sponsorsResult.data ?? []).flatMap((item) => item.event_id && eventIds.has(item.event_id) ? [this.mapSponsor(item, item.sponsor_id ? sponsorNames.get(item.sponsor_id) : undefined)] : []),
-        staff: (staffResult.data ?? []).flatMap((item) => item.event_id && eventIds.has(item.event_id) ? [this.mapStaff(item)] : []),
-        ticketTypes: (ticketTypesResult.data ?? []).flatMap((item) => item.event_id && eventIds.has(item.event_id) ? [{ id: item.id, eventId: item.event_id, name: item.name, category: item.name, price: item.price, quota: item.total_quantity, sold: item.sold_quantity ?? 0, reserved: 0, active: true }] : []),
-        tickets: (ticketsResult.data ?? []).flatMap((item) => item.event_id && eventIds.has(item.event_id) ? [{ id: item.id, eventId: item.event_id, ticketTypeId: item.ticket_type, holderName: item.buyer_name, code: item.id, qrPrepared: false, status: 'sold' as const, paymentStatus: 'paid' as const }] : []),
-        fightCard: (cardResult.data ?? []).flatMap((item) => item.event_id && eventIds.has(item.event_id) ? [this.mapFightCard(item)] : []),
+        events: events.map((event) =>
+          this.mapEvent(
+            event,
+            organizationId,
+            event.organizer_id
+              ? organizationNames.get(event.organizer_id)
+              : undefined,
+            salesByEvent.get(event.id),
+            fightsByEvent.get(event.id) ?? 0,
+          ),
+        ),
+
+        competitions: competitions.map((item) => ({
+          id: item.id,
+          eventId: item.event_id,
+          name: item.name,
+          kind:
+            item.kind as EventPlatformSnapshot['competitions'][number]['kind'],
+          categories:
+            categoriesByCompetition.get(item.id) ?? [],
+          rules: item.rules ?? '',
+          participantIds: [],
+          ranking: [],
+        })),
+
+        fightCard: (cardResult.data ?? []).flatMap((item) =>
+          item.event_id && eventIds.has(item.event_id)
+            ? [this.mapFightCard(item)]
+            : [],
+        ),
+
+        registrations: registrations.map((item) => ({
+          id: item.id,
+          eventId: item.event_id,
+          applicantType:
+            item.applicant_type as EventPlatformSnapshot['registrations'][number]['applicantType'],
+          applicantName:
+            item.applicant_profile_id ??
+            item.applicant_organization_id ??
+            '',
+          category:
+            item.competition_category_id
+              ? categoryNames.get(item.competition_category_id) ?? ''
+              : '',
+          weightKg: item.weight_kg ?? undefined,
+          licenceNumber: item.license_number ?? undefined,
+          medicalCertificate: Boolean(item.medical_certificate_path),
+          documents: item.document_paths,
+          paymentStatus:
+            item.payment_status as EventPlatformSnapshot['registrations'][number]['paymentStatus'],
+          status:
+            item.status as EventPlatformSnapshot['registrations'][number]['status'],
+          history:
+            historyByRegistration.get(item.id) ?? [],
+        })),
+
+        participants: (participantsResult.data ?? []).map((item) => ({
+          id: item.id,
+          eventId: item.event_id,
+          name:
+            item.profile_id ??
+            item.organization_id ??
+            '',
+          kind:
+            item.participant_type as EventPlatformSnapshot['participants'][number]['kind'],
+          status: item.status,
+        })),
+
+        staff: (staffResult.data ?? []).flatMap((item) =>
+          item.event_id && eventIds.has(item.event_id)
+            ? [this.mapStaff(item)]
+            : [],
+        ),
+
+        checklists: (checklistsResult.data ?? []).flatMap((item) =>
+          item.event_id && eventIds.has(item.event_id)
+            ? [this.mapChecklist(item)]
+            : [],
+        ),
+
+        sponsors: (sponsorsResult.data ?? []).flatMap((item) =>
+          item.event_id && eventIds.has(item.event_id)
+            ? [
+                this.mapSponsor(
+                  item,
+                  item.sponsor_id
+                    ? sponsorNames.get(item.sponsor_id)
+                    : undefined,
+                ),
+              ]
+            : [],
+        ),
+
+        ticketTypes: (ticketTypesResult.data ?? []).flatMap((item) =>
+          item.event_id && eventIds.has(item.event_id)
+            ? [{
+                id: item.id,
+                eventId: item.event_id,
+                name: item.name,
+                category: item.category,
+                price: item.price,
+                quota: item.total_quantity,
+                sold: item.sold_quantity ?? 0,
+                active: item.status === 'active' || item.status === 'published',
+              }]
+            : [],
+        ),
+
+        tickets: [],
+
+        accessLogs: (accessLogsResult.data ?? []).map((item) => ({
+          id: item.id,
+          ticketId: item.ticket_id,
+          result:
+            item.result as EventPlatformSnapshot['accessLogs'][number]['result'],
+          occurredAt: item.occurred_at,
+          operator: item.operator_profile_id ?? '',
+          zone: item.zone ?? '',
+          manual: item.manual,
+        })),
+
+        schedule: (scheduleResult.data ?? []).map((item) => ({
+          id: item.id,
+          eventId: item.event_id,
+          kind:
+            item.kind as EventPlatformSnapshot['schedule'][number]['kind'],
+          title: item.title,
+          startsAt: item.starts_at,
+          endsAt: item.ends_at,
+          location: item.location ?? '',
+          notificationPrepared: item.notification_prepared,
+        })),
+
+        results: (fightsResult.data ?? [])
+          .filter(
+            (item) =>
+              item.event_id &&
+              (
+                item.status === 'completed' ||
+                item.winner_id !== null ||
+                item.method !== null
+              ),
+          )
+          .map((item) => ({
+            id: 'fight-result-' + item.id,
+            eventId: item.event_id as string,
+            fightId: item.id,
+            title: 'Combat #' + item.fight_order,
+            winner: item.winner_id ?? '',
+            podium: [],
+            decision: item.method ?? '',
+            statistics: (
+              item.ending_round !== null
+                ? { endingRound: item.ending_round }
+                : {}
+            ) as Record<string, number>,
+            published: item.status === 'completed',
+            officialReportPrepared: false,
+            exportPrepared: false,
+            source: 'unknown' as const,
+          })),
+
+        reports: (reportsResult.data ?? []).map((item) => ({
+          id: item.id,
+          eventId: item.event_id,
+          kind:
+            item.kind as EventPlatformSnapshot['reports'][number]['kind'],
+          title: item.title,
+          status:
+            item.status as EventPlatformSnapshot['reports'][number]['status'],
+          generatedAt: item.generated_at ?? undefined,
+          exportPrepared: false,
+        })),
       };
-    } catch (reason) { this.rethrow(reason); }
+    }
+    catch (reason) {
+      this.rethrow(reason);
+    }
   }
 
-  override async getEvent(id: string) { return (await this.getSnapshot()).events.find((event) => event.id === id) ?? null; }
-  override async createEvent(input: Pick<EventRecord, 'title' | 'discipline' | 'venue' | 'city' | 'startsAt'>): Promise<EventRecord> {
+  async getEvent(id: string) { return (await this.getSnapshot()).events.find((event) => event.id === id) ?? null; }
+  async createEvent(
+    input: Pick<
+      EventRecord,
+      'title' | 'discipline' | 'venue' | 'city' | 'startsAt'
+    >,
+  ): Promise<EventRecord> {
     try {
       const organizationId = await this.organizationId();
-      const { data, error } = await this.supabase.from('events').insert({ title: input.title, venue: input.venue, status: 'draft', organizer_id: organizationId }).select().single();
-      if (error) throw error;
-      overlays.set(this.overlayKey(data.id, organizationId), { discipline: input.discipline, city: input.city, startsAt: input.startsAt, endsAt: input.startsAt });
-      return this.mapEvent(data, organizationId);
-    } catch (reason) { this.rethrow(reason); }
+
+      const { data, error } = await this.supabase
+        .from('events')
+        .insert({
+          title: input.title,
+          venue: input.venue,
+          status: 'draft',
+          organizer_id: organizationId,
+          starts_at: input.startsAt,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return this.mapEvent(
+        data,
+        organizationId,
+      );
+    }
+    catch (reason) {
+      this.rethrow(reason);
+    }
   }
-  override async updateEvent(id: string, patch: Partial<EventRecord>) {
+
+  async updateEvent(
+    id: string,
+    patch: Partial<EventRecord>,
+  ) {
     try {
       const organizationId = await this.organizationId();
-      const update: Database['public']['Tables']['events']['Update'] = { updated_at: new Date().toISOString() };
-      if (patch.title !== undefined) update.title = patch.title; if (patch.venue !== undefined) update.venue = patch.venue; if (patch.status !== undefined) update.status = patch.status;
-      let query = this.supabase.from('events').update(update).eq('id', id); if (organizationId) query = query.eq('organizer_id', organizationId);
-      const { data, error } = await query.select().maybeSingle(); if (error) throw error; if (!data) return null;
-      const key = this.overlayKey(id, organizationId); overlays.set(key, { ...(overlays.get(key) ?? {}), ...patch, id }); return this.mapEvent(data, organizationId);
-    } catch (reason) { this.rethrow(reason); }
+
+      const update:
+        Database['public']['Tables']['events']['Update'] = {
+          updated_at: new Date().toISOString(),
+        };
+
+      if (patch.title !== undefined) {
+        update.title = patch.title;
+      }
+
+      if (patch.venue !== undefined) {
+        update.venue = patch.venue;
+      }
+
+      if (patch.status !== undefined) {
+        update.status = patch.status;
+      }
+
+      if (patch.startsAt !== undefined) {
+        update.starts_at = patch.startsAt;
+      }
+
+      if (patch.endsAt !== undefined) {
+        update.ends_at = patch.endsAt;
+      }
+
+      if (patch.capacity !== undefined) {
+        update.capacity =
+          patch.capacity > 0
+            ? patch.capacity
+            : null;
+      }
+
+      if (patch.visibility !== undefined) {
+        update.visibility = patch.visibility;
+      }
+
+      let query = this.supabase
+        .from('events')
+        .update(update)
+        .eq('id', id);
+
+      if (organizationId) {
+        query = query.eq(
+          'organizer_id',
+          organizationId,
+        );
+      }
+
+      const { data, error } = await query
+        .select()
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data) {
+        return null;
+      }
+
+      return this.mapEvent(
+        data,
+        organizationId,
+      );
+    }
+    catch (reason) {
+      this.rethrow(reason);
+    }
   }
-  override async removeEvent(id: string) {
+
+  async removeEvent(id: string) {
     try {
       const organizationId = await this.organizationId(); let query = this.supabase.from('events').delete({ count: 'exact' }).eq('id', id); if (organizationId) query = query.eq('organizer_id', organizationId);
-      const { error, count } = await query; if (error) throw error; overlays.delete(this.overlayKey(id, organizationId)); return Boolean(count);
+      const { error, count } = await query; if (error) throw error; return Boolean(count);
     } catch (reason) { this.rethrow(reason); }
   }
-  override changeEventStatus(id: string, nextStatus: EventStatus) { return this.updateEvent(id, { status: nextStatus }); }
-  override decideRegistration() { return Promise.reject(storageNotImplemented('inscriptions événement')); }
-  override async toggleChecklist(id: string) {
+  changeEventStatus(id: string, nextStatus: EventStatus) { return this.updateEvent(id, { status: nextStatus }); }
+  decideRegistration() { return Promise.reject(storageNotImplemented('inscriptions événement')); }
+  async toggleChecklist(id: string) {
     try {
       const organizationId = await this.organizationId(); const { data, error } = await this.supabase.from('event_checklists').select('is_completed,event_id').eq('id', id).maybeSingle();
       if (error) throw error; if (!data?.event_id) return;
@@ -392,8 +896,55 @@ export class EventSupabaseRepository extends EventMemoryRepository {
       const update = await this.supabase.from('event_checklists').update({ is_completed: !data.is_completed }).eq('id', id); if (update.error) throw update.error;
     } catch (reason) { this.rethrow(reason); }
   }
-  private mapEvent(row: EventRow, organizationId: string | null, organizerName = 'Organisation', sales?: { sold: number; revenue: number }, fights = 0): EventRecord {
-    return { id: row.id, title: row.title, description: '', discipline: '', organizerId: row.organizer_id ?? '', organizerName, venue: row.venue ?? '', region: '', city: '', capacity: row.capacity ?? 0, startsAt: row.starts_at ?? row.created_at ?? new Date(0).toISOString(), endsAt: row.ends_at ?? row.starts_at ?? row.updated_at ?? row.created_at ?? new Date(0).toISOString(), budget: 0, status: asStatus(row.status), visibility: row.visibility === 'public' ? 'public' : row.visibility === 'unlisted' ? 'unlisted' : 'private', contacts: [], statistics: { registrations: 0, ticketsSold: sales?.sold ?? 0, fights, revenue: sales?.revenue ?? 0 }, ...overlays.get(this.overlayKey(row.id, organizationId)) };
+  async validateTicket(
+    code: string,
+    operator: string,
+    zone: string,
+  ): Promise<"accepted" | "used" | "refused" | "duplicate"> {
+    try {
+      /*
+       * L'opérateur réel est auth.uid() dans le RPC.
+       * On n'utilise jamais une chaîne fournie par le client
+       * comme autorité d'identité.
+       */
+      void operator;
+
+      const ticketId = code.trim();
+
+      const { data, error } = await this.supabase.rpc(
+        'record_event_ticket_access',
+        {
+          p_ticket_id: ticketId,
+          p_zone: zone.trim(),
+          p_result: 'accepted',
+          p_manual: false,
+        },
+      );
+
+      if (error) {
+        throw error;
+      }
+
+      if (
+        data !== 'accepted' &&
+        data !== 'used' &&
+        data !== 'refused' &&
+        data !== 'duplicate'
+      ) {
+        throw new Error(
+          'Résultat de contrôle billet invalide.',
+        );
+      }
+
+      return data;
+    }
+    catch (reason) {
+      this.rethrow(reason);
+    }
+  }
+
+  private mapEvent(row: EventRow, _organizationId: string | null, organizerName = 'Organisation', sales?: { sold: number; revenue: number }, fights = 0): EventRecord {
+    return { id: row.id, title: row.title, description: '', discipline: '', organizerId: row.organizer_id ?? '', organizerName, venue: row.venue ?? '', region: '', city: '', capacity: row.capacity ?? 0, startsAt: row.starts_at ?? row.created_at ?? new Date(0).toISOString(), endsAt: row.ends_at ?? row.starts_at ?? row.updated_at ?? row.created_at ?? new Date(0).toISOString(), budget: 0, status: asStatus(row.status), visibility: row.visibility === 'public' ? 'public' : row.visibility === 'unlisted' ? 'unlisted' : 'private', contacts: [], statistics: { registrations: 0, ticketsSold: sales?.sold ?? 0, fights, revenue: sales?.revenue ?? 0 } };
   }
   private mapChecklist(row: Database['public']['Tables']['event_checklists']['Row']): EventChecklistItem { return { id: row.id, eventId: row.event_id as string, category: 'administration', title: row.task_name, assignee: '', dueAt: '', priority: row.critical_blocking ? 'critical' : 'normal', status: row.is_completed ? 'validated' : 'todo' }; }
   private mapSponsor(row: Database['public']['Tables']['event_sponsors']['Row'], name = 'Sponsor'): EventSponsor { return { id: row.id, eventId: row.event_id as string, name, level: 'partner', packageName: '', amount: row.amount, benefits: [], visibility: [], contractPrepared: Boolean(row.contract_start || row.contract_end), deliverables: [], status: 'confirmed', history: [] }; }
