@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/infrastructure/supabase/database.types";
+import { storageNotImplemented } from "../../../shared/errors/backend-error";
 import { ProfessionalMemoryRepository } from "./professional-memory.repository";
 import type {
   ComplianceAlert,
@@ -9,6 +10,39 @@ import type {
   ProfessionalQuery,
   ProfessionalRecord,
 } from "../types";
+
+const PROFESSIONAL_RECORD_STATUSES: readonly ProfessionalRecord["status"][] = [
+  "draft",
+  "pending",
+  "active",
+  "expired",
+  "suspended",
+  "revoked",
+  "rejected",
+  "paid",
+  "unpaid",
+  "cancelled",
+];
+
+function isProfessionalRecordStatus(
+  value: string,
+): value is ProfessionalRecord["status"] {
+  return PROFESSIONAL_RECORD_STATUSES.some((status) => status === value);
+}
+
+function normalizeContractStatus(
+  status: string | null,
+): ProfessionalRecord["status"] {
+  const normalized = status?.trim().toLowerCase();
+
+  if (!normalized || normalized === "en cours") {
+    return "active";
+  }
+
+  return isProfessionalRecordStatus(normalized)
+    ? normalized
+    : "active";
+}
 
 export class ProfessionalSupabaseRepository extends ProfessionalMemoryRepository {
   constructor(private readonly supabase: SupabaseClient<Database>) {
@@ -30,7 +64,7 @@ export class ProfessionalSupabaseRepository extends ProfessionalMemoryRepository
             domain: "contracts",
             title: `Contrat - ${c.type ?? "Professionnel"}`,
             subtitle: `Statut: ${c.status ?? "Actif"}`,
-            status: (c.status as any) || "active",
+            status: normalizeContractStatus(c.status),
             visibility: "private",
             amount: c.amount ? Number(c.amount) : undefined,
             currency: "MGA",
@@ -53,7 +87,16 @@ export class ProfessionalSupabaseRepository extends ProfessionalMemoryRepository
   }
 
   override async create(domain: ProfessionalDomain, input: CreateProfessionalRecord): Promise<ProfessionalRecord> {
-    return super.create(domain, input);
+    void input;
+    throw storageNotImplemented(`création ${domain}`);
+  }
+
+  override async update(): Promise<ProfessionalRecord> {
+    throw storageNotImplemented("mise à jour des dossiers professionnels");
+  }
+
+  override async remove(): Promise<void> {
+    throw storageNotImplemented("suppression des dossiers professionnels");
   }
 
   override async finance(role: ProfessionalQuery["role"]): Promise<FinanceSummary> {

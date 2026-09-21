@@ -86,12 +86,16 @@ export function ProfessionalFeature({
         <form
           onSubmit={(event) => {
             event.preventDefault();
-            void api.create({ title, subtitle }).then(() => {
-              setTitle("");
-              setSubtitle("");
-              setShowForm(false);
-              setMessage("Dossier créé dans le stockage provisoire.");
-            });
+            setMessage(null);
+            void api
+              .create({ title, subtitle })
+              .then(() => {
+                setTitle("");
+                setSubtitle("");
+                setShowForm(false);
+                setMessage("Dossier créé.");
+              })
+              .catch(() => undefined);
           }}
           className="grid gap-2 border border-[#303238] bg-[#151619] p-3 md:grid-cols-[1fr_1fr_auto]"
         >
@@ -148,9 +152,11 @@ export function ProfessionalFeature({
       <ProfessionalTable
         records={api.state.records}
         onRemove={(id) => {
+          setMessage(null);
           void api
             .remove(id)
-            .then(() => setMessage("Dossier supprimé du stockage provisoire."));
+            .then(() => setMessage("Dossier supprimé."))
+            .catch(() => undefined);
         }}
       />
       <ComplianceAlerts alerts={api.state.alerts} />

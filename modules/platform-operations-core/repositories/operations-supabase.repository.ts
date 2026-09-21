@@ -1,5 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/infrastructure/supabase/database.types";
+import {
+  BackendError,
+  normalizeBackendError,
+  storageNotImplemented,
+} from "../../../shared/errors/backend-error";
 import { OperationsMemoryRepository } from "./operations-memory.repository";
 import type {
   CreateOperationsRecord,
@@ -51,36 +56,50 @@ export class OperationsSupabaseRepository extends OperationsMemoryRepository {
   }
 
   override async create(query: OperationsQuery, input: CreateOperationsRecord): Promise<OperationsRecord> {
-    try {
-      if (query.domain === "platform-announcements") {
-        const { data, error } = await this.supabase
-          .from("breaking_news")
-          .insert({ text: input.title })
-          .select()
-          .single();
-
-        if (data && !error) {
-          return {
-            id: data.id,
-            domain: "platform-announcements",
-            title: data.text,
-            summary: data.text,
-            content: data.text,
-            status: "published",
-            priority: input.priority ?? "normal",
-            visibility: "public",
-            category: input.category ?? "announcement",
-            tags: [],
-            details: { banner: true },
-            createdAt: data.created_at ?? new Date().toISOString(),
-            updatedAt: data.created_at ?? new Date().toISOString(),
-          };
-        }
-      }
-      return super.create(query, input);
-    } catch {
-      return super.create(query, input);
+    if (query.domain !== "platform-announcements") {
+      throw storageNotImplemented(`création ${query.domain}`);
     }
+
+    try {
+      const { data, error } = await this.supabase
+        .from("breaking_news")
+        .insert({ text: input.title })
+        .select()
+        .single();
+      if (error) throw error;
+      if (!data) {
+        throw new BackendError(
+          "UNKNOWN_ERROR",
+          "L’annonce n’a pas été confirmée par le stockage distant.",
+        );
+      }
+
+      return {
+        id: data.id,
+        domain: "platform-announcements",
+        title: data.text,
+        summary: data.text,
+        content: data.text,
+        status: "published",
+        priority: input.priority ?? "normal",
+        visibility: "public",
+        category: input.category ?? "announcement",
+        tags: [],
+        details: { banner: true },
+        createdAt: data.created_at ?? new Date().toISOString(),
+        updatedAt: data.created_at ?? new Date().toISOString(),
+      };
+    } catch (reason) {
+      throw normalizeBackendError(reason);
+    }
+  }
+
+  override async update(): Promise<OperationsRecord> {
+    throw storageNotImplemented("mise à jour des opérations plateforme");
+  }
+
+  override async remove(): Promise<void> {
+    throw storageNotImplemented("suppression des opérations plateforme");
   }
 
   override async metrics(): Promise<OperationsMetrics> {

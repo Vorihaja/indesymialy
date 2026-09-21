@@ -122,13 +122,17 @@ export function OperationsFeature({
               setMessage("Le consentement est obligatoire.");
               return;
             }
-            void api.create({ title, summary, content }).then(() => {
-              setTitle("");
-              setSummary("");
-              setContent("");
-              setShowForm(false);
-              setMessage("Demande enregistrée dans le stockage provisoire.");
-            });
+            setMessage(null);
+            void api
+              .create({ title, summary, content })
+              .then(() => {
+                setTitle("");
+                setSummary("");
+                setContent("");
+                setShowForm(false);
+                setMessage("Demande enregistrée.");
+              })
+              .catch(() => undefined);
           }}
           className="space-y-3 rounded-[2px] border border-[#303238] bg-[#151619] p-5"
         >
@@ -219,11 +223,11 @@ export function OperationsFeature({
           <OperationsTable
             records={api.state.records}
             onRemove={(id) => {
+              setMessage(null);
               void api
                 .remove(id)
-                .then(() =>
-                  setMessage("Élément supprimé du stockage provisoire."),
-                );
+                .then(() => setMessage("Élément supprimé."))
+                .catch(() => undefined);
             }}
           />
         </>

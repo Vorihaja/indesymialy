@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/infrastructure/supabase/database.types";
+import { storageNotImplemented } from "../../../shared/errors/backend-error";
 import { SportMemoryRepository } from "./sport-memory.repository";
 import type {
   CreateSportRecord,
@@ -29,7 +30,7 @@ export class SportSupabaseRepository extends SportMemoryRepository {
             domain: "athlete-attendance",
             title: `Présence - ${a.discipline ?? "Entraînement"}`,
             subtitle: `${a.session_date} à ${a.session_time}`,
-            status: (a.status as any) || "completed",
+            status: "completed",
             visibility: "organization",
             discipline: a.discipline ?? "MMA",
             date: a.session_date,
@@ -54,7 +55,16 @@ export class SportSupabaseRepository extends SportMemoryRepository {
   }
 
   override async create(query: SportQuery, input: CreateSportRecord): Promise<SportRecord> {
-    return super.create(query, input);
+    void input;
+    throw storageNotImplemented(`création ${query.domain}`);
+  }
+
+  override async update(): Promise<SportRecord> {
+    throw storageNotImplemented("mise à jour des dossiers sportifs");
+  }
+
+  override async remove(): Promise<void> {
+    throw storageNotImplemented("suppression des dossiers sportifs");
   }
 
   override async metrics(query: SportQuery): Promise<SportMetrics> {

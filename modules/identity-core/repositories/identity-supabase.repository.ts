@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/infrastructure/supabase/database.types";
+import type { Database, Json } from "@/infrastructure/supabase/database.types";
 import { BackendError, normalizeBackendError } from "@/shared/errors/backend-error";
 import { IdentityMemoryRepository } from "./identity-memory.repository";
 import type {
@@ -433,11 +433,19 @@ export class IdentitySupabaseRepository extends IdentityMemoryRepository {
         status: draft.profile.status,
       };
 
-      const { error: profileError } = await this.supabase
+      const { data: updatedProfile, error: profileError } = await this.supabase
         .from("profiles")
         .update(profileUpdate)
-        .eq("id", userId);
+        .eq("id", userId)
+        .select("id")
+        .maybeSingle();
       if (profileError) throw profileError;
+      if (!updatedProfile) {
+        throw new BackendError(
+          "NOT_FOUND",
+          "Le profil à mettre à jour est introuvable ou inaccessible.",
+        );
+      }
 
       const { error: deleteError } = await this.supabase
         .from("user_disciplines")
@@ -455,7 +463,17 @@ export class IdentitySupabaseRepository extends IdentityMemoryRepository {
         if (disciplineError) throw disciplineError;
       }
 
-      return super.saveDraft(draft);
+      const draftData = JSON.parse(JSON.stringify(draft)) as Json;
+      const { error: draftError } = await this.supabase
+        .from("onboarding_progress")
+        .upsert({
+          profile_id: userId,
+          draft_data: draftData,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "profile_id" });
+      if (draftError) throw draftError;
+
+      return draft;
     } catch (reason) {
       throw normalizeBackendError(reason);
     }
@@ -471,7 +489,7 @@ export class IdentitySupabaseRepository extends IdentityMemoryRepository {
         completed_at: new Date().toISOString(),
       }, { onConflict: "profile_id" });
       if (error) throw error;
-      return super.completeOnboarding();
+      return (await this.snapshot()).draft.profile;
     } catch (reason) {
       throw normalizeBackendError(reason);
     }
@@ -516,13 +534,18 @@ export class IdentitySupabaseRepository extends IdentityMemoryRepository {
       if (assignmentError) throw assignmentError;
 
       if (options.makePrimary) {
-        const { error: primaryRoleError } = await this.supabase
+        const { data: updatedProfile, error: primaryRoleError } = await this.supabase
           .from("profiles")
           .update({ primary_role_id: roleId })
-          .eq("id", profileId);
-        if (primaryRoleError) {
-          const normalized = normalizeBackendError(primaryRoleError);
-          if (normalized.code !== "FORBIDDEN") throw normalized;
+          .eq("id", profileId)
+          .select("id")
+          .maybeSingle();
+        if (primaryRoleError) throw primaryRoleError;
+        if (!updatedProfile) {
+          throw new BackendError(
+            "NOT_FOUND",
+            "Le rôle principal n’a pas pu être enregistré.",
+          );
         }
       }
       return { kind: existing ? "already_assigned" : "assigned", role };
