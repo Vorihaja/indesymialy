@@ -5,7 +5,7 @@ import {
   normalizeBackendError,
   storageNotImplemented,
 } from "../../../shared/errors/backend-error";
-import { OperationsMemoryRepository } from "./operations-memory.repository";
+import type { OperationsRepository } from "./operations.repository";
 import type {
   CreateOperationsRecord,
   OperationsMetrics,
@@ -14,48 +14,64 @@ import type {
   PublicSettings,
 } from "../types";
 
-export class OperationsSupabaseRepository extends OperationsMemoryRepository {
-  constructor(private readonly supabase: SupabaseClient<Database>) {
-    super();
-  }
+export class OperationsSupabaseRepository implements OperationsRepository {
+  constructor(private readonly supabase: SupabaseClient<Database>) {}
 
-  override async list(query: OperationsQuery): Promise<OperationsRecord[]> {
+  async list(query: OperationsQuery): Promise<OperationsRecord[]> {
+    if (query.domain !== "platform-announcements") {
+      throw storageNotImplemented(`lecture ${query.domain}`);
+    }
+
     try {
-      const memoryRecords = await super.list(query);
+      const { data: dbNews, error } = await this.supabase
+        .from("breaking_news")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-      if (query.domain === "platform-announcements") {
-        const { data: dbNews } = await this.supabase
-          .from("breaking_news")
-          .select("*")
-          .order("created_at", { ascending: false });
-
-        if (dbNews && dbNews.length > 0) {
-          const dbRecords: OperationsRecord[] = dbNews.map((n) => ({
-            id: n.id,
-            domain: "platform-announcements",
-            title: n.text,
-            summary: n.text,
-            content: n.text,
-            status: "published",
-            priority: "normal",
-            visibility: "public",
-            category: "announcement",
-            tags: ["announcement"],
-            details: { banner: true },
-            createdAt: n.created_at ?? new Date().toISOString(),
-            updatedAt: n.created_at ?? new Date().toISOString(),
-          }));
-          return [...dbRecords, ...memoryRecords.filter((m) => !dbRecords.some((d) => d.id === m.id))];
-        }
+      if (error) {
+        throw error;
       }
 
-      return memoryRecords;
-    } catch {
-      return super.list(query);
+      const records: OperationsRecord[] = (dbNews ?? []).map((news) => ({
+        id: news.id,
+        domain: "platform-announcements",
+        title: news.text,
+        summary: news.text,
+        content: news.text,
+        status: "published",
+        priority: "normal",
+        visibility: "public",
+        category: "announcement",
+        tags: ["announcement"],
+        details: { banner: true },
+        createdAt: news.created_at ?? new Date().toISOString(),
+        updatedAt: news.created_at ?? new Date().toISOString(),
+      }));
+
+      const term = query.search?.trim().toLowerCase();
+
+      return records.filter(
+        (item) =>
+          (!query.detailId ||
+            item.id === query.detailId ||
+            item.slug === query.detailId) &&
+          (!term ||
+            `${item.title} ${item.summary} ${item.tags.join(" ")}`
+              .toLowerCase()
+              .includes(term)) &&
+          (!query.status ||
+            query.status === "all" ||
+            item.status === query.status),
+      );
+    } catch (reason) {
+      throw normalizeBackendError(reason);
     }
   }
 
-  override async create(query: OperationsQuery, input: CreateOperationsRecord): Promise<OperationsRecord> {
+  async create(
+    query: OperationsQuery,
+    input: CreateOperationsRecord,
+  ): Promise<OperationsRecord> {
     if (query.domain !== "platform-announcements") {
       throw storageNotImplemented(`création ${query.domain}`);
     }
@@ -66,7 +82,11 @@ export class OperationsSupabaseRepository extends OperationsMemoryRepository {
         .insert({ text: input.title })
         .select()
         .single();
-      if (error) throw error;
+
+      if (error) {
+        throw error;
+      }
+
       if (!data) {
         throw new BackendError(
           "UNKNOWN_ERROR",
@@ -94,31 +114,19 @@ export class OperationsSupabaseRepository extends OperationsMemoryRepository {
     }
   }
 
-  override async update(): Promise<OperationsRecord> {
+  async update(): Promise<OperationsRecord> {
     throw storageNotImplemented("mise à jour des opérations plateforme");
   }
 
-  override async remove(): Promise<void> {
+  async remove(): Promise<void> {
     throw storageNotImplemented("suppression des opérations plateforme");
   }
 
-  override async metrics(): Promise<OperationsMetrics> {
-    const memoryMetrics = await super.metrics();
-    try {
-      const { count: newsCount } = await this.supabase
-        .from("breaking_news")
-        .select("*", { count: "exact", head: true });
-
-      return {
-        ...memoryMetrics,
-        publishedPages: (newsCount ?? 0) + memoryMetrics.publishedPages,
-      };
-    } catch {
-      return memoryMetrics;
-    }
+  async metrics(): Promise<OperationsMetrics> {
+    throw storageNotImplemented("métriques des opérations plateforme");
   }
 
-  override async settings(): Promise<PublicSettings> {
-    return super.settings();
+  async settings(): Promise<PublicSettings> {
+    throw storageNotImplemented("configuration publique de la plateforme");
   }
 }

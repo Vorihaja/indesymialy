@@ -1,7 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/infrastructure/supabase/database.types";
-import { storageNotImplemented } from "../../../shared/errors/backend-error";
-import { ProfessionalMemoryRepository } from "./professional-memory.repository";
+import {
+  normalizeBackendError,
+  storageNotImplemented,
+} from "../../../shared/errors/backend-error";
+import type { ProfessionalRepository } from "./professional.repository";
 import type {
   ComplianceAlert,
   CreateProfessionalRecord,
@@ -44,66 +47,110 @@ function normalizeContractStatus(
     : "active";
 }
 
-export class ProfessionalSupabaseRepository extends ProfessionalMemoryRepository {
-  constructor(private readonly supabase: SupabaseClient<Database>) {
-    super();
-  }
+export class ProfessionalSupabaseRepository
+  implements ProfessionalRepository
+{
+  constructor(private readonly supabase: SupabaseClient<Database>) {}
 
-  override async list(query: ProfessionalQuery): Promise<ProfessionalRecord[]> {
+  async list(
+    query: ProfessionalQuery,
+  ): Promise<ProfessionalRecord[]> {
+    if (query.domain !== "contracts") {
+      throw storageNotImplemented(`lecture ${query.domain}`);
+    }
+
     try {
-      const memoryRecords = await super.list(query);
+      const { data: dbContracts, error } = await this.supabase
+        .from("contracts")
+        .select("*");
 
-      if (query.domain === "contracts") {
-        const { data: dbContracts } = await this.supabase
-          .from("contracts")
-          .select("*");
-
-        if (dbContracts && dbContracts.length > 0) {
-          const dbRecords: ProfessionalRecord[] = dbContracts.map((c) => ({
-            id: c.id,
-            domain: "contracts",
-            title: `Contrat - ${c.type ?? "Professionnel"}`,
-            subtitle: `Statut: ${c.status ?? "Actif"}`,
-            status: normalizeContractStatus(c.status),
-            visibility: "private",
-            amount: c.amount ? Number(c.amount) : undefined,
-            currency: "MGA",
-            issuedAt: c.start_date ?? undefined,
-            expiresAt: c.end_date ?? undefined,
-            ownerId: c.beneficiary ?? "system",
-            reference: c.ref ?? c.id.slice(0, 8).toUpperCase(),
-            details: { contractType: c.type, note: c.details ?? "" },
-            createdAt: c.created_at ?? new Date().toISOString(),
-            updatedAt: c.created_at ?? new Date().toISOString(),
-          }));
-          return [...dbRecords, ...memoryRecords.filter((m) => !dbRecords.some((d) => d.id === m.id))];
-        }
+      if (error) {
+        throw error;
       }
 
-      return memoryRecords;
-    } catch {
-      return super.list(query);
+      const records: ProfessionalRecord[] = (dbContracts ?? []).map(
+        (contract) => ({
+          id: contract.id,
+          domain: "contracts",
+          title: `Contrat - ${contract.type ?? "Professionnel"}`,
+          subtitle: `Statut: ${contract.status ?? "Actif"}`,
+          status: normalizeContractStatus(contract.status),
+          visibility: "private",
+          amount: contract.amount
+            ? Number(contract.amount)
+            : undefined,
+          currency: "MGA",
+          issuedAt: contract.start_date ?? undefined,
+          expiresAt: contract.end_date ?? undefined,
+          ownerId: contract.beneficiary ?? "system",
+          reference:
+            contract.ref ??
+            contract.id.slice(0, 8).toUpperCase(),
+          details: {
+            contractType: contract.type,
+            note: contract.details ?? "",
+          },
+          createdAt:
+            contract.created_at ??
+            new Date().toISOString(),
+          updatedAt:
+            contract.created_at ??
+            new Date().toISOString(),
+        }),
+      );
+
+      const term = query.search?.trim().toLowerCase();
+
+      return records.filter(
+        (item) =>
+          (!term ||
+            `${item.title} ${item.subtitle} ${item.reference ?? ""}`
+              .toLowerCase()
+              .includes(term)) &&
+          (!query.status ||
+            query.status === "all" ||
+            item.status === query.status),
+      );
+    } catch (reason) {
+      throw normalizeBackendError(reason);
     }
   }
 
-  override async create(domain: ProfessionalDomain, input: CreateProfessionalRecord): Promise<ProfessionalRecord> {
+  async create(
+    domain: ProfessionalDomain,
+    input: CreateProfessionalRecord,
+  ): Promise<ProfessionalRecord> {
     void input;
     throw storageNotImplemented(`création ${domain}`);
   }
 
-  override async update(): Promise<ProfessionalRecord> {
-    throw storageNotImplemented("mise à jour des dossiers professionnels");
+  async update(): Promise<ProfessionalRecord> {
+    throw storageNotImplemented(
+      "mise à jour des dossiers professionnels",
+    );
   }
 
-  override async remove(): Promise<void> {
-    throw storageNotImplemented("suppression des dossiers professionnels");
+  async remove(): Promise<void> {
+    throw storageNotImplemented(
+      "suppression des dossiers professionnels",
+    );
   }
 
-  override async finance(role: ProfessionalQuery["role"]): Promise<FinanceSummary> {
-    return super.finance(role);
+  async finance(
+    role: ProfessionalQuery["role"],
+  ): Promise<FinanceSummary> {
+    void role;
+    throw storageNotImplemented(
+      "synthèse financière professionnelle",
+    );
   }
 
-  override async compliance(role: ProfessionalQuery["role"]): Promise<ComplianceAlert[]> {
-    return super.compliance(role);
+  async compliance(
+    role: ProfessionalQuery["role"],
+  ): Promise<ComplianceAlert[]> {
+    void role;
+    throw storageNotImplemented(
+      "conformité professionnelle",
+    );
   }
 }

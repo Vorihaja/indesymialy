@@ -166,13 +166,32 @@ test("les repositories mémoire restent des doubles de test explicites", async (
   assert.equal((await identity.saveDraft(snapshot.draft)).profile.id, snapshot.draft.profile.id);
 });
 
-test("les fallbacks de lecture reportés à C2-B restent inchangés", async () => {
-  const offlineClient = { from: () => { throw new Error("offline"); } };
+test("C2-B supprime les fallbacks mémoire des lectures distantes supportées", async () => {
+  const offlineClient = {
+    from() {
+      throw new Error("offline");
+    },
+  };
+
   const operations = new OperationsSupabaseRepository(offlineClient);
   const professional = new ProfessionalSupabaseRepository(offlineClient);
   const sport = new SportSupabaseRepository(offlineClient);
 
-  assert.ok((await operations.list(announcements)).length > 0);
-  assert.ok((await professional.list({ domain: "contracts", role: "fighter" })).length > 0);
-  assert.ok((await sport.list({ domain: "athlete-attendance", role: "coach" })).length > 0);
+  await assert.rejects(
+    operations.list(announcements),
+  );
+
+  await assert.rejects(
+    professional.list({
+      domain: "contracts",
+      role: "fighter",
+    }),
+  );
+
+  await assert.rejects(
+    sport.list({
+      domain: "athlete-attendance",
+      role: "coach",
+    }),
+  );
 });
