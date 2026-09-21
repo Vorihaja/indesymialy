@@ -1,19 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/infrastructure/supabase/database.types";
 import { BackendError, normalizeBackendError } from "@/shared/errors/backend-error";
-import { IdentityMemoryRepository } from "./identity-memory.repository";
 import type {
-  AccountPreferences,
-  IdentityOrganization,
-  IdentityRole,
-  IdentityRoleRequest,
-  IdentitySnapshot,
-  OnboardingDraft,
-  PrivateProfile,
-  RoleAssignmentOutcome,
-  RoleRequestStatus,
-} from "../types";
-import type { RegistrationProfile } from "./identity.repository";
+  AccountPreferences, IdentityOrganization, IdentityRole, IdentityRoleRequest, IdentitySnapshot, OnboardingDraft, PrivateProfile, RoleAssignmentOutcome, RoleRequestStatus, } from "../types";
+import type { IdentityRepository, RegistrationProfile } from "./identity.repository";
 import { getPrimaryIdentityRole } from "../routing";
 import {
   isControlledIdentityRole,
@@ -150,11 +140,24 @@ function mapAccountPreferences(
   };
 }
 
-export class IdentitySupabaseRepository extends IdentityMemoryRepository {
-
-  constructor(private readonly supabase: SupabaseClient<Database>) {
-    super();
+function asPersistedOnboardingDraft(
+  value: Json | null | undefined,
+): Partial<OnboardingDraft> {
+  if (
+    value === null ||
+    value === undefined ||
+    typeof value !== "object" ||
+    Array.isArray(value)
+  ) {
+    return {};
   }
+
+  return value as unknown as Partial<OnboardingDraft>;
+}
+
+export class IdentitySupabaseRepository implements IdentityRepository {
+
+  constructor(private readonly supabase: SupabaseClient<Database>) {}
 
   private async userId(): Promise<string> {
     const { data, error } = await this.supabase.auth.getUser();
@@ -188,7 +191,7 @@ export class IdentitySupabaseRepository extends IdentityMemoryRepository {
     if (updateError) throw updateError;
   }
 
-  override async completeRegistration(input: RegistrationProfile): Promise<RoleAssignmentOutcome> {
+  async completeRegistration(input: RegistrationProfile): Promise<RoleAssignmentOutcome> {
     const userId = await this.userId();
     try {
       const { data: existingProfile, error: existingProfileError } = await this.supabase
@@ -235,7 +238,7 @@ export class IdentitySupabaseRepository extends IdentityMemoryRepository {
     }
   }
 
-  override async completePendingRegistration(): Promise<RoleAssignmentOutcome | null> {
+  async completePendingRegistration(): Promise<RoleAssignmentOutcome | null> {
     try {
       const { data, error } = await this.supabase.auth.getUser();
       if (error) throw error;
@@ -256,9 +259,8 @@ export class IdentitySupabaseRepository extends IdentityMemoryRepository {
       throw normalizeBackendError(reason);
     }
   }
-  override async snapshot(): Promise<IdentitySnapshot> {
+  async snapshot(): Promise<IdentitySnapshot> {
     const userId = await this.userId();
-    const memory = await super.snapshot();
 
     try {
       const [
@@ -294,133 +296,488 @@ export class IdentitySupabaseRepository extends IdentityMemoryRepository {
       ]);
 
       const firstError = [
-        profileResult.error, profileRolesResult.error, profileSystemRolesResult.error,
-        rolesResult.error, systemRolesResult.error, disciplinesResult.error,
-        userDisciplinesResult.error, regionsResult.error, citiesResult.error,
-        membershipsResult.error, ownedOrganizationsResult.error,
-        roleRequestsResult.error, preferencesResult.error,
+        profileResult.error,
+        profileRolesResult.error,
+        profileSystemRolesResult.error,
+        rolesResult.error,
+        systemRolesResult.error,
+        disciplinesResult.error,
+        userDisciplinesResult.error,
+        regionsResult.error,
+        citiesResult.error,
+        membershipsResult.error,
+        ownedOrganizationsResult.error,
+        roleRequestsResult.error,
+        preferencesResult.error,
         activeOrganizationResult.error,
       ].find(Boolean);
+
       if (firstError) throw firstError;
+
       let userProfile = profileResult.data;
-      const { data: userData } = await this.supabase.auth.getUser();
-      const registeredUser = userData?.user;
+
+      const {
+        data: userData,
+        error: userError,
+      } = await this.supabase.auth.getUser();
+
+      if (userError) throw userError;
+
+      const registeredUser = userData.user;
+
       if (!userProfile && registeredUser) {
-        const userEmail = registeredUser.email ?? "user@indesy-mialy.mg";
-        const fullName = String(registeredUser.user_metadata?.full_name ?? userEmail.split("@")[0]);
-        const usernameRoot = userEmail
-          .split("@")[0]
-          .toLowerCase()
-          .replace(/[^a-z0-9_.-]/g, "-")
-          .slice(0, 20) || "membre";
-        const username = `${usernameRoot}-${userId.slice(0, 8)}`;
-        const regionId = String(registeredUser.user_metadata?.region_id ?? "");
-        const cityId = String(registeredUser.user_metadata?.city_id ?? "");
-        const { data: createdProfile, error: creationError } = await this.supabase.from("profiles").upsert({
-          id: userId, email: userEmail, full_name: fullName, username, region_id: regionId, city_id: cityId,
-        }).select().maybeSingle();
+        const userEmail =
+          registeredUser.email ??
+          "user@indesy-mialy.mg";
+
+        const fullName = String(
+          registeredUser.user_metadata?.full_name ??
+          userEmail.split("@")[0],
+        );
+
+        const usernameRoot =
+          userEmail
+            .split("@")[0]
+            .toLowerCase()
+            .replace(/[^a-z0-9_.-]/g, "-")
+            .slice(0, 20) ||
+          "membre";
+
+        const username =
+          usernameRoot +
+          "-" +
+          userId.slice(0, 8);
+
+        const regionId = String(
+          registeredUser.user_metadata?.region_id ??
+          "",
+        );
+
+        const cityId = String(
+          registeredUser.user_metadata?.city_id ??
+          "",
+        );
+
+        const {
+          data: createdProfile,
+          error: creationError,
+        } = await this.supabase
+          .from("profiles")
+          .upsert({
+            id: userId,
+            email: userEmail,
+            full_name: fullName,
+            username,
+            region_id: regionId || null,
+            city_id: cityId || null,
+          })
+          .select()
+          .maybeSingle();
+
         if (creationError) throw creationError;
+
         userProfile = createdProfile;
       }
-      const memberRows = membershipsResult.data ?? [];
-      const memberOrganizationIds = memberRows
-        .map((member) => member.organization_id)
-        .filter((id): id is string => Boolean(id));
-      const memberOrganizationsResult = memberOrganizationIds.length
-        ? await this.supabase.from("organizations").select("*").in("id", memberOrganizationIds)
-        : { data: [] as OrganizationRow[], error: null };
-      if (memberOrganizationsResult.error) throw memberOrganizationsResult.error;
 
-      const requestIds = (roleRequestsResult.data ?? []).map((request) => request.id);
-      const historyResult = requestIds.length
-        ? await this.supabase.from("role_request_history").select("*").in("role_request_id", requestIds).order("created_at")
-        : { data: [] as RoleRequestHistoryRow[], error: null };
-      const documentsResult = requestIds.length
-        ? await this.supabase.from("role_request_documents").select("*").in("role_request_id", requestIds).order("created_at")
-        : { data: [] as RoleRequestDocumentRow[], error: null };
-      if (historyResult.error) throw historyResult.error;
-      if (documentsResult.error) throw documentsResult.error;
+      if (!userProfile) {
+        throw new BackendError(
+          "NOT_FOUND",
+          "Le profil authentifié n'a pas pu être chargé depuis le stockage persistant.",
+        );
+      }
 
-      const organizations = new Map<string, OrganizationRow>();
-      [...(ownedOrganizationsResult.data ?? []), ...(memberOrganizationsResult.data ?? [])]
-        .forEach((organization) => organizations.set(organization.id, organization));
+      const memberRows =
+        membershipsResult.data ?? [];
 
-      const businessRoleIds = new Set((profileRolesResult.data ?? []).map((item) => item.role_id));
-      const systemRoleIds = new Set((profileSystemRolesResult.data ?? []).map((item) => item.system_role_id));
-      const businessRoles = (rolesResult.data ?? []).filter((role) => businessRoleIds.has(role.id));
-      const systemRoles = (systemRolesResult.data ?? []).filter((role) => systemRoleIds.has(role.id));
-      const assignedRoles = [
-        ...systemRoles.map((role) => asIdentityRole(role.code)),
-        ...businessRoles.map((role) => asIdentityRole(role.slug)),
-      ].filter((role): role is IdentityRole => role !== null);
-      const storedPrimaryRole = businessRoles.find((role) => role.id === userProfile?.primary_role_id);
-      const preferredRole = asIdentityRole(storedPrimaryRole?.slug);
-      const onboardingResult = await this.supabase
-        .from("onboarding_progress")
-        .select("completed_at")
-        .eq("profile_id", userId)
-        .maybeSingle();
-      if (onboardingResult.error) throw onboardingResult.error;
-      const profile = userProfile
-        ? this.mapProfile(
-            userProfile,
-            userDisciplinesResult.data?.map((item) => item.discipline_id) ?? [],
-            assignedRoles,
-            preferredRole,
-            memory.draft.profile
+      const memberOrganizationIds =
+        memberRows
+          .map(
+            (member) =>
+              member.organization_id,
           )
-        : memory.draft.profile;
-      profile.onboardingComplete = Boolean(onboardingResult.data?.completed_at) || memory.draft.profile.onboardingComplete;
+          .filter(
+            (id): id is string =>
+              Boolean(id),
+          );
 
-      const rolesById = new Map((rolesResult.data ?? []).map((role) => [role.id, role.slug]));
-      const roleRequests = (roleRequestsResult.data ?? []).flatMap((request) => {
-        const role = rolesById.get(request.role_id);
-        const identityRole = role ? asIdentityRole(role) : null;
-        if (!identityRole || !isControlledIdentityRole(identityRole)) return [];
-        return [this.mapRoleRequest(
-          request,
-          identityRole,
-          historyResult.data ?? [],
-          documentsResult.data ?? [],
-        )];
-      });
+      const memberOrganizationsResult =
+        memberOrganizationIds.length
+          ? await this.supabase
+              .from("organizations")
+              .select("*")
+              .in(
+                "id",
+                memberOrganizationIds,
+              )
+          : {
+              data: [] as OrganizationRow[],
+              error: null,
+            };
+
+      if (
+        memberOrganizationsResult.error
+      ) {
+        throw memberOrganizationsResult.error;
+      }
+
+      const requestIds =
+        (roleRequestsResult.data ?? [])
+          .map(
+            (request) =>
+              request.id,
+          );
+
+      const historyResult =
+        requestIds.length
+          ? await this.supabase
+              .from("role_request_history")
+              .select("*")
+              .in(
+                "role_request_id",
+                requestIds,
+              )
+              .order("created_at")
+          : {
+              data:
+                [] as RoleRequestHistoryRow[],
+              error: null,
+            };
+
+      const documentsResult =
+        requestIds.length
+          ? await this.supabase
+              .from("role_request_documents")
+              .select("*")
+              .in(
+                "role_request_id",
+                requestIds,
+              )
+              .order("created_at")
+          : {
+              data:
+                [] as RoleRequestDocumentRow[],
+              error: null,
+            };
+
+      if (historyResult.error) {
+        throw historyResult.error;
+      }
+
+      if (documentsResult.error) {
+        throw documentsResult.error;
+      }
+
+      const organizations =
+        new Map<
+          string,
+          OrganizationRow
+        >();
+
+      [
+        ...(ownedOrganizationsResult.data ??
+          []),
+        ...(memberOrganizationsResult.data ??
+          []),
+      ].forEach(
+        (organization) =>
+          organizations.set(
+            organization.id,
+            organization,
+          ),
+      );
+
+      const businessRoleIds =
+        new Set(
+          (
+            profileRolesResult.data ??
+            []
+          ).map(
+            (item) =>
+              item.role_id,
+          ),
+        );
+
+      const systemRoleIds =
+        new Set(
+          (
+            profileSystemRolesResult.data ??
+            []
+          ).map(
+            (item) =>
+              item.system_role_id,
+          ),
+        );
+
+      const businessRoles =
+        (
+          rolesResult.data ??
+          []
+        ).filter(
+          (role) =>
+            businessRoleIds.has(
+              role.id,
+            ),
+        );
+
+      const systemRoles =
+        (
+          systemRolesResult.data ??
+          []
+        ).filter(
+          (role) =>
+            systemRoleIds.has(
+              role.id,
+            ),
+        );
+
+      const assignedRoles = [
+        ...systemRoles.map(
+          (role) =>
+            asIdentityRole(
+              role.code,
+            ),
+        ),
+        ...businessRoles.map(
+          (role) =>
+            asIdentityRole(
+              role.slug,
+            ),
+        ),
+      ].filter(
+        (
+          role,
+        ): role is IdentityRole =>
+          role !== null,
+      );
+
+      const storedPrimaryRole =
+        businessRoles.find(
+          (role) =>
+            role.id ===
+            userProfile.primary_role_id,
+        );
+
+      const preferredRole =
+        asIdentityRole(
+          storedPrimaryRole?.slug,
+        );
+
+      const onboardingResult =
+        await this.supabase
+          .from("onboarding_progress")
+          .select(
+            "completed_at,accepted_terms_at,draft_data,updated_at",
+          )
+          .eq(
+            "profile_id",
+            userId,
+          )
+          .maybeSingle();
+
+      if (onboardingResult.error) {
+        throw onboardingResult.error;
+      }
+
+      const persistedDraft =
+        asPersistedOnboardingDraft(
+          onboardingResult.data
+            ?.draft_data,
+        );
+
+      const mappedProfile =
+        this.mapProfile(
+          userProfile,
+          userDisciplinesResult.data
+            ?.map(
+              (item) =>
+                item.discipline_id,
+            ) ??
+            [],
+          assignedRoles,
+          preferredRole,
+          persistedDraft.profile,
+        );
+
+      const profile: PrivateProfile = {
+        ...mappedProfile,
+        onboardingComplete:
+          Boolean(
+            onboardingResult.data
+              ?.completed_at,
+          ),
+      };
+
+      const rolesById =
+        new Map(
+          (
+            rolesResult.data ??
+            []
+          ).map(
+            (role) => [
+              role.id,
+              role.slug,
+            ],
+          ),
+        );
+
+      const roleRequests =
+        (
+          roleRequestsResult.data ??
+          []
+        ).flatMap(
+          (request) => {
+            const role =
+              rolesById.get(
+                request.role_id,
+              );
+
+            const identityRole =
+              role
+                ? asIdentityRole(
+                    role,
+                  )
+                : null;
+
+            if (
+              !identityRole ||
+              !isControlledIdentityRole(
+                identityRole,
+              )
+            ) {
+              return [];
+            }
+
+            return [
+              this.mapRoleRequest(
+                request,
+                identityRole,
+                historyResult.data ??
+                  [],
+                documentsResult.data ??
+                  [],
+              ),
+            ];
+          },
+        );
+
+      const documentsPrepared =
+        Array.isArray(
+          persistedDraft.documentsPrepared,
+        )
+          ? persistedDraft.documentsPrepared.filter(
+              (
+                item,
+              ): item is string =>
+                typeof item ===
+                "string",
+            )
+          : [];
+
+      const draft: OnboardingDraft = {
+        profile,
+        roleData:
+          persistedDraft.roleData ??
+          {},
+        organization:
+          persistedDraft.organization,
+        documentsPrepared,
+        acceptedTerms:
+          Boolean(
+            onboardingResult.data
+              ?.accepted_terms_at,
+          ) ||
+          persistedDraft.acceptedTerms ===
+            true,
+        updatedAt:
+          onboardingResult.data
+            ?.updated_at ??
+          userProfile.created_at,
+      };
 
       return {
-        ...memory,
-        draft: { ...memory.draft, profile },
-        organizations: [...organizations.values()].map((organization) =>
-          this.mapOrganization(organization, memberRows)
+        draft,
+        organizations: [
+          ...organizations.values(),
+        ].map(
+          (organization) =>
+            this.mapOrganization(
+              organization,
+              memberRows,
+            ),
         ),
         roleRequests,
         activeOrganizationId:
-          activeOrganizationResult.data?.organization_id ??
+          activeOrganizationResult.data
+            ?.organization_id ??
           undefined,
-        preferences: mapAccountPreferences(preferencesResult.data),
+        preferences:
+          mapAccountPreferences(
+            preferencesResult.data,
+          ),
         sessions: [],
         availableRoles: [
-          ...(rolesResult.data ?? []).flatMap((role) => {
-            const identityRole = asIdentityRole(role.slug);
-            return identityRole && isPublicIdentityRole(identityRole) ? [{
-              role: identityRole,
-              label: role.label,
-              requiresApproval: isControlledIdentityRole(identityRole),
-            }] : [];
-          }),
+          ...(
+            rolesResult.data ??
+            []
+          ).flatMap(
+            (role) => {
+              const identityRole =
+                asIdentityRole(
+                  role.slug,
+                );
+
+              return identityRole &&
+                isPublicIdentityRole(
+                  identityRole,
+                )
+                ? [
+                    {
+                      role:
+                        identityRole,
+                      label:
+                        role.label,
+                      requiresApproval:
+                        isControlledIdentityRole(
+                          identityRole,
+                        ),
+                    },
+                  ]
+                : [];
+            },
+          ),
         ],
-        disciplines: disciplinesResult.data ?? [],
-        regions: regionsResult.data ?? [],
-        cities: (citiesResult.data ?? []).flatMap((city) =>
-          city.region_id
-            ? [{ id: city.id, name: city.name, regionId: city.region_id }]
-            : []
+        disciplines:
+          disciplinesResult.data ??
+          [],
+        regions:
+          regionsResult.data ??
+          [],
+        cities: (
+          citiesResult.data ??
+          []
+        ).flatMap(
+          (city) =>
+            city.region_id
+              ? [
+                  {
+                    id: city.id,
+                    name: city.name,
+                    regionId:
+                      city.region_id,
+                  },
+                ]
+              : [],
         ),
       };
-    } catch (reason) {
-      throw normalizeBackendError(reason);
+    }
+    catch (reason) {
+      throw normalizeBackendError(
+        reason,
+      );
     }
   }
 
-  override async saveDraft(draft: OnboardingDraft): Promise<OnboardingDraft> {
+  async saveDraft(draft: OnboardingDraft): Promise<OnboardingDraft> {
     const userId = await this.userId();
     try {
       const profileUpdate: Database["public"]["Tables"]["profiles"]["Update"] = {
@@ -479,7 +836,7 @@ export class IdentitySupabaseRepository extends IdentityMemoryRepository {
     }
   }
 
-  override async completeOnboarding(): Promise<PrivateProfile> {
+  async completeOnboarding(): Promise<PrivateProfile> {
     const userId = await this.userId();
     try {
       const { error } = await this.supabase.from("onboarding_progress").upsert({
@@ -494,7 +851,7 @@ export class IdentitySupabaseRepository extends IdentityMemoryRepository {
       throw normalizeBackendError(reason);
     }
   }
-  override async updateProfile(patch: Partial<PrivateProfile>): Promise<PrivateProfile> {
+  async updateProfile(patch: Partial<PrivateProfile>): Promise<PrivateProfile> {
     const state = await this.snapshot();
     const draft = {
       ...state.draft,
@@ -503,7 +860,7 @@ export class IdentitySupabaseRepository extends IdentityMemoryRepository {
     return (await this.saveDraft(draft)).profile;
   }
 
-  override async assignFlexibleRole(
+  async assignFlexibleRole(
     role: IdentityRole,
     options: { makePrimary?: boolean } = {},
   ): Promise<RoleAssignmentOutcome> {
@@ -554,7 +911,7 @@ export class IdentitySupabaseRepository extends IdentityMemoryRepository {
     }
   }
 
-  override async createRoleRequest(
+  async createRoleRequest(
     input: Pick<IdentityRoleRequest, "role" | "reason" | "justificationsPrepared">
   ): Promise<IdentityRoleRequest> {
     if (!isControlledIdentityRole(input.role)) {
@@ -619,7 +976,7 @@ export class IdentitySupabaseRepository extends IdentityMemoryRepository {
     }
   }
 
-  override async createOrganization(
+  async createOrganization(
     input: Omit<IdentityOrganization, "id" | "ownerId" | "members" | "status">
   ): Promise<IdentityOrganization> {
     try {
@@ -642,7 +999,7 @@ export class IdentitySupabaseRepository extends IdentityMemoryRepository {
     }
   }
 
-  override async updateOrganization(
+  async updateOrganization(
     id: string,
     patch: Partial<Pick<IdentityOrganization, "name" | "description" | "regionId" | "cityId" | "email" | "phone" | "website" | "disciplines">>
   ): Promise<IdentityOrganization> {
@@ -666,7 +1023,7 @@ export class IdentitySupabaseRepository extends IdentityMemoryRepository {
       throw normalizeBackendError(reason);
     }
   }
-  override async savePreferences(
+  async savePreferences(
     value: AccountPreferences,
   ): Promise<AccountPreferences> {
 
@@ -741,7 +1098,7 @@ export class IdentitySupabaseRepository extends IdentityMemoryRepository {
     }
   }
 
-  override async setActiveOrganization(id: string): Promise<void> {
+  async setActiveOrganization(id: string): Promise<void> {
 
     const userId = await this.userId();
     try {
@@ -791,22 +1148,73 @@ export class IdentitySupabaseRepository extends IdentityMemoryRepository {
     disciplineIds: string[],
     roles: IdentityRole[],
     preferredRole: string | null,
-    memory: PrivateProfile
+    persisted?: Partial<PrivateProfile>,
   ): PrivateProfile {
+    const primaryRole =
+      getPrimaryIdentityRole(
+        roles,
+        preferredRole,
+      );
+
     return {
-      ...memory,
       id: row.id,
       fullName: row.full_name,
       username: row.username,
       email: row.email,
-      phone: row.phone ?? undefined,
-      photoPrepared: row.photo_url ?? undefined,
-      regionId: row.region_id ?? "",
-      cityId: row.city_id ?? "",
+      phone:
+        row.phone ??
+        undefined,
+      photoPrepared:
+        row.photo_url ??
+        (
+          typeof persisted
+            ?.photoPrepared ===
+          "string"
+            ? persisted.photoPrepared
+            : undefined
+        ),
+      birthDate:
+        typeof persisted
+          ?.birthDate ===
+        "string"
+          ? persisted.birthDate
+          : undefined,
+      gender:
+        typeof persisted
+          ?.gender ===
+        "string"
+          ? persisted.gender
+          : undefined,
+      regionId:
+        row.region_id ??
+        "",
+      cityId:
+        row.city_id ??
+        "",
       disciplineIds,
-      primaryRole: getPrimaryIdentityRole(roles, preferredRole),
-      secondaryRoles: roles.filter((role) => role !== getPrimaryIdentityRole(roles, preferredRole)),
-      status: profileStatus(row.status),
+      primaryRole,
+      secondaryRoles:
+        roles.filter(
+          (role) =>
+            role !== primaryRole,
+        ),
+      experience:
+        typeof persisted
+          ?.experience ===
+        "string"
+          ? persisted.experience
+          : undefined,
+      availabilityPrepared:
+        typeof persisted
+          ?.availabilityPrepared ===
+        "string"
+          ? persisted.availabilityPrepared
+          : undefined,
+      status:
+        profileStatus(
+          row.status,
+        ),
+      onboardingComplete: false,
     };
   }
 
