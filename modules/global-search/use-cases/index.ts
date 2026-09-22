@@ -1,1 +1,0 @@
-import{ExploreDiscoveryUseCase}from"@/modules/discovery-core/use-cases/explore-discovery.use-case";import{GlobalSearchService}from"../services";export class ExploreGlobalSearchUseCase extends ExploreDiscoveryUseCase{constructor(){super(new GlobalSearchService());}}

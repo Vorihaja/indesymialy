@@ -1,1 +1,0 @@
-import{ExploreDiscoveryUseCase}from"@/modules/discovery-core/use-cases/explore-discovery.use-case";import{MediaLibraryService}from"../services";export class ExploreMediaLibraryUseCase extends ExploreDiscoveryUseCase{constructor(){super(new MediaLibraryService());}}

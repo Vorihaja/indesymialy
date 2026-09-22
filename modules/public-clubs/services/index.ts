@@ -1,1 +1,0 @@
-import{DiscoveryService}from"@/modules/discovery-core/services/discovery.service";import{PublicClubsRepository}from"../repositories";export class PublicClubsService extends DiscoveryService{constructor(){super(new PublicClubsRepository());}}

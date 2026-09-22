@@ -1,1 +1,0 @@
-import{DiscoveryService}from"@/modules/discovery-core/services/discovery.service";import{RankingsRepository}from"../repositories";export class RankingsService extends DiscoveryService{constructor(){super(new RankingsRepository());}}

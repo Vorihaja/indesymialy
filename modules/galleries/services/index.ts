@@ -1,1 +1,0 @@
-import{DiscoveryService}from"@/modules/discovery-core/services/discovery.service";import{GalleriesRepository}from"../repositories";export class GalleriesService extends DiscoveryService{constructor(){super(new GalleriesRepository());}}

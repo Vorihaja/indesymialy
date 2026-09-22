@@ -1,1 +1,0 @@
-import{DiscoveryService}from"@/modules/discovery-core/services/discovery.service";import{MediaLibraryRepository}from"../repositories";export class MediaLibraryService extends DiscoveryService{constructor(){super(new MediaLibraryRepository());}}

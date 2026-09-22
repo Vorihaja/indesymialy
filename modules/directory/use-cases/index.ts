@@ -1,1 +1,0 @@
-import{ExploreDiscoveryUseCase}from"@/modules/discovery-core/use-cases/explore-discovery.use-case";import{DirectoryService}from"../services";export class ExploreDirectoryUseCase extends ExploreDiscoveryUseCase{constructor(){super(new DirectoryService());}}

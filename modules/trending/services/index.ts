@@ -1,1 +1,0 @@
-import{DiscoveryService}from"@/modules/discovery-core/services/discovery.service";import{TrendingRepository}from"../repositories";export class TrendingService extends DiscoveryService{constructor(){super(new TrendingRepository());}}

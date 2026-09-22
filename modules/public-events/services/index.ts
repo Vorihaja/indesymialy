@@ -1,1 +1,0 @@
-import{DiscoveryService}from"@/modules/discovery-core/services/discovery.service";import{PublicEventsRepository}from"../repositories";export class PublicEventsService extends DiscoveryService{constructor(){super(new PublicEventsRepository());}}

@@ -1,1 +1,0 @@
-import{DiscoveryService}from"@/modules/discovery-core/services/discovery.service";import{GlobalSearchRepository}from"../repositories";export class GlobalSearchService extends DiscoveryService{constructor(){super(new GlobalSearchRepository());}}

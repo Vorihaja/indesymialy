@@ -1,1 +1,0 @@
-import{ExploreDiscoveryUseCase}from"@/modules/discovery-core/use-cases/explore-discovery.use-case";import{RegionsService}from"../services";export class ExploreRegionsUseCase extends ExploreDiscoveryUseCase{constructor(){super(new RegionsService());}}

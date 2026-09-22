@@ -1,1 +1,0 @@
-import{ExploreDiscoveryUseCase}from"@/modules/discovery-core/use-cases/explore-discovery.use-case";import{PublicEventsService}from"../services";export class ExplorePublicEventsUseCase extends ExploreDiscoveryUseCase{constructor(){super(new PublicEventsService());}}

@@ -1,1 +1,0 @@
-import{ExploreDiscoveryUseCase}from"@/modules/discovery-core/use-cases/explore-discovery.use-case";import{RankingsService}from"../services";export class ExploreRankingsUseCase extends ExploreDiscoveryUseCase{constructor(){super(new RankingsService());}}
