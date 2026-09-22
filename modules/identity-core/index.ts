@@ -6,7 +6,6 @@ export * from "./profile-contract";
 export * from "./profile-avatar.types";
 
 export * from "./repositories/identity.repository";
-export * from "./repositories/identity-memory.repository";
 export * from "./repositories/identity-supabase.repository";
 export * from "./repositories/profile-avatar.repository";
 export * from "./repositories/profile-avatar-supabase.repository";

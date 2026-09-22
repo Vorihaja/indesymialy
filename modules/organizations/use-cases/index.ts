@@ -1,1 +1,0 @@
-import{ManageIdentityUseCase}from"@/modules/identity-core/use-cases/manage-identity.use-case";import{OrganizationsService}from"../services";export class ManageOrganizationsUseCase extends ManageIdentityUseCase{constructor(){super(new OrganizationsService());}}

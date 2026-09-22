@@ -1,1 +1,0 @@
-import{ManageIdentityUseCase}from"@/modules/identity-core/use-cases/manage-identity.use-case";import{RoleRequestsService}from"../services";export class ManageRoleRequestsUseCase extends ManageIdentityUseCase{constructor(){super(new RoleRequestsService());}}

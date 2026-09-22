@@ -1,1 +1,0 @@
-import{ManageIdentityUseCase}from"@/modules/identity-core/use-cases/manage-identity.use-case";import{ProfileManagementService}from"../services";export class ManageProfileManagementUseCase extends ManageIdentityUseCase{constructor(){super(new ProfileManagementService());}}

@@ -28,7 +28,6 @@ const [
   { ProfessionalSupabaseRepository },
   { SportMemoryRepository },
   { SportSupabaseRepository },
-  { IdentityMemoryRepository },
 ] = await Promise.all([
   import("./operations-memory.repository.ts"),
   import("./operations-supabase.repository.ts"),
@@ -36,7 +35,6 @@ const [
   import("../../professional-core/repositories/professional-supabase.repository.ts"),
   import("../../sport-development-core/repositories/sport-memory.repository.ts"),
   import("../../sport-development-core/repositories/sport-supabase.repository.ts"),
-  import("../../identity-core/repositories/identity-memory.repository.ts"),
 ]);
 
 const announcements = { domain: "platform-announcements", admin: true };
@@ -142,8 +140,6 @@ test("les repositories mémoire restent des doubles de test explicites", async (
   const operations = new OperationsMemoryRepository();
   const professional = new ProfessionalMemoryRepository();
   const sport = new SportMemoryRepository();
-  const identity = new IdentityMemoryRepository();
-
   assert.equal(
     (await operations.create(
       { domain: "support", admin: false },
@@ -162,8 +158,6 @@ test("les repositories mémoire restent des doubles de test explicites", async (
     )).domain,
     "training",
   );
-  const snapshot = await identity.snapshot();
-  assert.equal((await identity.saveDraft(snapshot.draft)).profile.id, snapshot.draft.profile.id);
 });
 
 test("C2-B supprime les fallbacks mémoire des lectures distantes supportées", async () => {

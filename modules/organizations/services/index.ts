@@ -1,1 +1,0 @@
-import{makeAuthService}from"@/modules/auth/factories/auth.service.factory";import{IdentityService}from"@/modules/identity-core/services/identity.service";import{OrganizationsRepository}from"../repositories";export class OrganizationsService extends IdentityService{constructor(){super(new OrganizationsRepository(),makeAuthService());}}
