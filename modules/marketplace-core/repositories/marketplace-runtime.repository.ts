@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/infrastructure/supabase/database.types";
 import { createSupabaseBrowserClient } from "@/infrastructure/supabase/client";
 import { normalizeBackendError } from "@/shared/errors/backend-error";
+import type { MarketplaceStoreRepository } from "./marketplace-store.repository";
 import { MarketplaceSupabaseRepository } from "./marketplace-supabase.repository";
 import type { CartItem, CheckoutInput, DeliveryRecord, MarketplaceOrder, MarketplaceTransaction, OrderLine, OrderStatus, OrderStatusEntry, PaymentMethod, RentalSelection, SellerCustomer, SellerStatistics } from "../types";
 
@@ -16,7 +17,9 @@ const methods: Record<string, PaymentMethod> = {
   bank_transfer: { id: "bank_transfer", label: "Virement bancaire", type: "bank_transfer", enabled: true },
 };
 
-export class MarketplaceRuntimeRepository extends MarketplaceSupabaseRepository {
+export class MarketplaceRuntimeRepository
+  extends MarketplaceSupabaseRepository
+  implements MarketplaceStoreRepository {
   private readonly runtime: SupabaseClient;
   constructor(client: SupabaseClient<Database>) { super(client); this.runtime = client as unknown as SupabaseClient; }
 

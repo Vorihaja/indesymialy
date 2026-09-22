@@ -1,4 +1,4 @@
-import type { MarketplaceStoreRepository } from "../repositories/marketplace-memory.repository";
+import type { MarketplaceStoreRepository } from "../repositories/marketplace-store.repository";
 import type {
   CheckoutInput,
   OrderStatus,
