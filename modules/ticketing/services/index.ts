@@ -1,1 +1,0 @@
-import{EventPlatformService}from"@/modules/event-core/services/event-platform.service";import{TicketingRepository}from"../repositories";export class TicketingService extends EventPlatformService{constructor(){super(new TicketingRepository());}}

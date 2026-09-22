@@ -1,1 +1,0 @@
-import{ManageEventPlatformUseCase}from"@/modules/event-core/use-cases/manage-event-platform.use-case";import{EventChecklistsService}from"../services";export class ManageEventChecklistsUseCase extends ManageEventPlatformUseCase{constructor(){super(new EventChecklistsService());}}

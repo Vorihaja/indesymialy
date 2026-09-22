@@ -1,1 +1,0 @@
-import{ManageEventPlatformUseCase}from"@/modules/event-core/use-cases/manage-event-platform.use-case";import{EventAccessControlService}from"../services";export class ManageEventAccessControlUseCase extends ManageEventPlatformUseCase{constructor(){super(new EventAccessControlService());}}
