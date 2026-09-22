@@ -3,7 +3,10 @@ import fs from "node:fs";
 import test from "node:test";
 
 const source = fs.readFileSync(
-  new URL("./AdminDetailFeature.tsx", import.meta.url),
+  new URL(
+    "./AdminDetailFeature.tsx",
+    import.meta.url,
+  ),
   "utf8",
 );
 
@@ -23,26 +26,11 @@ test(
 );
 
 test(
-  "users are excluded from memory-backed detail domains",
-  () => {
-    const memoryBlock =
-      source.match(
-        /const memoryDomains[\s\S]*?\]\);/,
-      )?.[0] ?? "";
-
-    assert.doesNotMatch(
-      memoryBlock,
-      /"users"/,
-    );
-  },
-);
-
-test(
   "persistent user detail does not expose unsupported mutations",
   () => {
     const userBlock =
       source.split(
-        "function AdminMemoryDetailFeature",
+        "function AdminOrganizationDetailFeature",
       )[0];
 
     assert.doesNotMatch(
@@ -58,18 +46,42 @@ test(
 );
 
 test(
-  "memory-backed domains remain isolated for later phases",
+  "organization domains are excluded from memory-backed detail",
   () => {
+    const memoryBlock =
+      source.match(
+        /const memoryDomains[\s\S]*?\]\);/,
+      )?.[0] ?? "";
+
     for (const domain of [
       "organizations",
       "clubs",
       "fighters",
       "events",
+      "users",
+    ]) {
+      assert.doesNotMatch(
+        memoryBlock,
+        new RegExp(`"${domain}"`),
+      );
+    }
+  },
+);
+
+test(
+  "remaining memory-backed details are explicitly isolated",
+  () => {
+    const memoryBlock =
+      source.match(
+        /const memoryDomains[\s\S]*?\]\);/,
+      )?.[0] ?? "";
+
+    for (const domain of [
       "moderation",
       "audit-log",
     ]) {
       assert.match(
-        source,
+        memoryBlock,
         new RegExp(`"${domain}"`),
       );
     }

@@ -7,16 +7,25 @@ import {
   type AdminAccessLevel,
   type AdminDomain,
 } from "@/modules/admin-core";
+import {
+  useAdminOrganizations,
+  type AdminOrganizationsDomain,
+} from "@/modules/admin-organizations";
 import { useAdminUsers } from "@/modules/admin-users/hooks";
 
-const memoryDomains = new Set<AdminDomain>([
-  "organizations",
-  "clubs",
-  "fighters",
-  "events",
-  "moderation",
-  "audit-log",
-]);
+const organizationDomains =
+  new Set<AdminOrganizationsDomain>([
+    "organizations",
+    "clubs",
+    "fighters",
+    "events",
+  ]);
+
+const memoryDomains =
+  new Set<AdminDomain>([
+    "moderation",
+    "audit-log",
+  ]);
 
 const stateClass =
   "border border-[#303238] bg-[#151619] p-6 text-sm text-zinc-500";
@@ -50,7 +59,11 @@ function DetailView({
         <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-[#3d92ff]">
           Fiche détaillée
         </p>
-        <h2 className="mt-1 text-xl font-black">{title}</h2>
+
+        <h2 className="mt-1 text-xl font-black">
+          {title}
+        </h2>
+
         <p className="mt-1 text-[10px] text-zinc-500">
           Identifiant : {id}
         </p>
@@ -58,19 +71,23 @@ function DetailView({
 
       <div className="p-4">
         <dl className="grid gap-2 md:grid-cols-2">
-          {cells.map((cell, index) => (
-            <div
-              key={`${id}-${columns[index] ?? index}`}
-              className="border border-[#303238] bg-[#101114] p-3"
-            >
-              <dt className="text-[9px] font-semibold uppercase tracking-[0.08em] text-zinc-500">
-                {columns[index] ?? `Champ ${index + 1}`}
-              </dt>
-              <dd className="mt-1 text-xs font-semibold text-zinc-200">
-                {cell}
-              </dd>
-            </div>
-          ))}
+          {cells.map(
+            (cell, index) => (
+              <div
+                key={`${id}-${columns[index] ?? index}`}
+                className="border border-[#303238] bg-[#101114] p-3"
+              >
+                <dt className="text-[9px] font-semibold uppercase tracking-[0.08em] text-zinc-500">
+                  {columns[index] ??
+                    `Champ ${index + 1}`}
+                </dt>
+
+                <dd className="mt-1 text-xs font-semibold text-zinc-200">
+                  {cell}
+                </dd>
+              </div>
+            ),
+          )}
         </dl>
       </div>
 
@@ -118,7 +135,11 @@ function AdminUserDetailFeature({
   } = useAdminUsers("users");
 
   if (loading) {
-    return <p className={stateClass}>Chargement…</p>;
+    return (
+      <p className={stateClass}>
+        Chargement…
+      </p>
+    );
   }
 
   if (error) {
@@ -153,6 +174,61 @@ function AdminUserDetailFeature({
   );
 }
 
+function AdminOrganizationDetailFeature({
+  domain,
+  id,
+  access,
+}: {
+  domain: AdminOrganizationsDomain;
+  id: string;
+  access: AdminAccessLevel;
+}) {
+  const {
+    data,
+    loading,
+    error,
+  } = useAdminOrganizations(domain);
+
+  if (loading) {
+    return (
+      <p className={stateClass}>
+        Chargement…
+      </p>
+    );
+  }
+
+  if (error) {
+    return (
+      <p className="border border-red-500/30 bg-red-500/5 p-6 text-sm text-red-400">
+        {error}
+      </p>
+    );
+  }
+
+  const row =
+    data?.rows.find(
+      (item) => item.id === id,
+    ) ?? null;
+
+  if (!data || !row) {
+    return (
+      <p className={stateClass}>
+        Ressource introuvable dans le stockage persistant.
+      </p>
+    );
+  }
+
+  return (
+    <DetailView
+      id={id}
+      title={row.cells[0] ?? id}
+      columns={data.columns}
+      cells={row.cells}
+      backHref={`/dashboard/${access}/${domain}`}
+    />
+  );
+}
+
 function AdminMemoryDetailFeature({
   domain,
   id,
@@ -169,7 +245,11 @@ function AdminMemoryDetailFeature({
   } = useAdminDomain(domain);
 
   if (loading) {
-    return <p className={stateClass}>Chargement…</p>;
+    return (
+      <p className={stateClass}>
+        Chargement…
+      </p>
+    );
   }
 
   if (error) {
@@ -219,7 +299,27 @@ export function AdminDetailFeature({
     );
   }
 
-  if (!memoryDomains.has(section as AdminDomain)) {
+  if (
+    organizationDomains.has(
+      section as AdminOrganizationsDomain,
+    )
+  ) {
+    return (
+      <AdminOrganizationDetailFeature
+        domain={
+          section as AdminOrganizationsDomain
+        }
+        id={id}
+        access={access}
+      />
+    );
+  }
+
+  if (
+    !memoryDomains.has(
+      section as AdminDomain,
+    )
+  ) {
     return (
       <p className={stateClass}>
         Ressource inconnue.
