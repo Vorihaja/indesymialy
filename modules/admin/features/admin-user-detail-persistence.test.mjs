@@ -15,27 +15,12 @@ test(
   () => {
     assert.match(
       source,
-      /useAdminUsers\("users"\)/,
+      /useAdminUsers/,
     );
 
     assert.match(
       source,
-      /section === "users"/,
-    );
-  },
-);
-
-test(
-  "persistent user detail does not expose unsupported mutations",
-  () => {
-    const userBlock =
-      source.split(
-        "function AdminOrganizationDetailFeature",
-      )[0];
-
-    assert.doesNotMatch(
-      userBlock,
-      /provisionalMutations\s*\/>/,
+      /section ===\s*"users"/,
     );
 
     assert.match(
@@ -46,64 +31,85 @@ test(
 );
 
 test(
-  "persistent organization domains are excluded from memory-backed detail",
+  "organization details delegate to persistent admin-organizations",
   () => {
-    const memoryBlock =
-      source.match(
-        /const memoryDomains[\s\S]*?\]\);/,
-      )?.[0] ?? "";
+    assert.match(
+      source,
+      /useAdminOrganizations/,
+    );
 
     for (const domain of [
       "organizations",
       "clubs",
       "fighters",
       "events",
-      "users",
     ]) {
-      assert.doesNotMatch(
-        memoryBlock,
-        new RegExp(`"${domain}"`),
+      assert.match(
+        source,
+        new RegExp(
+          `"${domain}"`,
+        ),
       );
     }
-  },
-);
 
-test(
-  "moderation is not backed by fake-memory detail",
-  () => {
-    const memoryBlock =
-      source.match(
-        /const memoryDomains[\s\S]*?\]\);/,
-      )?.[0] ?? "";
-
-    assert.doesNotMatch(
-      memoryBlock,
-      /"moderation"/,
+    assert.match(
+      source,
+      /Ressource introuvable dans le stockage persistant/,
     );
   },
 );
 
 test(
-  "audit log remains the only explicit memory-backed detail domain",
+  "no detail route depends on AdminMemoryRepository infrastructure",
   () => {
-    const memoryBlock =
-      source.match(
-        /const memoryDomains[\s\S]*?\]\);/,
-      )?.[0] ?? "";
+    assert.doesNotMatch(
+      source,
+      /useAdminDomain/,
+    );
 
-    assert.match(
-      memoryBlock,
+    assert.doesNotMatch(
+      source,
+      /AdminMemoryDetailFeature/,
+    );
+
+    assert.doesNotMatch(
+      source,
+      /memoryDomains/,
+    );
+  },
+);
+
+test(
+  "audit log has no fake-memory detail authority",
+  () => {
+    assert.doesNotMatch(
+      source,
       /"audit-log"/,
     );
 
-    const quotedDomains =
-      memoryBlock.match(
-        /"[a-z-]+"/g,
-      ) ?? [];
+    assert.doesNotMatch(
+      source,
+      /stockage provisoire/,
+    );
+  },
+);
 
-    assert.deepEqual(
-      quotedDomains,
-      ['"audit-log"'],
+test(
+  "fake provisional mutation controls were removed from detail view",
+  () => {
+    assert.doesNotMatch(
+      source,
+      /provisionalMutations/,
+    );
+
+    assert.doesNotMatch(
+      source,
+      />Mettre à jour</,
+    );
+
+    assert.doesNotMatch(
+      source,
+      />Suspendre</,
     );
   },
 );

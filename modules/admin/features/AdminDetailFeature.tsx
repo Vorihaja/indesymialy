@@ -2,16 +2,16 @@
 
 import Link from "next/link";
 
-import {
-  useAdminDomain,
-  type AdminAccessLevel,
-  type AdminDomain,
+import type {
+  AdminAccessLevel,
 } from "@/modules/admin-core";
 import {
   useAdminOrganizations,
   type AdminOrganizationsDomain,
 } from "@/modules/admin-organizations";
-import { useAdminUsers } from "@/modules/admin-users/hooks";
+import {
+  useAdminUsers,
+} from "@/modules/admin-users/hooks";
 
 const organizationDomains =
   new Set<AdminOrganizationsDomain>([
@@ -19,11 +19,6 @@ const organizationDomains =
     "clubs",
     "fighters",
     "events",
-  ]);
-
-const memoryDomains =
-  new Set<AdminDomain>([
-    "audit-log",
   ]);
 
 const stateClass =
@@ -41,7 +36,6 @@ interface DetailViewProps {
   columns: string[];
   cells: string[];
   backHref: string;
-  provisionalMutations?: boolean;
 }
 
 function DetailView({
@@ -50,7 +44,6 @@ function DetailView({
   columns,
   cells,
   backHref,
-  provisionalMutations = false,
 }: DetailViewProps) {
   return (
     <section className="border border-[#303238] bg-[#151619]">
@@ -71,7 +64,10 @@ function DetailView({
       <div className="p-4">
         <dl className="grid gap-2 md:grid-cols-2">
           {cells.map(
-            (cell, index) => (
+            (
+              cell,
+              index,
+            ) => (
               <div
                 key={`${id}-${columns[index] ?? index}`}
                 className="border border-[#303238] bg-[#101114] p-3"
@@ -91,24 +87,6 @@ function DetailView({
       </div>
 
       <footer className="flex flex-wrap gap-2 border-t border-[#303238] bg-[#101114] p-4">
-        {provisionalMutations ? (
-          <>
-            <button
-              className="inline-flex h-9 items-center border border-[#d8273f] bg-[#c82335] px-4 text-[10px] font-bold text-white hover:bg-[#df2a43]"
-              type="button"
-            >
-              Mettre à jour
-            </button>
-
-            <button
-              className="inline-flex h-9 items-center border border-red-500/40 bg-red-500/5 px-4 text-[10px] font-semibold text-red-300"
-              type="button"
-            >
-              Suspendre
-            </button>
-          </>
-        ) : null}
-
         <Link
           href={backHref}
           className="inline-flex h-9 items-center border border-[#343840] px-4 text-[10px] font-semibold text-zinc-300 hover:border-[#2588ff]"
@@ -131,7 +109,9 @@ function AdminUserDetailFeature({
     data,
     loading,
     error,
-  } = useAdminUsers("users");
+  } = useAdminUsers(
+    "users",
+  );
 
   if (loading) {
     return (
@@ -151,10 +131,15 @@ function AdminUserDetailFeature({
 
   const row =
     data?.rows.find(
-      (item) => item.id === id,
+      (item) =>
+        item.id ===
+        id,
     ) ?? null;
 
-  if (!data || !row) {
+  if (
+    !data ||
+    !row
+  ) {
     return (
       <p className={stateClass}>
         Utilisateur introuvable dans le stockage persistant.
@@ -165,9 +150,16 @@ function AdminUserDetailFeature({
   return (
     <DetailView
       id={id}
-      title={row.cells[0] ?? id}
-      columns={data.columns}
-      cells={row.cells}
+      title={
+        row.cells[0] ??
+        id
+      }
+      columns={
+        data.columns
+      }
+      cells={
+        row.cells
+      }
       backHref={`/dashboard/${access}/users`}
     />
   );
@@ -186,7 +178,9 @@ function AdminOrganizationDetailFeature({
     data,
     loading,
     error,
-  } = useAdminOrganizations(domain);
+  } = useAdminOrganizations(
+    domain,
+  );
 
   if (loading) {
     return (
@@ -206,10 +200,15 @@ function AdminOrganizationDetailFeature({
 
   const row =
     data?.rows.find(
-      (item) => item.id === id,
+      (item) =>
+        item.id ===
+        id,
     ) ?? null;
 
-  if (!data || !row) {
+  if (
+    !data ||
+    !row
+  ) {
     return (
       <p className={stateClass}>
         Ressource introuvable dans le stockage persistant.
@@ -220,66 +219,17 @@ function AdminOrganizationDetailFeature({
   return (
     <DetailView
       id={id}
-      title={row.cells[0] ?? id}
-      columns={data.columns}
-      cells={row.cells}
+      title={
+        row.cells[0] ??
+        id
+      }
+      columns={
+        data.columns
+      }
+      cells={
+        row.cells
+      }
       backHref={`/dashboard/${access}/${domain}`}
-    />
-  );
-}
-
-function AdminMemoryDetailFeature({
-  domain,
-  id,
-  access,
-}: {
-  domain: AdminDomain;
-  id: string;
-  access: AdminAccessLevel;
-}) {
-  const {
-    data,
-    loading,
-    error,
-  } = useAdminDomain(domain);
-
-  if (loading) {
-    return (
-      <p className={stateClass}>
-        Chargement…
-      </p>
-    );
-  }
-
-  if (error) {
-    return (
-      <p className="border border-red-500/30 bg-red-500/5 p-6 text-sm text-red-400">
-        {error}
-      </p>
-    );
-  }
-
-  const row =
-    data?.rows.find(
-      (item) => item.id === id,
-    ) ?? null;
-
-  if (!data || !row) {
-    return (
-      <p className={stateClass}>
-        Cette ressource n’existe pas dans le stockage provisoire.
-      </p>
-    );
-  }
-
-  return (
-    <DetailView
-      id={id}
-      title={row.cells[0] ?? id}
-      columns={data.columns}
-      cells={row.cells}
-      backHref={`/dashboard/${access}/${domain}`}
-      provisionalMutations
     />
   );
 }
@@ -289,7 +239,10 @@ export function AdminDetailFeature({
   id,
   access,
 }: AdminDetailFeatureProps) {
-  if (section === "users") {
+  if (
+    section ===
+    "users"
+  ) {
     return (
       <AdminUserDetailFeature
         id={id}
@@ -314,23 +267,9 @@ export function AdminDetailFeature({
     );
   }
 
-  if (
-    !memoryDomains.has(
-      section as AdminDomain,
-    )
-  ) {
-    return (
-      <p className={stateClass}>
-        Ressource inconnue.
-      </p>
-    );
-  }
-
   return (
-    <AdminMemoryDetailFeature
-      domain={section as AdminDomain}
-      id={id}
-      access={access}
-    />
+    <p className={stateClass}>
+      Ressource inconnue.
+    </p>
   );
 }

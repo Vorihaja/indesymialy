@@ -163,7 +163,7 @@ test(
   () => {
     assert.match(
       detail,
-      /useAdminOrganizations\(domain\)/,
+      /useAdminOrganizations\(\s*domain\s*,?\s*\)/,
     );
 
     const memoryBlock =
