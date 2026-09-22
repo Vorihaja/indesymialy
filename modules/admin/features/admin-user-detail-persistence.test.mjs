@@ -46,7 +46,7 @@ test(
 );
 
 test(
-  "organization domains are excluded from memory-backed detail",
+  "persistent organization domains are excluded from memory-backed detail",
   () => {
     const memoryBlock =
       source.match(
@@ -69,21 +69,41 @@ test(
 );
 
 test(
-  "remaining memory-backed details are explicitly isolated",
+  "moderation is not backed by fake-memory detail",
   () => {
     const memoryBlock =
       source.match(
         /const memoryDomains[\s\S]*?\]\);/,
       )?.[0] ?? "";
 
-    for (const domain of [
-      "moderation",
-      "audit-log",
-    ]) {
-      assert.match(
-        memoryBlock,
-        new RegExp(`"${domain}"`),
-      );
-    }
+    assert.doesNotMatch(
+      memoryBlock,
+      /"moderation"/,
+    );
+  },
+);
+
+test(
+  "audit log remains the only explicit memory-backed detail domain",
+  () => {
+    const memoryBlock =
+      source.match(
+        /const memoryDomains[\s\S]*?\]\);/,
+      )?.[0] ?? "";
+
+    assert.match(
+      memoryBlock,
+      /"audit-log"/,
+    );
+
+    const quotedDomains =
+      memoryBlock.match(
+        /"[a-z-]+"/g,
+      ) ?? [];
+
+    assert.deepEqual(
+      quotedDomains,
+      ['"audit-log"'],
+    );
   },
 );

@@ -23,7 +23,6 @@ const organizationDomains =
 
 const memoryDomains =
   new Set<AdminDomain>([
-    "moderation",
     "audit-log",
   ]);
 
