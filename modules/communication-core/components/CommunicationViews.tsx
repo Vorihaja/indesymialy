@@ -29,15 +29,15 @@ const roleLabels: Record<CommunicationRole, string> = {
   judge: "Juge",
   sponsor: "Sponsor",
   seller: "Vendeur",
-  federation: "FÃ©dÃ©ration",
+  federation: "Fédération",
   league: "Ligue",
   fan: "Fan",
 };
 
 const messageStatusLabels: Record<MessageStatus, string> = {
-  sending: "Envoiâ€¦",
-  sent: "EnvoyÃ©",
-  delivered: "DistribuÃ©",
+  sending: "Envoi…",
+  sent: "Envoyé",
+  delivered: "Distribué",
   read: "Lu",
 };
 
@@ -45,14 +45,14 @@ const categoryLabels: Record<NotificationCategory, string> = {
   message: "Message",
   fight_proposal: "Proposition de combat",
   sponsoring: "Sponsoring",
-  event: "Ã‰vÃ©nement",
+  event: "Événement",
   fight_live: "Combat en direct",
-  role: "RÃ´le",
-  moderation: "ModÃ©ration",
+  role: "Rôle",
+  moderation: "Modération",
   marketplace: "Marketplace",
   club: "Club",
-  system: "SystÃ¨me",
-  security: "SÃ©curitÃ©",
+  system: "Système",
+  security: "Sécurité",
 };
 
 const controlClass =
@@ -99,10 +99,10 @@ export function ConversationList({
               {item.messages.at(-1)?.content ?? "Nouvelle conversation"}
             </p>
             <div className="mt-2 flex flex-wrap gap-2 text-[8px] uppercase tracking-[0.08em] text-zinc-600">
-              <span>{item.kind === "group" ? "Groupe" : "PrivÃ©e"}</span>
+              <span>{item.kind === "group" ? "Groupe" : "Privée"}</span>
               {item.favorite && <span>Favorite</span>}
               {item.muted && <span>En sourdine</span>}
-              {item.archived && <span>ArchivÃ©e</span>}
+              {item.archived && <span>Archivée</span>}
             </div>
           </Link>
         ))
@@ -127,7 +127,7 @@ export function ConversationPanel({
   if (!conversation) {
     return (
       <section className="grid min-h-[420px] place-items-center bg-[#121316] p-8 text-xs text-zinc-500">
-        SÃ©lectionnez une conversation.
+        Sélectionnez une conversation.
       </section>
     );
   }
@@ -146,7 +146,7 @@ export function ConversationPanel({
           <h1 className="text-sm font-black">{conversation.title}</h1>
           <p className="mt-1 text-[10px] text-zinc-500">
             {conversation.participants
-              .map((item) => item.name + " Â· " + roleLabels[item.role])
+              .map((item) => item.name + " · " + roleLabels[item.role])
               .join(", ")}
           </p>
         </div>
@@ -181,18 +181,18 @@ export function ConversationPanel({
               </div>
               <p className="mt-2 text-xs leading-5 text-zinc-200">{message.content}</p>
               {message.replyToId && (
-                <p className="mt-2 text-[9px] text-zinc-500">RÃ©ponse au message {message.replyToId}</p>
+                <p className="mt-2 text-[9px] text-zinc-500">Réponse au message {message.replyToId}</p>
               )}
               {message.attachments.map((attachment) => (
                 <div key={attachment.id} className="mt-2 border border-current/20 bg-black/10 p-2 text-[9px]">
                   {attachment.kind === "image"
                     ? "Image"
                     : attachment.kind === "video"
-                      ? "VidÃ©o"
+                      ? "Vidéo"
                       : attachment.kind === "document"
                         ? "Document"
                         : "Fichier"}{" "}
-                  Â· {attachment.name} Â· {Math.ceil(attachment.size / 1024)} Ko
+                  · {attachment.name} · {Math.ceil(attachment.size / 1024)} Ko
                 </div>
               ))}
               <button
@@ -200,7 +200,7 @@ export function ConversationPanel({
                 className="mt-2 text-[9px] font-semibold text-[#3d92ff] hover:text-blue-300"
                 onClick={() => setReplyTo(message.id)}
               >
-                RÃ©pondre
+                Répondre
               </button>
             </article>
           );
@@ -219,7 +219,7 @@ export function ConversationPanel({
       >
         {replyTo && (
           <p className="mb-2 text-[9px] text-zinc-500">
-            RÃ©ponse au message {replyTo}{" "}
+            Réponse au message {replyTo}{" "}
             <button
               type="button"
               className="font-semibold text-[#3d92ff]"
@@ -253,7 +253,7 @@ export function ConversationPanel({
           <input
             value={content}
             onChange={(event) => setContent(event.target.value)}
-            placeholder="Ã‰crire un messageâ€¦"
+            placeholder="Écrire un message…"
             className={"min-w-0 flex-1 " + controlClass}
           />
           <button className="inline-flex h-10 items-center justify-center border border-[#d8273f] bg-[#c82335] px-4 text-[10px] font-bold text-white hover:bg-[#df2a43]">
@@ -268,10 +268,10 @@ export function ConversationPanel({
 const proposalStatusLabels: Record<ProposalStatus, string> = {
   draft: "Brouillon",
   pending: "En attente",
-  accepted: "AcceptÃ©e",
-  refused: "RefusÃ©e",
+  accepted: "Acceptée",
+  refused: "Refusée",
   countered: "Contre-proposition",
-  cancelled: "AnnulÃ©e",
+  cancelled: "Annulée",
 };
 
 export function ProposalList({
@@ -292,7 +292,7 @@ export function ProposalList({
   return (
     <section className="space-y-3">
       <header className="border-b border-[#303238] pb-3">
-        <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-[#3d92ff]">NÃ©gociations</p>
+        <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-[#3d92ff]">Négociations</p>
         <h1 className="mt-1 text-xl font-black">
           {kind === "fight" ? "Propositions de combat" : "Offres de sponsoring"}
         </h1>
@@ -308,16 +308,16 @@ export function ProposalList({
               <div>
                 <h2 className="text-sm font-bold">
                   {"fighterName" in item
-                    ? item.fighterName + " Â· " + item.eventName
-                    : item.sponsorName + " Â· " + item.targetName}
+                    ? item.fighterName + " · " + item.eventName
+                    : item.sponsorName + " · " + item.targetName}
                 </h2>
                 <p className="mt-1 text-[10px] text-zinc-500">
                   {"weightKg" in item
-                    ? item.category + " Â· " + item.weightKg + " kg Â· " + item.proposedDate
+                    ? item.category + " · " + item.weightKg + " kg · " + item.proposedDate
                     : item.amount.toLocaleString("fr-FR") +
                       " " +
                       item.currency +
-                      " Â· " +
+                      " · " +
                       item.durationMonths +
                       " mois"}
                 </p>
@@ -376,7 +376,7 @@ export function NotificationCenter({
         <div>
           <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-[#3d92ff]">Centre personnel</p>
           <h1 className="mt-1 text-xl font-black">Notifications</h1>
-          <p className="mt-1 text-xs text-zinc-500">Suivez les informations utiles Ã  votre activitÃ©.</p>
+          <p className="mt-1 text-xs text-zinc-500">Suivez les informations utiles à votre activité.</p>
         </div>
         <button
           type="button"
@@ -405,7 +405,7 @@ export function NotificationCenter({
               <div className="flex flex-wrap justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <p className="text-[8px] font-semibold uppercase tracking-[0.08em] text-zinc-500">
-                    {categoryLabels[item.category]} Â· PrioritÃ© {priorityLabels[item.priority]}
+                    {categoryLabels[item.category]} · Priorité {priorityLabels[item.priority]}
                   </p>
                   <h2 className="mt-1 text-xs font-bold">{item.title}</h2>
                   <p className="mt-1 text-[10px] leading-5 text-zinc-500">{item.content}</p>
@@ -467,9 +467,9 @@ export function PreferencesForm({
     >
       <header className="border-b border-[#303238] p-4">
         <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-[#3d92ff]">Communication</p>
-        <h1 className="mt-1 text-xl font-black">PrÃ©fÃ©rences de notification</h1>
+        <h1 className="mt-1 text-xl font-black">Préférences de notification</h1>
         <p className="mt-1 text-xs text-zinc-500">
-          Choisissez vos canaux, votre frÃ©quence et vos heures de tranquillitÃ©.
+          Choisissez vos canaux, votre fréquence et vos heures de tranquillité.
         </p>
       </header>
       <div className="space-y-5 p-4">
@@ -495,7 +495,7 @@ export function PreferencesForm({
           </div>
         </fieldset>
         <label className="grid gap-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-zinc-500">
-          FrÃ©quence
+          Fréquence
           <select
             value={draft.frequency}
             onChange={(event) =>
@@ -506,18 +506,18 @@ export function PreferencesForm({
             }
             className={controlClass}
           >
-            <option value="instant">InstantanÃ©e</option>
+            <option value="instant">Instantanée</option>
             <option value="daily">Quotidienne</option>
             <option value="weekly">Hebdomadaire</option>
           </select>
         </label>
         <fieldset>
           <legend className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-zinc-500">
-            Heures de tranquillitÃ©
+            Heures de tranquillité
           </legend>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="grid gap-1.5 text-xs text-zinc-400">
-              Silence Ã  partir de
+              Silence à partir de
               <input
                 type="time"
                 value={draft.quietHours?.start ?? "22:00"}
@@ -534,7 +534,7 @@ export function PreferencesForm({
               />
             </label>
             <label className="grid gap-1.5 text-xs text-zinc-400">
-              Jusquâ€™Ã 
+              Jusqu’à
               <input
                 type="time"
                 value={draft.quietHours?.end ?? "07:00"}
@@ -555,7 +555,7 @@ export function PreferencesForm({
       </div>
       <footer className="border-t border-[#303238] bg-[#101114] p-4">
         <button className="inline-flex h-9 items-center border border-[#d8273f] bg-[#c82335] px-4 text-[10px] font-bold text-white hover:bg-[#df2a43]">
-          Enregistrer les prÃ©fÃ©rences
+          Enregistrer les préférences
         </button>
       </footer>
     </form>

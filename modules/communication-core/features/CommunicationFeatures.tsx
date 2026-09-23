@@ -3,7 +3,6 @@ import {
   ModernMessagingWorkspace,
 } from "../components/ModernMessagingWorkspace";
 
-import Link from "next/link";
 import { useState, type ReactNode } from "react";
 
 import {
@@ -21,8 +20,6 @@ import type { CommunicationRole, NotificationCategory } from "../types";
 
 const controlClass =
   "h-10 w-full border border-[#343840] bg-[#0e0f12] px-3 text-sm text-zinc-100 outline-none transition-colors placeholder:text-zinc-600 focus:border-[#2588ff]";
-const primaryActionClass =
-  "inline-flex h-9 items-center justify-center border border-[#d8273f] bg-[#c82335] px-4 text-xs font-bold text-white transition-colors hover:bg-[#df2a43] disabled:cursor-not-allowed disabled:opacity-50";
 const loadingClass = "border border-[#303238] bg-[#151619] p-6 text-sm text-zinc-500";
 
 const notificationCategories: Array<{ value: NotificationCategory; label: string }> = [
@@ -50,7 +47,7 @@ function PublicCommunicationFrame({ children }: { children: ReactNode }) {
 export function MessagingFeature({
   conversationId,
   mode = "workspace",
-  role = "organizer",
+  role = "fan",
   basePath = "/messages",
   embedded = false,
 }: {
@@ -89,10 +86,8 @@ export function MessagingFeature({
     useConversations(
       "",
       conversationId,
+      role,
     );
-
-
-  void role;
 
   const standalone =
     basePath ===

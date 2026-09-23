@@ -14276,15 +14276,20 @@ export type Database = {
         Args: { p_limit?: number; p_query?: string }
         Returns: {
           actor_id: string
+          actor_type: string
           avatar_url: string
           display_name: string
           handle: string
           is_verified: boolean
-          profile_id: string
+          organization_id: string | null
+          profile_id: string | null
         }[]
       }
       open_or_create_private_conversation: {
-        Args: { p_recipient_actor_id: string }
+        Args: {
+          p_recipient_actor_id: string
+          p_sender_organization_id?: string
+        }
         Returns: string
       }
       organizer_event_financial_summary: {
@@ -14563,10 +14568,12 @@ export type Database = {
       }
       send_message: {
         Args: {
+          p_attachments?: Json
           p_content: string
           p_conversation_id: string
           p_message_type?: string
           p_reply_to_id?: string
+          p_sender_organization_id?: string
         }
         Returns: string
       }

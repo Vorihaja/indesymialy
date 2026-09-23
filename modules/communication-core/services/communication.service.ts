@@ -4,7 +4,7 @@ import type {
 } from "../repositories/communication.repository";
 
 import type {
-  CommunicationAttachment,
+  CommunicationAttachmentUpload,
   CommunicationRole,
   ConversationKind,
   NotificationCategory,
@@ -130,7 +130,7 @@ export class CommunicationService {
     conversationId: string,
     content: string,
     replyToId?: string,
-    attachments?: CommunicationAttachment[],
+    attachments?: CommunicationAttachmentUpload[],
   ) {
     const normalizedContent = content.trim();
 

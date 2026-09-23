@@ -21,6 +21,7 @@ import type {
 } from "../repositories/communication-realtime.repository";
 
 import type {
+  CommunicationAttachmentUpload,
   CommunicationConversation,
   CommunicationRole,
   FightProposal,
@@ -109,13 +110,18 @@ function sortConversations(
 export function useConversations(
   query = "",
   conversationId?: string,
+  role?: CommunicationRole,
 ) {
 
   const useCase =
     useMemo(
       () =>
-        createCommunicationUseCase(),
-      [],
+        createCommunicationUseCase(
+          role,
+        ),
+      [
+        role,
+      ],
     );
 
 
@@ -645,6 +651,8 @@ export function useConversations(
       async (
         content: string,
         replyToId?: string,
+        attachments?:
+          CommunicationAttachmentUpload[],
       ) => {
 
         if (
@@ -659,6 +667,7 @@ export function useConversations(
             active.id,
             content,
             replyToId,
+            attachments,
           );
 
 

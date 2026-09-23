@@ -6,6 +6,7 @@ import {
 } from "react";
 
 import {
+  Building2,
   CheckCircle2,
   ChevronLeft,
   Search,
@@ -448,7 +449,7 @@ export function RecipientPicker({
               </p>
 
               <p className="mt-1 text-[9px] leading-5 text-[#8b929c] dark:text-[#777f89]">
-                Tapez au moins deux caractères du nom ou de l'identifiant.
+                Tapez au moins deux caractères du nom ou de l&apos;identifiant.
               </p>
 
             </div>
@@ -486,7 +487,7 @@ export function RecipientPicker({
           <div>
 
             <div className="border-b border-[#eceef1] px-4 py-2 text-[8px] font-black uppercase tracking-[0.12em] text-[#9298a1] dark:border-[#252a31] dark:text-[#747c86]">
-              Personnes
+              Personnes et organisations
             </div>
 
 
@@ -522,11 +523,18 @@ export function RecipientPicker({
 
                     <div className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-[#e7eaee] text-[11px] font-black text-[#4b525b] dark:bg-[#282e36] dark:text-[#d9dde2]">
 
-                      <span>
-                        {initials(
-                          recipient.displayName,
-                        )}
-                      </span>
+                      {recipient.actorType ===
+                      "organization" ? (
+                        <Building2
+                          size={18}
+                        />
+                      ) : (
+                        <span>
+                          {initials(
+                            recipient.displayName,
+                          )}
+                        </span>
+                      )}
 
 
                       {recipient.avatarUrl ? (
@@ -586,7 +594,10 @@ export function RecipientPicker({
                         </span>
 
                         <span className="shrink-0 text-[8px] text-[#9299a2] dark:text-[#727b86]">
-                          Profil Indesy
+                          {recipient.actorType ===
+                          "organization"
+                            ? "Organisation Indesy"
+                            : "Profil Indesy"}
                         </span>
 
                       </div>
@@ -613,7 +624,7 @@ export function RecipientPicker({
 
 
       <footer className="shrink-0 border-t border-[#e5e7ea] px-4 py-3 text-[8px] font-medium text-[#9298a1] dark:border-[#2a2f37] dark:text-[#6f7882]">
-        Les conversations de groupe et les organisations seront activées dans un lot dédié.
+        Les échanges privés utilisent votre identité active et restent accessibles uniquement aux participants.
       </footer>
 
     </div>

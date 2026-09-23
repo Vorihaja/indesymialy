@@ -9,8 +9,13 @@ import type {
 import {
   BackendError,
   normalizeBackendError,
-  storageNotImplemented,
 } from "@/shared/errors/backend-error";
+
+import {
+  MESSAGE_ATTACHMENT_BUCKET,
+  sanitizeAttachmentName,
+  validateAttachmentFile,
+} from "../attachments";
 
 import type {
   CommunicationConversationAction,
@@ -20,6 +25,7 @@ import type {
 import type {
   AttachmentKind,
   CommunicationAttachment,
+  CommunicationAttachmentUpload,
   CommunicationConversation,
   CommunicationMessage,
   CommunicationParticipant,
@@ -64,6 +70,16 @@ type ActorDescriptor = {
   role: CommunicationRole;
   avatarUrl?: string;
 };
+
+const organizationMessagingRoles =
+  new Set<CommunicationRole>([
+    "club",
+    "organizer",
+    "sponsor",
+    "seller",
+    "federation",
+    "league",
+  ]);
 
 const roles = new Set<CommunicationRole>([
   "fighter",
@@ -181,6 +197,7 @@ function attachmentKind(
   if (
     explicit === "image" ||
     explicit === "video" ||
+    explicit === "audio" ||
     explicit === "document" ||
     explicit === "file"
   ) {
@@ -196,6 +213,10 @@ function attachmentKind(
 
   if (mime.startsWith("video/")) {
     return "video";
+  }
+
+  if (mime.startsWith("audio/")) {
+    return "audio";
   }
 
   if (
@@ -313,7 +334,48 @@ export class CommunicationSupabaseRepository
   constructor(
     private readonly supabase:
       SupabaseClient<Database>,
+    private readonly role?:
+      CommunicationRole,
   ) {}
+
+  private async senderOrganizationId(): Promise<
+    string | undefined
+  > {
+    if (
+      !this.role ||
+      !organizationMessagingRoles.has(
+        this.role,
+      )
+    ) {
+      return undefined;
+    }
+
+    const userId =
+      await this.userId();
+
+    const {
+      data,
+      error,
+    } =
+      await this.supabase
+        .from("active_organizations")
+        .select("organization_id")
+        .eq("profile_id", userId)
+        .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data?.organization_id) {
+      throw new BackendError(
+        "VALIDATION_ERROR",
+        "Activez une organisation avant d’utiliser sa messagerie.",
+      );
+    }
+
+    return data.organization_id;
+  }
 
   private async userId(): Promise<string> {
     const {
@@ -484,6 +546,62 @@ export class CommunicationSupabaseRepository
     );
   }
 
+  private async representedOrganizationIds(
+    ids: string[],
+    userId: string,
+  ): Promise<Set<string>> {
+    const uniqueIds =
+      Array.from(new Set(ids));
+
+    if (!uniqueIds.length) {
+      return new Set();
+    }
+
+    const [
+      ownerResult,
+      memberResult,
+    ] =
+      await Promise.all([
+        this.supabase
+          .from("organizations")
+          .select("id")
+          .in("id", uniqueIds)
+          .eq("owner_id", userId),
+        this.supabase
+          .from("organization_members")
+          .select("organization_id")
+          .in(
+            "organization_id",
+            uniqueIds,
+          )
+          .eq("profile_id", userId)
+          .eq("status", "active")
+          .eq("role", "owner"),
+      ]);
+
+    const error =
+      ownerResult.error ??
+      memberResult.error;
+
+    if (error) {
+      throw error;
+    }
+
+    return new Set([
+      ...(ownerResult.data ?? [])
+        .map((item) => item.id),
+      ...(memberResult.data ?? [])
+        .map(
+          (item) =>
+            item.organization_id,
+        )
+        .filter(
+          (id): id is string =>
+            Boolean(id),
+        ),
+    ]);
+  }
+
   private async attachmentDirectory(
     messageIds: string[],
   ): Promise<
@@ -515,7 +633,42 @@ export class CommunicationSupabaseRepository
       throw error;
     }
 
-    for (const row of data ?? []) {
+    const rows =
+      data ?? [];
+
+    const signedUrlEntries =
+      await Promise.all(
+        rows.map(
+          async (row) => {
+            const {
+              data: signed,
+              error: signedError,
+            } =
+              await this.supabase.storage
+                .from(
+                  MESSAGE_ATTACHMENT_BUCKET,
+                )
+                .createSignedUrl(
+                  row.file_url,
+                  3600,
+                );
+
+            return [
+              row.id,
+              signedError
+                ? undefined
+                : signed.signedUrl,
+            ] as const;
+          },
+        ),
+      );
+
+    const signedUrls =
+      new Map(
+        signedUrlEntries,
+      );
+
+    for (const row of rows) {
       if (!row.message_id) {
         continue;
       }
@@ -535,9 +688,15 @@ export class CommunicationSupabaseRepository
             row.mime_type ??
             "application/octet-stream",
           previewUrl:
-            row.file_url,
+            signedUrls.get(
+              row.id,
+            ),
           downloadPrepared:
-            Boolean(row.file_url),
+            Boolean(
+              signedUrls.get(
+                row.id,
+              ),
+            ),
         };
 
       addToArrayMap(
@@ -852,6 +1011,7 @@ export class CommunicationSupabaseRepository
     const [
       profiles,
       organizations,
+      representedOrganizationIds,
       attachmentsByMessage,
       statusByMessage,
     ] =
@@ -864,6 +1024,13 @@ export class CommunicationSupabaseRepository
           Array.from(
             organizationIdSet,
           ),
+        ),
+
+        this.representedOrganizationIds(
+          Array.from(
+            organizationIdSet,
+          ),
+          userId,
         ),
 
         this.attachmentDirectory(
@@ -960,6 +1127,15 @@ export class CommunicationSupabaseRepository
                 participant.profile_id ===
                 userId;
 
+              const isCurrentActor =
+                isCurrentProfile ||
+                Boolean(
+                  participant.organization_id &&
+                  representedOrganizationIds.has(
+                    participant.organization_id,
+                  ),
+                );
+
               return {
                 id:
                   participant.id,
@@ -982,6 +1158,9 @@ export class CommunicationSupabaseRepository
                   participant.organization_id
                     ? "organization"
                     : "profile",
+
+                isMine:
+                  isCurrentActor,
 
                 name:
                   actor?.name ??
@@ -1043,8 +1222,7 @@ export class CommunicationSupabaseRepository
         const fallbackTitle =
           mappedParticipants.find(
             (participant) =>
-              participant.profileId !==
-              userId,
+              !participant.isMine,
           )?.name ??
           (
             conversationKind(
@@ -1418,8 +1596,19 @@ export class CommunicationSupabaseRepository
           actorId:
             recipient.actor_id,
 
+          actorType:
+            recipient.actor_type ===
+              "organization"
+              ? "organization"
+              : "profile",
+
           profileId:
-            recipient.profile_id,
+            recipient.profile_id ??
+            undefined,
+
+          organizationId:
+            recipient.organization_id ??
+            undefined,
 
           handle:
             recipient.handle,
@@ -1455,6 +1644,9 @@ export class CommunicationSupabaseRepository
 
     try {
 
+      const senderOrganizationId =
+        await this.senderOrganizationId();
+
       const {
         data:
           conversationId,
@@ -1465,6 +1657,9 @@ export class CommunicationSupabaseRepository
           {
             p_recipient_actor_id:
               actorId,
+
+            p_sender_organization_id:
+              senderOrganizationId,
           },
         );
 
@@ -1719,49 +1914,104 @@ export class CommunicationSupabaseRepository
     content: string,
     replyToId?: string,
     attachments:
-      CommunicationAttachment[] = [],
+      CommunicationAttachmentUpload[] = [],
   ): Promise<CommunicationMessage> {
     const userId =
       await this.userId();
 
+    const uploadedPaths:
+      string[] = [];
+
     try {
-      /*
-       * M1-A3.4B ne simule jamais un upload.
-       * Le bucket message-attachments sera installé
-       * dans le lot Storage.
-       */
-      if (attachments.length) {
-        throw storageNotImplemented(
-          "téléversement des pièces jointes de messagerie",
+      const senderOrganizationId =
+        await this.senderOrganizationId();
+
+      const attachmentPayload:
+        Array<{
+          path: string;
+          name: string;
+          mimeType: string;
+          size: number;
+        }> = [];
+
+      for (const attachment of attachments) {
+        const validationError =
+          validateAttachmentFile(
+            attachment.file,
+          );
+
+        if (validationError) {
+          throw new BackendError(
+            "VALIDATION_ERROR",
+            validationError,
+          );
+        }
+
+        const safeName =
+          sanitizeAttachmentName(
+            attachment.name,
+          );
+
+        const path =
+          `${conversationId}/${userId}/${crypto.randomUUID()}-${safeName}`;
+
+        const {
+          error: uploadError,
+        } =
+          await this.supabase.storage
+            .from(
+              MESSAGE_ATTACHMENT_BUCKET,
+            )
+            .upload(
+              path,
+              attachment.file,
+              {
+                cacheControl:
+                  "3600",
+                contentType:
+                  attachment.mimeType,
+                upsert:
+                  false,
+              },
+            );
+
+        if (uploadError) {
+          throw uploadError;
+        }
+
+        uploadedPaths.push(
+          path,
         );
+
+        attachmentPayload.push({
+          path,
+          name:
+            attachment.name,
+          mimeType:
+            attachment.mimeType,
+          size:
+            attachment.size,
+        });
       }
 
       const rpcResult =
-        replyToId
-          ? await this.supabase.rpc(
-              "send_message",
-              {
-                p_conversation_id:
-                  conversationId,
-                p_content:
-                  content,
-                p_message_type:
-                  "text",
-                p_reply_to_id:
-                  replyToId,
-              },
-            )
-          : await this.supabase.rpc(
-              "send_message",
-              {
-                p_conversation_id:
-                  conversationId,
-                p_content:
-                  content,
-                p_message_type:
-                  "text",
-              },
-            );
+        await this.supabase.rpc(
+          "send_message",
+          {
+            p_conversation_id:
+              conversationId,
+            p_content:
+              content,
+            p_message_type:
+              "text",
+            p_reply_to_id:
+              replyToId,
+            p_attachments:
+              attachmentPayload,
+            p_sender_organization_id:
+              senderOrganizationId,
+          },
+        );
 
       if (rpcResult.error) {
         throw rpcResult.error;
@@ -1789,6 +2039,16 @@ export class CommunicationSupabaseRepository
 
       return message;
     } catch (reason) {
+      if (uploadedPaths.length) {
+        await this.supabase.storage
+          .from(
+            MESSAGE_ATTACHMENT_BUCKET,
+          )
+          .remove(
+            uploadedPaths,
+          );
+      }
+
       throw normalizeBackendError(
         reason,
       );
@@ -1848,6 +2108,19 @@ export class CommunicationSupabaseRepository
 
     try {
       const {
+        data: attachmentRows,
+        error: attachmentError,
+      } =
+        await this.supabase
+          .from("message_attachments")
+          .select("file_url")
+          .eq("message_id", messageId);
+
+      if (attachmentError) {
+        throw attachmentError;
+      }
+
+      const {
         data,
         error,
       } =
@@ -1865,6 +2138,30 @@ export class CommunicationSupabaseRepository
 
       if (!data) {
         return null;
+      }
+
+      const storagePaths =
+        (attachmentRows ?? [])
+          .map(
+            (attachment) =>
+              attachment.file_url,
+          );
+
+      if (storagePaths.length) {
+        const {
+          error: removeError,
+        } =
+          await this.supabase.storage
+            .from(
+              MESSAGE_ATTACHMENT_BUCKET,
+            )
+            .remove(
+              storagePaths,
+            );
+
+        if (removeError) {
+          throw removeError;
+        }
       }
 
       return this.loadMessage(

@@ -1,5 +1,5 @@
 import type {
-  CommunicationAttachment,
+  CommunicationAttachmentUpload,
   CommunicationConversation,
   CommunicationMessage,
   CommunicationNotification,
@@ -51,7 +51,7 @@ export interface CommunicationRepository {
     conversationId: string,
     content: string,
     replyToId?: string,
-    attachments?: CommunicationAttachment[],
+    attachments?: CommunicationAttachmentUpload[],
   ): Promise<CommunicationMessage>;
 
   editMessage(

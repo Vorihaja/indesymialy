@@ -3,7 +3,7 @@ import {
 } from "../services/communication.service";
 
 import type {
-  CommunicationAttachment,
+  CommunicationAttachmentUpload,
   CommunicationRole,
   NotificationCategory,
   NotificationPreferences,
@@ -105,7 +105,7 @@ export class ManageCommunicationUseCase {
     content: string,
     replyToId?: string,
     attachments?:
-      CommunicationAttachment[],
+      CommunicationAttachmentUpload[],
   ) {
 
     return this.service

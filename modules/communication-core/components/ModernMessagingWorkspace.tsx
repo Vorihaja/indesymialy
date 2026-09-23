@@ -15,9 +15,12 @@ import {
   BellOff,
   CheckCheck,
   ChevronLeft,
+  Download,
   FileText,
+  Image as ImageIcon,
   MessageCircle,
   MoreHorizontal,
+  Music,
   Paperclip,
   Plus,
   Search,
@@ -26,19 +29,25 @@ import {
   Star,
   Trash2,
   Users,
+  Video,
   X,
 } from "lucide-react";
 
-import {
-  useRouter,
-} from "next/navigation";
-
 import type {
   CommunicationConversation,
+  CommunicationAttachmentUpload,
   CommunicationMessage,
   CommunicationRecipient,
   CommunicationRole,
 } from "../types";
+
+import {
+  MESSAGE_ATTACHMENT_ACCEPT,
+  MESSAGE_ATTACHMENT_MAX_FILES,
+  createAttachmentUpload,
+  formatAttachmentSize,
+  validateAttachmentFile,
+} from "../attachments";
 
 import {
   RecipientPicker,
@@ -100,6 +109,8 @@ type ModernMessagingWorkspaceProps = {
     (
       content: string,
       replyToId?: string,
+      attachments?:
+        CommunicationAttachmentUpload[],
     ) => Promise<void>;
 
   onAction:
@@ -271,28 +282,25 @@ function conversationPeerRole(
   }
 
 
+  const peer =
+    conversation
+      .participants
+      .find(
+        (
+          participant,
+        ) =>
+          !participant.isMine &&
+          (!currentProfileId ||
+            participant.profileId !==
+              currentProfileId),
+      );
+
+
   if (
-    currentProfileId
+    peer
   ) {
 
-    const peer =
-      conversation
-        .participants
-        .find(
-          (
-            participant,
-          ) =>
-            participant.profileId !==
-              currentProfileId,
-        );
-
-
-    if (
-      peer
-    ) {
-
-      return peer.role;
-    }
+    return peer.role;
   }
 
 
@@ -354,20 +362,21 @@ function conversationAvatarUrl(
   }
 
 
-  if (
-    currentProfileId
-  ) {
-
-    return conversation
+  const peer =
+    conversation
       .participants
       .find(
         (
           participant,
         ) =>
-          participant.profileId !==
-            currentProfileId,
-      )
-      ?.avatarUrl;
+          !participant.isMine &&
+          (!currentProfileId ||
+            participant.profileId !==
+              currentProfileId),
+      );
+
+  if (peer) {
+    return peer.avatarUrl;
   }
 
 
@@ -658,6 +667,26 @@ function lastMessage(
 }
 
 
+function messagePreview(
+  message?:
+    CommunicationMessage,
+): string {
+  const content =
+    message?.content.trim();
+
+  if (content) {
+    return content;
+  }
+
+  const attachment =
+    message?.attachments[0];
+
+  return attachment
+    ? `Pièce jointe · ${attachment.name}`
+    : "Conversation démarrée";
+}
+
+
 function isOwnMessage(
   message:
     CommunicationMessage,
@@ -668,9 +697,12 @@ function isOwnMessage(
 ): boolean {
 
   if (
-    currentProfileId &&
-    message.authorId ===
-      currentProfileId
+    message.isMine ||
+    (currentProfileId &&
+      (message.authorId ===
+        currentProfileId ||
+        message.operatorProfileId ===
+          currentProfileId))
   ) {
 
     return true;
@@ -707,10 +739,6 @@ export function ModernMessagingWorkspace({
   initialCreateOpen = false,
   searchAutoFocus = false,
 }: ModernMessagingWorkspaceProps) {
-
-  const router =
-    useRouter();
-
 
   const [
     filter,
@@ -764,6 +792,40 @@ export function ModernMessagingWorkspace({
   ] =
     useState(
       "",
+    );
+
+
+  const [
+    attachments,
+    setAttachments,
+  ] =
+    useState<
+      CommunicationAttachmentUpload[]
+    >([]);
+
+
+  const [
+    composerError,
+    setComposerError,
+  ] =
+    useState<
+      string |
+      null
+    >(null);
+
+
+  const [
+    emojiOpen,
+    setEmojiOpen,
+  ] =
+    useState(
+      false,
+    );
+
+
+  const fileInputRef =
+    useRef<HTMLInputElement>(
+      null,
     );
 
 
@@ -872,24 +934,6 @@ export function ModernMessagingWorkspace({
   useEffect(
     () => {
 
-      if (
-        initialCreateOpen
-      ) {
-
-        setCreateOpen(
-          true,
-        );
-      }
-    },
-    [
-      initialCreateOpen,
-    ],
-  );
-
-
-  useEffect(
-    () => {
-
       endOfMessagesRef.current
         ?.scrollIntoView(
           {
@@ -907,13 +951,28 @@ export function ModernMessagingWorkspace({
 
   useEffect(
     () => {
+      queueMicrotask(
+        () => {
+          setReplyTo(
+            undefined,
+          );
 
-      setReplyTo(
-        undefined,
-      );
+          setMenuOpen(
+            false,
+          );
 
-      setMenuOpen(
-        false,
+          setAttachments(
+            [],
+          );
+
+          setComposerError(
+            null,
+          );
+
+          setEmojiOpen(
+            false,
+          );
+        },
       );
     },
     [
@@ -1016,9 +1075,10 @@ export function ModernMessagingWorkspace({
                       (
                         participant,
                       ) =>
-                        !currentProfileId ||
-                        participant.profileId !==
-                          currentProfileId,
+                        !participant.isMine &&
+                        (!currentProfileId ||
+                          participant.profileId !==
+                            currentProfileId),
                     )
                     .some(
                       (
@@ -1070,7 +1130,17 @@ export function ModernMessagingWorkspace({
                     )
                     .includes(
                       normalizedQuery,
-                    ),
+                    ) ||
+                  message.attachments.some(
+                    (attachment) =>
+                      attachment.name
+                        .toLocaleLowerCase(
+                          "fr-FR",
+                        )
+                        .includes(
+                          normalizedQuery,
+                        ),
+                  ),
               );
 
 
@@ -1146,8 +1216,10 @@ export function ModernMessagingWorkspace({
                 (
                   participant,
                 ) =>
-                  participant.profileId !==
-                    currentProfileId,
+                  !participant.isMine &&
+                  (!currentProfileId ||
+                    participant.profileId !==
+                      currentProfileId),
               )
               ?.name ??
             "Conversation privée"
@@ -1161,6 +1233,78 @@ export function ModernMessagingWorkspace({
       : "h-[calc(100dvh-150px)] min-h-0 max-h-[920px]";
 
 
+  function handleFileSelection(
+    files: FileList | null,
+  ) {
+    if (!files?.length) {
+      return;
+    }
+
+    const selected =
+      Array.from(files);
+
+    if (
+      attachments.length +
+        selected.length >
+      MESSAGE_ATTACHMENT_MAX_FILES
+    ) {
+      setComposerError(
+        `Vous pouvez joindre au maximum ${MESSAGE_ATTACHMENT_MAX_FILES} fichiers.`,
+      );
+      return;
+    }
+
+    for (const file of selected) {
+      const validationError =
+        validateAttachmentFile(
+          file,
+        );
+
+      if (validationError) {
+        setComposerError(
+          validationError,
+        );
+        return;
+      }
+    }
+
+    setAttachments(
+      (current) => [
+        ...current,
+        ...selected.map(
+          createAttachmentUpload,
+        ),
+      ],
+    );
+
+    setComposerError(
+      null,
+    );
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value =
+        "";
+    }
+  }
+
+
+  function removeAttachment(
+    id: string,
+  ) {
+    setAttachments(
+      (current) =>
+        current.filter(
+          (attachment) =>
+            attachment.id !== id,
+        ),
+    );
+
+    setComposerError(
+      null,
+    );
+  }
+
+
   async function handleSend() {
 
     const value =
@@ -1169,7 +1313,8 @@ export function ModernMessagingWorkspace({
 
 
     if (
-      !value ||
+      (!value &&
+        !attachments.length) ||
       sending ||
       !active
     ) {
@@ -1182,12 +1327,17 @@ export function ModernMessagingWorkspace({
       true,
     );
 
+    setComposerError(
+      null,
+    );
+
 
     try {
 
       await onSend(
         value,
         replyTo,
+        attachments,
       );
 
 
@@ -1197,6 +1347,21 @@ export function ModernMessagingWorkspace({
 
       setReplyTo(
         undefined,
+      );
+
+      setAttachments(
+        [],
+      );
+
+    } catch (
+      reason:
+        unknown
+    ) {
+
+      setComposerError(
+        reason instanceof Error
+          ? reason.message
+          : "Impossible d’envoyer le message.",
       );
 
     } finally {
@@ -1850,8 +2015,9 @@ export function ModernMessagingWorkspace({
                               )
                             : ""}
 
-                          {latest?.content ??
-                            "Conversation démarrée"}
+                          {messagePreview(
+                            latest,
+                          )}
                         </p>
 
                         {item.unreadCount >
@@ -2406,21 +2572,144 @@ export function ModernMessagingWorkspace({
                                   <span
                                     className="block max-w-[280px] truncate"
                                   >
-                                    {replied.content}
+                                    {messagePreview(
+                                      replied,
+                                    )}
                                   </span>
                                 </div>
                               )}
 
 
-                              <p
-                                className={
-                                  message.deletedAt
-                                    ? "italic opacity-70"
-                                    : ""
-                                }
-                              >
-                                {message.content}
-                              </p>
+                              {message.content && (
+                                <p
+                                  className={
+                                    message.deletedAt
+                                      ? "italic opacity-70"
+                                      : ""
+                                  }
+                                >
+                                  {message.content}
+                                </p>
+                              )}
+
+
+                              {message.attachments.length >
+                                0 && (
+                                <div
+                                  className={[
+                                    "space-y-2",
+                                    message.content
+                                      ? "mt-2"
+                                      : "",
+                                  ].join(" ")}
+                                >
+                                  {message.attachments.map(
+                                    (
+                                      attachment,
+                                    ) => (
+                                      <div
+                                        key={
+                                          attachment.id
+                                        }
+                                        className={[
+                                          "min-w-0 overflow-hidden border",
+                                          own
+                                            ? "border-white/25 bg-black/10"
+                                            : "border-[#d9dde2] bg-[#f7f8fa] dark:border-[#343b45] dark:bg-[#10151b]",
+                                        ].join(" ")}
+                                      >
+                                        {attachment.kind ===
+                                          "image" &&
+                                          attachment.previewUrl && (
+                                          <a
+                                            href={
+                                              attachment.previewUrl
+                                            }
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="block"
+                                          >
+                                            <img
+                                              src={
+                                                attachment.previewUrl
+                                              }
+                                              alt={
+                                                attachment.name
+                                              }
+                                              className="max-h-56 w-full object-cover"
+                                            />
+                                          </a>
+                                        )}
+
+                                        <div
+                                          className="flex min-w-0 items-center gap-2 px-2.5 py-2"
+                                        >
+                                          {attachment.kind ===
+                                          "image" ? (
+                                            <ImageIcon
+                                              size={15}
+                                              className="shrink-0"
+                                            />
+                                          ) : attachment.kind ===
+                                            "video" ? (
+                                            <Video
+                                              size={15}
+                                              className="shrink-0"
+                                            />
+                                          ) : attachment.kind ===
+                                            "audio" ? (
+                                            <Music
+                                              size={15}
+                                              className="shrink-0"
+                                            />
+                                          ) : (
+                                            <FileText
+                                              size={15}
+                                              className="shrink-0"
+                                            />
+                                          )}
+
+                                          <div
+                                            className="min-w-0 flex-1"
+                                          >
+                                            <p
+                                              className="truncate text-[9px] font-bold"
+                                            >
+                                              {attachment.name}
+                                            </p>
+                                            <p
+                                              className="text-[8px] opacity-70"
+                                            >
+                                              {formatAttachmentSize(
+                                                attachment.size,
+                                              )}
+                                            </p>
+                                          </div>
+
+                                          {attachment.previewUrl && (
+                                            <a
+                                              href={
+                                                attachment.previewUrl
+                                              }
+                                              target="_blank"
+                                              rel="noreferrer"
+                                              download={
+                                                attachment.name
+                                              }
+                                              className="grid h-7 w-7 shrink-0 place-items-center border border-current/25 transition hover:bg-black/10"
+                                              aria-label={`Ouvrir ${attachment.name}`}
+                                            >
+                                              <Download
+                                                size={13}
+                                              />
+                                            </a>
+                                          )}
+                                        </div>
+                                      </div>
+                                    ),
+                                  )}
+                                </div>
+                              )}
                             </div>
 
 
@@ -2524,7 +2813,9 @@ export function ModernMessagingWorkspace({
                       <p
                         className="mt-0.5 truncate text-[8px] text-[#858c96] dark:text-[#838b95]"
                       >
-                        {replyTarget.content}
+                        {messagePreview(
+                          replyTarget,
+                        )}
                       </p>
                     </div>
 
@@ -2546,14 +2837,109 @@ export function ModernMessagingWorkspace({
                 )}
 
 
+                {attachments.length > 0 && (
+                  <div
+                    className="mb-2 grid gap-2 sm:grid-cols-2"
+                  >
+                    {attachments.map(
+                      (attachment) => (
+                        <div
+                          key={
+                            attachment.id
+                          }
+                          className="flex min-w-0 items-center gap-2 border border-[#dfe3e8] bg-[#f7f8f9] px-3 py-2 dark:border-[#303640] dark:bg-[#171c22]"
+                        >
+                          <FileText
+                            size={14}
+                            className="shrink-0 text-[#1769e0]"
+                          />
+
+                          <div
+                            className="min-w-0 flex-1"
+                          >
+                            <p
+                              className="truncate text-[9px] font-bold text-[#343941] dark:text-[#e1e4e8]"
+                            >
+                              {attachment.name}
+                            </p>
+                            <p
+                              className="text-[8px] text-[#858c96] dark:text-[#818994]"
+                            >
+                              {formatAttachmentSize(
+                                attachment.size,
+                              )}
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              removeAttachment(
+                                attachment.id,
+                              )
+                            }
+                            disabled={
+                              sending
+                            }
+                            className="grid h-6 w-6 shrink-0 place-items-center text-[#8c929c] hover:bg-[#e8eaed] hover:text-[#d21d35] disabled:opacity-50 dark:hover:bg-[#222830]"
+                            aria-label={`Retirer ${attachment.name}`}
+                          >
+                            <X
+                              size={13}
+                            />
+                          </button>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                )}
+
+
+                {composerError && (
+                  <p
+                    role="alert"
+                    className="mb-2 border-l-[3px] border-[#e31b36] bg-[#fff4f5] px-3 py-2 text-[9px] font-semibold text-[#ba1f33] dark:bg-[#25181b] dark:text-[#ff9aa8]"
+                  >
+                    {composerError}
+                  </p>
+                )}
+
+
                 <div
                   className="flex items-end gap-2"
                 >
+                  <input
+                    ref={
+                      fileInputRef
+                    }
+                    type="file"
+                    multiple
+                    accept={
+                      MESSAGE_ATTACHMENT_ACCEPT
+                    }
+                    onChange={
+                      (event) =>
+                        handleFileSelection(
+                          event.target.files,
+                        )
+                    }
+                    className="sr-only"
+                    aria-label="Sélectionner des pièces jointes"
+                  />
+
                   <button
                     type="button"
-                    disabled
-                    title="Pièces jointes — prochain lot"
-                    className="grid h-10 w-10 shrink-0 place-items-center border border-[#dfe3e8] text-[#7f8791] disabled:cursor-default dark:border-[#333943] dark:text-[#7a838d]"
+                    onClick={() =>
+                      fileInputRef.current
+                        ?.click()
+                    }
+                    disabled={
+                      sending ||
+                      attachments.length >=
+                        MESSAGE_ATTACHMENT_MAX_FILES
+                    }
+                    title="Ajouter des pièces jointes"
+                    className="grid h-10 w-10 shrink-0 place-items-center border border-[#dfe3e8] text-[#7f8791] transition hover:border-[#1769e0] hover:text-[#1769e0] disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#333943] dark:text-[#7a838d]"
                     aria-label="Ajouter une pièce jointe"
                   >
                     <Paperclip
@@ -2563,7 +2949,7 @@ export function ModernMessagingWorkspace({
 
 
                   <div
-                    className="flex min-h-[42px] min-w-0 flex-1 items-end border border-[#dfe3e8] bg-[#f8f9fa] px-3 transition focus-within:border-[#1769e0]/45 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#1769e0]/8 dark:border-[#333943] dark:bg-[#171c22] dark:focus-within:border-[#4f7fc7] dark:focus-within:bg-[#151a20]"
+                    className="relative flex min-h-[42px] min-w-0 flex-1 items-end border border-[#dfe3e8] bg-[#f8f9fa] px-3 transition focus-within:border-[#1769e0]/45 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#1769e0]/8 dark:border-[#333943] dark:bg-[#171c22] dark:focus-within:border-[#4f7fc7] dark:focus-within:bg-[#151a20]"
                   >
                     <textarea
                       value={
@@ -2588,15 +2974,67 @@ export function ModernMessagingWorkspace({
 
                     <button
                       type="button"
-                      disabled
-                      title="Emojis — prochain lot"
-                      className="grid h-10 w-8 shrink-0 place-items-center text-[#9198a1] dark:text-[#737c86]"
+                      onClick={() =>
+                        setEmojiOpen(
+                          (current) =>
+                            !current,
+                        )
+                      }
+                      disabled={
+                        sending
+                      }
+                      title="Ajouter un emoji"
+                      className="grid h-10 w-8 shrink-0 place-items-center text-[#9198a1] transition hover:text-[#1769e0] disabled:opacity-50 dark:text-[#737c86]"
                       aria-label="Ajouter un emoji"
                     >
                       <Smile
                         size={15}
                       />
                     </button>
+
+
+                    {emojiOpen && (
+                      <div
+                        className="absolute bottom-12 right-0 z-[200] grid w-44 grid-cols-6 gap-1 border border-[#dfe3e8] bg-white p-2 shadow-[0_14px_35px_rgba(15,23,42,0.18)] dark:border-[#343a43] dark:bg-[#171c22]"
+                      >
+                        {[
+                          "😀",
+                          "😂",
+                          "😍",
+                          "👍",
+                          "👏",
+                          "🙏",
+                          "🥊",
+                          "🏆",
+                          "🔥",
+                          "❤️",
+                          "✅",
+                          "🎉",
+                        ].map(
+                          (emoji) => (
+                            <button
+                              key={
+                                emoji
+                              }
+                              type="button"
+                              onClick={() => {
+                                setContent(
+                                  (current) =>
+                                    current +
+                                    emoji,
+                                );
+                                setEmojiOpen(
+                                  false,
+                                );
+                              }}
+                              className="grid h-7 w-7 place-items-center text-[16px] hover:bg-[#f0f2f5] dark:hover:bg-[#252b33]"
+                            >
+                              {emoji}
+                            </button>
+                          ),
+                        )}
+                      </div>
+                    )}
                   </div>
 
 
@@ -2606,7 +3044,8 @@ export function ModernMessagingWorkspace({
                       void handleSend()
                     }
                     disabled={
-                      !content.trim() ||
+                      (!content.trim() &&
+                        !attachments.length) ||
                       sending
                     }
                     className="grid h-10 w-10 shrink-0 place-items-center bg-[#e31b36] text-white transition hover:bg-[#c7152e] disabled:cursor-not-allowed disabled:bg-[#c8ccd1] dark:disabled:bg-[#343a43]"

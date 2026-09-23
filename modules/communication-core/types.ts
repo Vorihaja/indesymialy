@@ -45,6 +45,7 @@ export type MessageStatus =
 export type AttachmentKind =
   | "image"
   | "video"
+  | "audio"
   | "document"
   | "file";
 
@@ -74,6 +75,7 @@ export interface CommunicationParticipant {
   profileId: string;
   organizationId?: string;
   actorType?: "profile" | "organization";
+  isMine?: boolean;
   name: string;
   avatarUrl?: string;
   role: CommunicationRole;
@@ -92,6 +94,15 @@ export interface CommunicationAttachment {
   mimeType: string;
   previewUrl?: string;
   downloadPrepared: boolean;
+}
+
+export interface CommunicationAttachmentUpload {
+  id: string;
+  file: File;
+  name: string;
+  kind: AttachmentKind;
+  size: number;
+  mimeType: string;
 }
 
 export interface CommunicationMessage {
@@ -148,7 +159,9 @@ export interface CommunicationConversation {
 
 export interface CommunicationRecipient {
   actorId: string;
-  profileId: string;
+  actorType: "profile" | "organization";
+  profileId?: string;
+  organizationId?: string;
   handle: string;
   displayName: string;
   avatarUrl?: string;
