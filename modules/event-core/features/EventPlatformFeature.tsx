@@ -6,6 +6,7 @@ import IndesyDualOrbitLoader from '@/components/loading/IndesyDualOrbitLoader';
 import { Button, PublicEmpty, PublicFilterBar, PublicHero, PublicPage, SearchBar, Select } from '@/components/ui';
 import { useEventPlatform } from '../hooks/useEventPlatform';
 import { DataPanel, EventCards, EventEditor, EventHeader, EventStatusActions, type DisplayItem, sectionLabels } from '../components/EventViews';
+import { EventRegistrationPanel } from '../components/EventRegistrationPanel';
 import type { EventMode, EventPlatformSnapshot, EventRecord, EventSection } from '../types';
 
 export function EventPlatformFeature({ mode = 'public', section = 'overview', eventId, create = false, edit = false }: { mode?: EventMode; section?: EventSection; eventId?: string; create?: boolean; edit?: boolean }) {
@@ -19,10 +20,16 @@ export function EventPlatformFeature({ mode = 'public', section = 'overview', ev
 
   if (create || edit) return <div className='space-y-6 p-4'><EventHeader title={edit ? 'Modifier l’évènement' : 'Nouvel évènement'} subtitle='Organisation' /><EventEditor event={edit ? api.selectedEvent : null} onCreate={async (input) => { await api.createEvent(input); }} onUpdate={api.updateEvent} /></div>;
   if (section === 'overview' && !eventId) return <div className='space-y-6 p-4'><EventHeader title='Pilotage des évènements' subtitle='Espace métier' actions={mode === 'organizer' ? [{ label: 'Créer', href: `${basePath}/new` }] : []} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder='Rechercher par titre, ville ou discipline' className='w-full rounded-xl border bg-transparent p-3' /><EventCards events={events} basePath={basePath} /></div>;
+  if (section === 'registrations') {
+    const registrations = eventId
+      ? api.snapshot.registrations.filter((registration) => registration.eventId === eventId)
+      : api.snapshot.registrations;
+    const canManage = mode === 'organizer' || mode === 'admin';
+    return <div className='space-y-6 p-4'><EventHeader title={canManage ? 'Examen des inscriptions' : 'Mes inscriptions'} subtitle={eventId ? api.snapshot.events.find((item) => item.id === eventId)?.title ?? 'Événement' : 'Participation'} /><EventRegistrationPanel registrations={registrations} canManage={canManage} onDecide={api.decideRegistration} /></div>;
+  }
   const event = api.selectedEvent; if (!event) return <p className='p-8 text-neutral-500'>Évènement introuvable.</p>;
   let items: DisplayItem[] = []; let action: ((id: string) => void) | undefined;
   if (section === 'competitions') items = api.snapshot.competitions.map((item) => ({ id: item.id, title: item.name, meta: `${item.kind} · ${item.categories.join(', ')}`, status: item.resultSummary ?? 'programme' }));
-  if (section === 'registrations') { items = api.snapshot.registrations.map((item) => ({ id: item.id, title: item.applicantName, meta: `${item.category} · licence ${item.licenceNumber ?? 'à fournir'}`, status: item.status, actionLabel: 'Valider' })); if (mode === 'organizer' || mode === 'admin') action = (id) => { void api.decideRegistration(id, 'validated'); }; }
   if (section === 'participants') items = api.snapshot.participants.map((item) => ({ id: item.id, title: item.name, meta: item.kind, status: item.status }));
   if (section === 'staff') items = api.snapshot.staff.map((item) => ({ id: item.id, title: item.name, meta: `${item.role} · ${item.mission}`, status: item.status }));
   if (section === 'checklists') { items = api.snapshot.checklists.map((item) => ({ id: item.id, title: item.title, meta: `${item.category} · ${item.assignee} · échéance ${item.dueAt}`, status: item.status, actionLabel: item.status === 'validated' ? 'Rouvrir' : 'Valider' })); if (mode === 'organizer') action = (id) => { void api.toggleChecklist(id); }; }

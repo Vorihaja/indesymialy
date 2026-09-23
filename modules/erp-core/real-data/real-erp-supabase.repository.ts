@@ -1075,14 +1075,18 @@ export class RealErpSupabaseRepository {
         break;
       }
       case "event_registrations": {
-        const previous = await this.supabase.from("event_registrations").select("status").eq("id", id).single();
-        if (previous.error) throw previous.error;
-        const nextStatus = String(values.status ?? previous.data.status);
-        ({ error } = await this.supabase.from("event_registrations").update({ status: nextStatus, eligibility_status: String(values.eligibility_status ?? "pending"), payment_status: String(values.payment_status ?? "pending"), decision_reason: String(values.decision_reason ?? "").trim() || null, waitlist_position: values.waitlist_position === null || values.waitlist_position === "" ? null : Number(values.waitlist_position), reviewed_by: context.userId, reviewed_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", id));
-        if (!error && previous.data.status !== nextStatus) {
-          const history = await this.supabase.from("event_registration_history").insert({ registration_id: id, from_status: previous.data.status, to_status: nextStatus, reason: String(values.decision_reason ?? "").trim() || null, changed_by: context.userId });
-          error = history.error;
-        }
+        const result = await this.supabase.rpc("review_event_registration", {
+          p_registration_id: id,
+          p_status: String(values.status ?? "pending"),
+          p_eligibility_status: String(values.eligibility_status ?? "pending"),
+          p_payment_status: String(values.payment_status ?? "not_required"),
+          p_reason: String(values.decision_reason ?? "").trim() || undefined,
+          p_waitlist_position:
+            values.waitlist_position === null || values.waitlist_position === ""
+              ? undefined
+              : Number(values.waitlist_position),
+        });
+        error = result.error;
         break;
       }
       case "event_invitations":
@@ -1606,19 +1610,35 @@ export class RealErpSupabaseRepository {
     const result = eventId ? await this.supabase.from("event_registrations").select("*").eq("event_id", eventId).order("submitted_at", { ascending: false }) : { data: [], error: null };
     if (result.error) throw result.error;
     const rows = asRows(result.data);
+    const profileIds = rows.map((row) => text(row.applicant_profile_id)).filter(Boolean);
+    const organizationIds = rows.map((row) => text(row.applicant_organization_id)).filter(Boolean);
+    const [profilesResult, organizationsResult] = await Promise.all([
+      profileIds.length
+        ? this.supabase.from("profiles").select("id,full_name").in("id", profileIds)
+        : Promise.resolve({ data: [], error: null }),
+      organizationIds.length
+        ? this.supabase.from("organizations").select("id,name").in("id", organizationIds)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+    if (profilesResult.error) throw profilesResult.error;
+    if (organizationsResult.error) throw organizationsResult.error;
+    const applicantNames = new Map<string, string>([
+      ...(profilesResult.data ?? []).map((profile) => [profile.id, profile.full_name] as const),
+      ...(organizationsResult.data ?? []).map((organization) => [organization.id, organization.name] as const),
+    ]);
     const fields: RealErpData["fields"] = [
-      { name: "status", label: "Décision", type: "select", required: true, options: [{ label: "En attente", value: "pending" }, { label: "Approuvée", value: "approved" }, { label: "Liste d’attente", value: "waitlisted" }, { label: "Refusée", value: "rejected" }] },
+      { name: "status", label: "Décision", type: "select", required: true, options: [{ label: "En attente", value: "pending" }, { label: "Validée", value: "validated" }, { label: "Liste d’attente", value: "waiting_list" }, { label: "Refusée", value: "refused" }] },
       { name: "eligibility_status", label: "Éligibilité", type: "select", required: true, options: [{ label: "À contrôler", value: "pending" }, { label: "Éligible", value: "eligible" }, { label: "Inéligible", value: "ineligible" }, { label: "Dérogation requise", value: "waiver_required" }] },
-      { name: "payment_status", label: "Paiement", type: "select", required: true, options: [{ label: "En attente", value: "pending" }, { label: "Payé", value: "paid" }, { label: "Exonéré", value: "waived" }, { label: "Remboursé", value: "refunded" }] },
+      { name: "payment_status", label: "Paiement", type: "select", required: true, options: [{ label: "Non requis", value: "not_required" }, { label: "Préparé", value: "prepared" }, { label: "En attente", value: "pending" }, { label: "Payé", value: "paid" }, { label: "Remboursé", value: "refunded" }] },
       { name: "waitlist_position", label: "Position en attente", type: "number" },
       { name: "decision_reason", label: "Motif de la décision", type: "textarea" },
     ];
     return buildData(query, ["Candidat", "Type", "Licence", "Poids", "Éligibilité", "Paiement", "Statut"], rows.map((row) => [
-      text(row.applicant_profile_id ?? row.applicant_organization_id), text(row.applicant_type), text(row.license_number), row.weight_kg === null ? "—" : `${text(row.weight_kg)} kg`, text(row.eligibility_status), text(row.payment_status), text(row.status),
+      applicantNames.get(text(row.applicant_profile_id ?? row.applicant_organization_id)) ?? "Candidat", text(row.applicant_type), text(row.license_number), row.weight_kg === null ? "—" : `${text(row.weight_kg)} kg`, text(row.eligibility_status), text(row.payment_status), text(row.status),
     ]), rows.map((row) => text(row.id)), [
       { label: "Demandes", value: String(rows.length), detail: "Événement actif", tone: "blue" },
       { label: "À examiner", value: String(rows.filter((row) => row.status === "pending").length), detail: "Décision requise", tone: "amber" },
-      { label: "Approuvées", value: String(rows.filter((row) => row.status === "approved").length), detail: "Participants validés", tone: "green" },
+      { label: "Validées", value: String(rows.filter((row) => row.status === "validated").length), detail: "Participants confirmés", tone: "green" },
     ], mutation("event_registrations", rows, fields, { create: false, update: true, delete: false }));
   }
 
@@ -1628,8 +1648,8 @@ export class RealErpSupabaseRepository {
     if (result.error) throw result.error;
     const rows = asRows(result.data);
     const fields: RealErpData["fields"] = [
-      { name: "participant_type", label: "Type", type: "select", required: true, options: [{ label: "Club", value: "club" }, { label: "Combattant", value: "fighter" }, { label: "Officiel", value: "official" }, { label: "Partenaire", value: "partner" }] },
-      { name: "status", label: "Statut", type: "select", required: true, options: [{ label: "En attente", value: "pending" }, { label: "Confirmé", value: "confirmed" }, { label: "Refusé", value: "rejected" }, { label: "Retiré", value: "withdrawn" }] },
+      { name: "participant_type", label: "Type", type: "select", required: true, options: [{ label: "Club", value: "club" }, { label: "Combattant", value: "fighter" }, { label: "Coach", value: "coach" }, { label: "Organisateur", value: "organizer" }, { label: "Arbitre", value: "referee" }, { label: "Juge", value: "judge" }, { label: "Bénévole", value: "volunteer" }, { label: "Staff", value: "staff" }, { label: "Sponsor", value: "sponsor" }, { label: "Vendeur", value: "seller" }, { label: "Média", value: "media" }] },
+      { name: "status", label: "Statut", type: "select", required: true, options: [{ label: "Invité", value: "invited" }, { label: "Confirmé", value: "confirmed" }, { label: "Refusé", value: "declined" }, { label: "Présent", value: "checked_in" }, { label: "Terminé", value: "completed" }] },
       { name: "public_visible", label: "Visibilité publique", type: "select", options: [{ label: "Masqué", value: "false" }, { label: "Visible", value: "true" }] },
     ];
     return buildData(query, ["Participant", "Type", "Statut", "Public"], rows.map((row) => [

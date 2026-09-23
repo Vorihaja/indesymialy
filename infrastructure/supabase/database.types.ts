@@ -13593,6 +13593,10 @@ export type Database = {
         Returns: boolean
       }
       is_event_official: { Args: { p_event_id: string }; Returns: boolean }
+      is_event_registration_applicant: {
+        Args: { p_event_id: string }
+        Returns: boolean
+      }
       is_event_staff: { Args: { p_event_id: string }; Returns: boolean }
       is_organization_member: {
         Args: { target_organization_id: string }
@@ -14536,6 +14540,37 @@ export type Database = {
           p_reason?: string
         }
         Returns: string
+      }
+      review_event_registration: {
+        Args: {
+          p_eligibility_status: string
+          p_payment_status?: string
+          p_reason?: string
+          p_registration_id: string
+          p_status: string
+          p_waitlist_position?: number
+        }
+        Returns: {
+          applicant_organization_id: string | null
+          applicant_profile_id: string | null
+          applicant_type: string
+          competition_category_id: string | null
+          decision_reason: string | null
+          document_paths: string[]
+          eligibility_status: string
+          event_id: string
+          id: string
+          license_number: string | null
+          medical_certificate_path: string | null
+          payment_status: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          submitted_at: string
+          updated_at: string
+          waitlist_position: number | null
+          weight_kg: number | null
+        }
       }
       review_event_ticket_refund: {
         Args: {

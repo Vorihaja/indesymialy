@@ -46,7 +46,8 @@ create table public.event_registrations (
   submitted_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint event_registrations_applicant_check check (
-    (applicant_profile_id is not null) <> (applicant_organization_id is not null)
+    (applicant_type = 'fighter' and applicant_profile_id is not null and applicant_organization_id is null)
+    or (applicant_type = 'club' and applicant_organization_id is not null and applicant_profile_id is null)
   )
 );
 create index event_registrations_event_status_idx on public.event_registrations(event_id, status, submitted_at);
@@ -77,7 +78,7 @@ create table public.event_participants (
   status text not null default 'invited' check (status in ('invited','confirmed','declined','checked_in','completed')),
   public_visible boolean not null default false,
   created_at timestamptz not null default now(),
-  constraint event_participants_subject_check check (profile_id is not null or organization_id is not null)
+  constraint event_participants_subject_check check (num_nonnulls(profile_id, organization_id) = 1)
 );
 create index event_participants_event_type_idx on public.event_participants(event_id, participant_type, status);
 

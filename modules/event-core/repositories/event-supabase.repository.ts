@@ -1,10 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/infrastructure/supabase/database.types';
-import { normalizeBackendError, storageNotImplemented } from '@/shared/errors/backend-error';
+import { normalizeBackendError } from '@/shared/errors/backend-error';
 import { OrganizerOperationsError } from '@/modules/organizer-operations/errors';
 import type { OrganizerContextRepository } from '@/modules/organizer-operations/repositories/organizer-operations.repository';
 import type { EventPlatformRepository } from './event-platform.repository';
-import type { EventChecklistItem, EventPlatformSnapshot, EventRecord, EventSponsor, EventStaffAssignment, EventStatus, FightCardEntry } from '../types';
+import type { EventChecklistItem, EventPlatformSnapshot, EventRecord, EventSponsor, EventStaffAssignment, EventStatus, FightCardEntry, RegistrationDecision, RegistrationHistoryEntry } from '../types';
 import type { EventMode } from '../types';
 
 type EventRow = Database['public']['Tables']['events']['Row'];
@@ -475,10 +475,18 @@ export class EventSupabaseRepository implements EventPlatformRepository {
 
       const competitionIds = competitions.map((item) => item.id);
       const registrationIds = registrations.map((item) => item.id);
+      const profileIds = Array.from(new Set([
+        ...registrations.flatMap((item) => [
+          item.applicant_profile_id,
+          item.reviewed_by,
+        ]),
+        ...(participantsResult.data ?? []).map((item) => item.profile_id),
+      ].filter((id): id is string => Boolean(id))));
 
       const [
         categoriesResult,
         registrationHistoryResult,
+        profilesResult,
       ] = await Promise.all([
         competitionIds.length
           ? this.supabase
@@ -494,6 +502,13 @@ export class EventSupabaseRepository implements EventPlatformRepository {
               .in('registration_id', registrationIds)
               .order('created_at')
           : Promise.resolve({ data: [], error: null }),
+
+        profileIds.length
+          ? this.supabase
+              .from('profiles')
+              .select('id,full_name')
+              .in('id', profileIds)
+          : Promise.resolve({ data: [], error: null }),
       ]);
 
       if (categoriesResult.error) {
@@ -504,9 +519,19 @@ export class EventSupabaseRepository implements EventPlatformRepository {
         throw registrationHistoryResult.error;
       }
 
+      if (profilesResult.error) {
+        throw profilesResult.error;
+      }
+
       const organizationNames = new Map(
         (organizationsResult.data ?? []).map(
           (item) => [item.id, item.name],
+        ),
+      );
+
+      const profileNames = new Map(
+        (profilesResult.data ?? []).map(
+          (item) => [item.id, item.full_name],
         ),
       );
 
@@ -536,18 +561,22 @@ export class EventSupabaseRepository implements EventPlatformRepository {
         ),
       );
 
-      const historyByRegistration = new Map<string, string[]>();
+      const historyByRegistration = new Map<string, RegistrationHistoryEntry[]>();
 
       for (const history of registrationHistoryResult.data ?? []) {
         const current =
           historyByRegistration.get(history.registration_id) ?? [];
 
-        current.push(
-          history.to_status +
-            ' — ' +
-            history.created_at +
-            (history.reason ? ' · ' + history.reason : ''),
-        );
+        current.push({
+          id: history.id,
+          fromStatus: history.from_status
+            ? history.from_status as RegistrationHistoryEntry['fromStatus']
+            : undefined,
+          toStatus: history.to_status as RegistrationHistoryEntry['toStatus'],
+          changedBy: history.changed_by ?? undefined,
+          reason: history.reason ?? undefined,
+          createdAt: history.created_at,
+        });
 
         historyByRegistration.set(
           history.registration_id,
@@ -623,10 +652,17 @@ export class EventSupabaseRepository implements EventPlatformRepository {
           eventId: item.event_id,
           applicantType:
             item.applicant_type as EventPlatformSnapshot['registrations'][number]['applicantType'],
+          applicantProfileId: item.applicant_profile_id ?? undefined,
+          applicantOrganizationId: item.applicant_organization_id ?? undefined,
           applicantName:
-            item.applicant_profile_id ??
-            item.applicant_organization_id ??
+            (item.applicant_profile_id
+              ? profileNames.get(item.applicant_profile_id)
+              : undefined) ??
+            (item.applicant_organization_id
+              ? organizationNames.get(item.applicant_organization_id)
+              : undefined) ??
             '',
+          categoryId: item.competition_category_id ?? undefined,
           category:
             item.competition_category_id
               ? categoryNames.get(item.competition_category_id) ?? ''
@@ -637,8 +673,15 @@ export class EventSupabaseRepository implements EventPlatformRepository {
           documents: item.document_paths,
           paymentStatus:
             item.payment_status as EventPlatformSnapshot['registrations'][number]['paymentStatus'],
+          eligibilityStatus:
+            item.eligibility_status as EventPlatformSnapshot['registrations'][number]['eligibilityStatus'],
           status:
             item.status as EventPlatformSnapshot['registrations'][number]['status'],
+          submittedAt: item.submitted_at,
+          reviewedBy: item.reviewed_by ?? undefined,
+          reviewedAt: item.reviewed_at ?? undefined,
+          decisionReason: item.decision_reason ?? undefined,
+          waitlistPosition: item.waitlist_position ?? undefined,
           history:
             historyByRegistration.get(item.id) ?? [],
         })),
@@ -647,8 +690,12 @@ export class EventSupabaseRepository implements EventPlatformRepository {
           id: item.id,
           eventId: item.event_id,
           name:
-            item.profile_id ??
-            item.organization_id ??
+            (item.profile_id
+              ? profileNames.get(item.profile_id)
+              : undefined) ??
+            (item.organization_id
+              ? organizationNames.get(item.organization_id)
+              : undefined) ??
             '',
           kind:
             item.participant_type as EventPlatformSnapshot['participants'][number]['kind'],
@@ -887,7 +934,30 @@ export class EventSupabaseRepository implements EventPlatformRepository {
     } catch (reason) { this.rethrow(reason); }
   }
   changeEventStatus(id: string, nextStatus: EventStatus) { return this.updateEvent(id, { status: nextStatus }); }
-  decideRegistration() { return Promise.reject(storageNotImplemented('inscriptions événement')); }
+  async decideRegistration(
+    id: string,
+    decision: RegistrationDecision,
+  ) {
+    try {
+      const { error } = await this.supabase.rpc(
+        'review_event_registration',
+        {
+          p_registration_id: id,
+          p_status: decision.status,
+          p_eligibility_status: decision.eligibilityStatus,
+          p_reason: decision.reason,
+          p_waitlist_position: decision.waitlistPosition,
+          p_payment_status: decision.paymentStatus,
+        },
+      );
+
+      if (error) {
+        throw error;
+      }
+    } catch (reason) {
+      this.rethrow(reason);
+    }
+  }
   async toggleChecklist(id: string) {
     try {
       const organizationId = await this.organizationId(); const { data, error } = await this.supabase.from('event_checklists').select('is_completed,event_id').eq('id', id).maybeSingle();
