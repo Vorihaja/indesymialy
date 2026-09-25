@@ -146,13 +146,26 @@ test("judge assignments create exactly one persistent judge card", () => {
 test("public table grants expose only the live read model", () => {
   assert.match(migration, /revoke select on table public\.fights from anon/);
   assert.match(migration, /grant select \([\s\S]*?discipline_id, weight_category_id[\s\S]*?\) on public\.fights to anon/);
-  assert.doesNotMatch(migration.match(/grant select \([\s\S]*?\) on public\.fights to anon/)?.[0] ?? "", /referee_id|cancellation_reason/);
+  const anonFightGrant = migration.match(/grant select \([\s\S]*?\) on public\.fights to anon/)?.[0] ?? "";
+  assert.doesNotMatch(
+    anonFightGrant,
+    /winner_id|method|ending_round|ending_time|referee_id|cancellation_reason/,
+  );
   assert.match(migration, /revoke all privileges on table[\s\S]*fight_judge_cards[\s\S]*from anon, authenticated/);
   assert.match(migration, /grant select \([\s\S]*fight_events_timeline to anon/);
   assert.match(migration, /fight_announcements_public_read[\s\S]*using \(is_public/);
   assert.doesNotMatch(migration, /create policy fight_timer_events_public_read/);
   assert.doesNotMatch(migration, /create policy fight_live_actions_public_read/);
   assert.doesNotMatch(migration, /create policy fight_penalties_public_read/);
+});
+
+test("legacy completed result data is not destructively rewritten for compatibility", () => {
+  assert.doesNotMatch(migration, /delete\s+from\s+public\.fights/i);
+  assert.doesNotMatch(
+    migration,
+    /update\s+public\.fights[\s\S]{0,300}set[\s\S]{0,300}(?:winner_id|method)\s*=\s*null/i,
+  );
+  assert.doesNotMatch(migration, /where[\s\S]{0,200}method\s*=\s*'Decision'/i);
 });
 
 test("combat actions require a running server timer", () => {

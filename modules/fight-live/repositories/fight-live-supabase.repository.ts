@@ -18,6 +18,21 @@ import type {
 } from "../types";
 
 type FightRow = Database["public"]["Tables"]["fights"]["Row"];
+type FightParticipantRow = Pick<FightRow, "fighter_red_id" | "fighter_blue_id">;
+type DecisionFightRow = Pick<FightRow, "status"> &
+  Partial<Pick<FightRow, "ending_round" | "ending_time">>;
+type PublicFightRow = Pick<
+  FightRow,
+  | "id"
+  | "event_id"
+  | "fight_order"
+  | "fighter_red_id"
+  | "fighter_blue_id"
+  | "weight_category"
+  | "scheduled_rounds"
+  | "status"
+  | "discipline_id"
+>;
 
 function liveStatus(value: string | null): FightLiveStatus {
   return ["scheduled", "ready", "live", "paused", "recovery", "completed", "published"].includes(value ?? "")
@@ -317,7 +332,7 @@ export class FightLiveSupabaseRepository implements FightLiveRepositoryPort {
     try {
       const [fightResult, roundsResult, timelineResult, statisticsResult, decisionsResult] = await Promise.all([
         this.supabase.from("fights")
-          .select("id,event_id,fight_order,weight_category,scheduled_rounds,status,winner_id,method,ending_round,ending_time,discipline_id,fighter_red_id,fighter_blue_id")
+          .select("id,event_id,fight_order,weight_category,scheduled_rounds,status,discipline_id,fighter_red_id,fighter_blue_id")
           .eq("id", fightId)
           .maybeSingle(),
         this.supabase.from("fight_rounds")
@@ -341,7 +356,7 @@ export class FightLiveSupabaseRepository implements FightLiveRepositoryPort {
       ].find(Boolean);
       if (firstError) throw firstError;
       if (!fightResult.data) throw new BackendError("NOT_FOUND", "Le combat est introuvable.");
-      const fight = fightResult.data as FightRow;
+      const fight: PublicFightRow = fightResult.data;
 
       const [eventResult, disciplineResult, redResult, blueResult] = await Promise.all([
         fight.event_id
@@ -544,14 +559,14 @@ export class FightLiveSupabaseRepository implements FightLiveRepositoryPort {
     return this.get(fightId);
   }
 
-  private corner(fight: FightRow, fighterId: string | null): FightCorner | undefined {
+  private corner(fight: FightParticipantRow, fighterId: string | null): FightCorner | undefined {
     if (fighterId === fight.fighter_red_id) return "red";
     if (fighterId === fight.fighter_blue_id) return "blue";
     return undefined;
   }
 
   private mapTimeline(
-    fight: FightRow,
+    fight: FightParticipantRow,
     rounds: Array<{ id: string; round_number: number }>,
     item: Database["public"]["Tables"]["fight_events_timeline"]["Row"],
   ): FightLiveAction {
@@ -569,7 +584,7 @@ export class FightLiveSupabaseRepository implements FightLiveRepositoryPort {
   }
 
   private mapStatistics(
-    fight: FightRow,
+    fight: FightParticipantRow,
     rows: Database["public"]["Tables"]["fight_statistics"]["Row"][],
     actions: FightLiveAction[]
   ): FightLiveStatistics {
@@ -601,7 +616,7 @@ export class FightLiveSupabaseRepository implements FightLiveRepositoryPort {
   }
 
   private mapDecision(
-    fight: FightRow,
+    fight: DecisionFightRow,
     row: Database["public"]["Tables"]["fight_decisions"]["Row"] | undefined,
     cards: FightJudgeCard[]
   ): FightLiveDecision | null {

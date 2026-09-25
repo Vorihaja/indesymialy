@@ -200,8 +200,8 @@ grant execute on function private.can_view_fight_live(uuid) to anon, authenticat
 revoke select on table public.fights from anon;
 grant select (
   id, event_id, fight_order, fighter_red_id, fighter_blue_id,
-  weight_category, scheduled_rounds, fight_type, status, winner_id,
-  method, ending_round, ending_time, created_at, archived_at, updated_at,
+  weight_category, scheduled_rounds, fight_type, status,
+  created_at, archived_at, updated_at,
   discipline_id, weight_category_id
 ) on public.fights to anon;
 

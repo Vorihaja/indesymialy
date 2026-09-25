@@ -60,7 +60,14 @@ test("visible controls cover both corners and persisted realtime refresh", async
 test("public reads use an explicit safe projection and the persisted timeline", async () => {
   const source = await read("modules/fight-live/repositories/fight-live-supabase.repository.ts");
   const publicMethod = source.slice(source.indexOf("async getPublic"), source.indexOf("async updateTimer"));
+  const publicFightSelect = publicMethod.match(/\.from\("fights"\)\s*\.select\("([^"]+)"\)/)?.[1] ?? "";
+  assert.ok(publicFightSelect);
+  assert.doesNotMatch(publicFightSelect, /winner_id|method|ending_round|ending_time/);
   assert.match(publicMethod, /fight_events_timeline/);
+  assert.match(publicMethod, /\.from\("fight_decisions"\)/);
+  assert.match(publicMethod, /result: fight\.status === "published" \? this\.mapDecision\(fight, decision, \[\]\) : null/);
   assert.doesNotMatch(publicMethod, /fight_(?:judge_cards|judge_round_scores|event_log|incidents|timer_events|live_actions|penalties)/);
   assert.doesNotMatch(publicMethod, /recorded_by/);
+  assert.doesNotMatch(publicMethod, /as FightRow/);
+  assert.match(source, /type PublicFightRow = Pick</);
 });
