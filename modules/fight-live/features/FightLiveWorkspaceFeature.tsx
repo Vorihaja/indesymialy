@@ -2,23 +2,25 @@
 
 import { ControlPanel, FightOverviewPanel, OfficialsPanel, ResultPanel, ScorecardPanel, SetupPanel, StatisticsPanel } from "../components/FightLivePanels";
 import { FightLiveShell } from "../components/FightLiveShell";
+import { resolveFightLiveCapabilities } from "../access";
 import { useFightLiveWorkspace } from "../hooks/useFightLiveWorkspace";
 import type { FightLiveMode, FightLiveSection, FightLiveSnapshot } from "../types";
 
 export function FightLiveWorkspaceFeature({ fightId, mode, section = "overview", basePath }: { fightId: string; mode: Exclude<FightLiveMode, "public">; section?: FightLiveSection; basePath?: string }) {
-  const state = useFightLiveWorkspace(fightId, false, mode === "judge" && section === "scorecard");
+  const state = useFightLiveWorkspace(fightId, false, mode === "judge" && section === "scorecard", mode);
   if (state.loading) return <p className="rounded-xl border p-8 text-sm text-neutral-500">Chargement Fight Live…</p>;
   if (state.error && !state.fight) return <p className="rounded-xl border border-red-500/30 p-8 text-sm text-red-500">{state.error}</p>;
   const fight = state.fight as FightLiveSnapshot | null;
   if (!fight) return <p className="rounded-xl border p-8">Combat introuvable.</p>;
+  const capabilities = resolveFightLiveCapabilities(mode, fight.currentOperatorRoles);
   return <FightLiveShell fightId={fightId} mode={mode} section={section} basePath={basePath}>
     {state.error && <p className="mb-4 rounded-lg bg-red-500/10 p-3 text-sm text-red-500">{state.error}</p>}
     {section === "overview" && <FightOverviewPanel fight={fight} />}
     {section === "setup" && <SetupPanel fight={fight} />}
     {section === "officials" && <OfficialsPanel fight={fight} />}
-    {section === "control" && (mode === "organizer" || mode === "referee") && <ControlPanel fight={fight} mode={mode} saving={state.saving} timer={(action) => { void state.timer(action); }} action={(kind, corner) => { void state.action(kind, corner); }} />}
-    {section === "statistics" && <StatisticsPanel fight={fight} saving={state.saving} recalculate={mode === "organizer" || mode === "admin" ? () => { void state.recalculateStatistics(); } : undefined} />}
-    {section === "result" && <ResultPanel fight={fight} saving={state.saving} decide={(winner, method) => { void state.decide(winner, method); }} publish={() => { void state.publish(); }} readOnly={mode !== "organizer" && mode !== "admin"} />}
-    {section === "scorecard" && mode === "judge" && <ScorecardPanel fight={fight} saving={state.saving} save={(cardId, round, red, blue) => { void state.saveScore(cardId, round, red, blue); }} submit={(cardId) => { void state.submitCard(cardId); }} />}
+    {section === "control" && capabilities.canViewOperationalLive && <ControlPanel fight={fight} capabilities={capabilities} saving={state.saving} timer={(action) => { void state.timer(action); }} action={(kind, corner) => { void state.action(kind, corner); }} />}
+    {section === "statistics" && <StatisticsPanel fight={fight} saving={state.saving} recalculate={capabilities.canRecalculateStatistics ? () => { void state.recalculateStatistics(); } : undefined} />}
+    {section === "result" && <ResultPanel fight={fight} saving={state.saving} decide={(winner, method) => { void state.decide(winner, method); }} publish={() => { void state.publish(); }} readOnly={!capabilities.canDecideFight || !capabilities.canPublishResult} />}
+    {section === "scorecard" && capabilities.canScoreJudgeCard && <ScorecardPanel fight={fight} saving={state.saving} save={(cardId, round, red, blue) => { void state.saveScore(cardId, round, red, blue); }} submit={(cardId) => { void state.submitCard(cardId); }} />}
   </FightLiveShell>;
 }

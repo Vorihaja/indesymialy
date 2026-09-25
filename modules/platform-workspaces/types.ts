@@ -11,6 +11,7 @@ export const WORKSPACE_SECTIONS = [
   "calendar",
   "settings",
   "notifications",
+  "live",
 ] as const;
 
 export type WorkspaceSection =

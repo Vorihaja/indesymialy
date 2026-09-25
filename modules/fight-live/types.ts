@@ -11,7 +11,10 @@ export type FightEventLogRow = Database["public"]["Tables"]["fight_event_log"]["
 export type FightStatisticRow = Database["public"]["Tables"]["fight_statistics"]["Row"];
 export type FightResultRow = Database["public"]["Tables"]["fight_results"]["Row"];
 
-export type FightLiveMode = "organizer" | "referee" | "judge" | "public" | "admin";
+export type FightLiveMode = "organizer" | "referee" | "judge" | "fighter" | "public" | "admin";
+export type FightLiveAccessMode = "public-viewer" | "authorized-participant" | "organizer-manager" | "platform-manager" | "assigned-official" | "assigned-judge";
+export type RoleLiveRole = "admin" | "super-admin" | "club" | "coach" | "fan" | "federation" | "league" | "seller" | "sponsor";
+export interface FightLiveCapabilities { accessMode: FightLiveAccessMode; canViewPublicLive: boolean; canViewOperationalLive: boolean; canControlTimer: boolean; canRecordOfficialAction: boolean; canScoreJudgeCard: boolean; canDecideFight: boolean; canPublishResult: boolean; canRecalculateStatistics: boolean; }
 export type FightLiveSection = "overview" | "setup" | "officials" | "control" | "statistics" | "result" | "scorecard";
 export type FightLiveStatus = "scheduled" | "ready" | "live" | "paused" | "recovery" | "completed" | "published";
 export type FightTimerAction = "start" | "pause" | "timeout" | "medical_timeout" | "technical_pause" | "resume" | "end_round" | "next_round" | "end_fight";

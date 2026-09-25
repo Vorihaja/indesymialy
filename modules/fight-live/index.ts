@@ -1,4 +1,5 @@
 export * from "./types";
+export * from "./access";
 export * from "./errors";
 export * from "./validation";
 export * from "./repositories";

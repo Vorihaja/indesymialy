@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createFightLiveFeatureUseCase, createFightLiveRealtimeService } from "../factories/fight-live.factory";
-import type { FightActionKind, FightCorner, FightDecisionMethod, FightLiveSnapshot, FightTimerAction, PublicFightLiveSnapshot } from "../types";
+import type { FightActionKind, FightCorner, FightDecisionMethod, FightLiveMode, FightLiveSnapshot, FightTimerAction, PublicFightLiveSnapshot } from "../types";
 
 type FightListScope = "public" | "organizer" | "official" | "fighter" | "judge";
 
@@ -28,7 +28,7 @@ export function useFightLiveList(scope: FightListScope) {
   return { fights, loading, error };
 }
 
-export function useFightLiveWorkspace(fightId: string, publicOnly = false, judgeScorecardOnly = false) {
+export function useFightLiveWorkspace(fightId: string, publicOnly = false, judgeScorecardOnly = false, mode?: FightLiveMode) {
   const useCase = useMemo(() => createFightLiveFeatureUseCase(), []);
   const realtime = useMemo(() => createFightLiveRealtimeService(), []);
   const [fight, setFight] = useState<FightLiveSnapshot | PublicFightLiveSnapshot | null>(null);
@@ -59,18 +59,49 @@ export function useFightLiveWorkspace(fightId: string, publicOnly = false, judge
 
   useEffect(() => {
     const refresh = () => { void load(false); };
-    const channels = [
-      realtime.subscribeToFightEvents(fightId, refresh),
-      realtime.subscribeToTimer(fightId, refresh),
-      realtime.subscribeToScores(fightId, refresh),
-      realtime.subscribeToLiveActions(fightId, refresh),
-      realtime.subscribeToStatistics(fightId, refresh),
-      realtime.subscribeToJudgeCards(fightId, refresh),
-      realtime.subscribeToStatus(fightId, refresh),
-      realtime.subscribeToResult(fightId, refresh),
-    ];
+    const channels = publicOnly
+      ? [
+          realtime.subscribeToStatistics(fightId, refresh),
+          realtime.subscribeToStatus(fightId, refresh),
+          realtime.subscribeToResult(fightId, refresh),
+        ]
+      : judgeScorecardOnly
+        ? [
+            realtime.subscribeToTimer(fightId, refresh),
+            realtime.subscribeToStatistics(fightId, refresh),
+            realtime.subscribeToJudgeCards(fightId, refresh),
+            realtime.subscribeToStatus(fightId, refresh),
+          ]
+        : mode === "fighter"
+          ? [
+              realtime.subscribeToTimer(fightId, refresh),
+              realtime.subscribeToLiveActions(fightId, refresh),
+              realtime.subscribeToStatistics(fightId, refresh),
+              realtime.subscribeToStatus(fightId, refresh),
+              realtime.subscribeToResult(fightId, refresh),
+            ]
+        : mode === "referee"
+          ? [
+              realtime.subscribeToFightEvents(fightId, refresh),
+              realtime.subscribeToTimer(fightId, refresh),
+              realtime.subscribeToScores(fightId, refresh),
+              realtime.subscribeToLiveActions(fightId, refresh),
+              realtime.subscribeToStatistics(fightId, refresh),
+              realtime.subscribeToStatus(fightId, refresh),
+              realtime.subscribeToResult(fightId, refresh),
+            ]
+        : [
+            realtime.subscribeToFightEvents(fightId, refresh),
+            realtime.subscribeToTimer(fightId, refresh),
+            realtime.subscribeToScores(fightId, refresh),
+            realtime.subscribeToLiveActions(fightId, refresh),
+            realtime.subscribeToStatistics(fightId, refresh),
+            realtime.subscribeToJudgeCards(fightId, refresh),
+            realtime.subscribeToStatus(fightId, refresh),
+            realtime.subscribeToResult(fightId, refresh),
+          ];
     return () => { channels.forEach((channel) => { void realtime.unsubscribe(channel); }); };
-  }, [fightId, load, realtime]);
+  }, [fightId, judgeScorecardOnly, load, mode, publicOnly, realtime]);
 
   const mutate = useCallback(async (operation: () => Promise<FightLiveSnapshot>) => {
     setSaving(true);

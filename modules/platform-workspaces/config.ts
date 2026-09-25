@@ -25,6 +25,7 @@ const sectionLabels: Record<
   calendar: "Calendrier",
   settings: "Paramètres",
   notifications: "Notifications",
+  live: "Fight Live",
 };
 
 /* =========================================================

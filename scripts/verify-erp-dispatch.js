@@ -96,6 +96,7 @@ const confirmedHandlerKeys = new Set([
   'official-availability', 'official-scorecards', 'fight-live',
   'organizer-events', 'organizer-fight-center', 'organizer-settings',
   'fighter-overview',
+  'role-live',
 ]);
 
 const evidenceByHandler = {
@@ -120,6 +121,7 @@ const evidenceByHandler = {
   'organizer-fight-center': ['modules/organizer-erp/fight-center/features/FightCenterFeature.tsx', 'FightCenterFeature', 'modules/organizer-erp/fight-center/use-cases/manage-fight-card.use-case.ts', 'fight-center-supabase.repository.ts / fight tables', 'organizer event authority'],
   'organizer-settings': ['modules/organizer-erp/components/OrganizerSettingsView.tsx', 'OrganizerSettingsView', 'modules/identity-core services', 'organization/profile authority', 'organizer organization authority'],
   'fighter-overview': ['modules/fighter-erp/components/FighterOverview.tsx', 'FighterOverview', 'fighter overview use case', 'fighter/profile authority', 'fighter personal authority'],
+  'role-live': ['modules/fight-live/features/RoleLiveFeature.tsx', 'RoleLiveFeature', 'modules/fight-live/use-cases/manage-fight-live.use-case.ts', 'fight_public_projection / Fight Live RPCs', 'public projection or platform event authority'],
 };
 
 function semanticEntry(entry) {
@@ -161,6 +163,20 @@ function semanticEntry(entry) {
     effective = { ...effective, capabilities: ' read: true, create: true, update: true, delete: false ', capabilityMode: 'permission-aware', capabilityPolicy: 'Judge submits or corrects own scorecards subject to fight assignment and lock state.' };
   } else if (entry.role === 'official' && ['live', 'fights'].includes(entry.moduleId)) {
     effective = { ...effective, capabilities: ' read: true, create: true, update: true, delete: false ', capabilityMode: 'permission-aware', capabilityPolicy: 'Assigned referee/timekeeper timer control and assigned operational-official action recording; no deletion.' };
+  } else if (entry.moduleId === 'live' && entry.handlerKey === 'role-live') {
+    const platformManager = entry.role === 'admin' || entry.role === 'super-admin';
+    effective = {
+      ...effective,
+      capabilities: platformManager
+        ? ' read: true, create: false, update: true, delete: false '
+        : ' read: true, create: false, update: false, delete: false ',
+      readScope: platformManager ? 'platform' : 'public',
+      mutationScope: platformManager ? 'event' : 'none',
+      capabilityMode: 'permission-aware',
+      capabilityPolicy: platformManager
+        ? 'Platform administration follows deployed event authority.'
+        : 'Safe public Fight Live projection only; no mutation controls.',
+    };
   }
 
   return {
@@ -210,6 +226,10 @@ const capabilityFlags = (entry) => ({
 const correctedCapabilityCount = registry.filter((entry) => entry.status === 'implemented' && entry.original && JSON.stringify(capabilityFlags(entry)) !== JSON.stringify(capabilityFlags(entry.original))).length;
 const correctedScopeCount = registry.filter((entry) => entry.status === 'implemented' && entry.original && (entry.scope !== entry.original.scope || entry.readScope || entry.mutationScope)).length;
 const correctedRuntimeHandlerCount = registry.filter((entry) => entry.status === 'unavailable' && entry.original && entry.original.status === 'implemented').length;
+const roleLiveEntries = registry.filter((entry) => entry.moduleId === 'live');
+const roleLiveRows = roleLiveEntries.map((entry) =>
+  `ROLE_LIVE|${entry.role}|${entry.status}|${entry.handlerKey}|${entry.capabilityPolicy || entry.reason}`
+);
 const capabilityOverstatementCount = 0;
 const scopeMismatchCount = 0;
 const runtimeHandlerMismatchCount = 0;
@@ -311,6 +331,8 @@ const report = [
   `CORRECTED_CAPABILITY_COUNT=${correctedCapabilityCount}`,
   `CORRECTED_SCOPE_COUNT=${correctedScopeCount}`,
   `CORRECTED_RUNTIME_HANDLER_COUNT=${correctedRuntimeHandlerCount}`,
+  `ROLE_LIVE_MODULE_COUNT=${roleLiveEntries.length}`,
+  ...roleLiveRows,
 ].join('\n') + '\n';
 
 fs.writeFileSync(reportFile, report, 'utf8');

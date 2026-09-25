@@ -4,14 +4,22 @@ import Link from "next/link";
 import { useFightLiveList } from "../hooks/useFightLiveWorkspace";
 import type { FightLiveMode } from "../types";
 
-export function FightLiveListFeature({ mode, basePath }: { mode: Exclude<FightLiveMode, "public" | "admin">; basePath?: string }) {
+export function FightLiveListFeature({ mode, basePath, detailHref }: { mode: FightLiveMode; basePath?: string; detailHref?: (fightId: string) => string }) {
   const judgeWorkspace = mode === "judge";
-  const listScope = judgeWorkspace ? "judge" : mode === "organizer" ? "organizer" : "official";
+  const listScope = judgeWorkspace
+    ? "judge"
+    : mode === "organizer" || mode === "admin"
+      ? "organizer"
+      : mode === "public"
+        ? "public"
+        : mode === "fighter"
+          ? "fighter"
+        : "official";
   const { fights, loading, error } = useFightLiveList(listScope);
-  const base = basePath ?? `/dashboard/${mode === "organizer" ? "organisateur" : mode === "referee" ? "arbitre" : "juge"}/fight-live`;
+  const base = basePath ?? (mode === "public" ? "/live" : `/dashboard/${mode === "organizer" ? "organisateur" : mode === "referee" ? "arbitre" : mode === "fighter" ? "combattant" : mode === "admin" ? "admin" : "juge"}/fight-live`);
   if (loading) return <p className="rounded-xl border p-6 text-sm">Chargement des combats affectés…</p>;
   if (error) return <p className="rounded-xl border border-red-500/30 p-6 text-red-500">{error}</p>;
-  return <section className="space-y-4"><header><p className="text-xs font-bold uppercase tracking-widest text-amber-500">{judgeWorkspace ? "Espace juge" : "Fight Live"}</p><h1 className="mt-2 text-2xl font-black">{mode === "organizer" ? "Pilotage des combats" : judgeWorkspace ? "Scorecards" : "Combats affectés"}</h1></header>{fights.length === 0 ? <p className="rounded-xl border p-8 text-center text-neutral-500">{judgeWorkspace ? "Aucune scorecard liée à une désignation de juge active." : "Aucun combat affecté."}</p> : <div className="grid gap-4 md:grid-cols-2">{fights.map((fight) => <article key={fight.fightId} className="rounded-xl border border-neutral-200 p-5 dark:border-neutral-800"><div className="flex justify-between gap-3"><div><p className="text-xs uppercase text-neutral-500">{fight.eventName}{fight.eventStartsAt ? ` · ${new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(fight.eventStartsAt))}` : ""}</p><h2 className="mt-1 font-bold">{fight.fightOrder ? `Combat ${fight.fightOrder} · ` : ""}{fight.redFighter.name} vs {fight.blueFighter.name}</h2><p className="mt-2 text-sm text-neutral-500">{fight.disciplineName}{fight.weightCategory ? ` · ${fight.weightCategory}` : ""} · {fight.status}</p>{judgeWorkspace && <p className="mt-2 text-xs font-semibold text-neutral-500">Désignation : {fight.assignmentStatus ?? "assignée"} · Carte : {fight.scorecardStatus ?? "en attente"}</p>}</div><span className="h-fit rounded-full bg-amber-500/15 px-3 py-1 text-xs text-amber-500">R{fight.timer.roundNumber}/{fight.timer.totalRounds}</span></div><Link href={`${base}/${fight.fightId}`} className="mt-4 inline-flex rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-black">{judgeWorkspace ? "Ouvrir la scorecard" : "Ouvrir le combat"}</Link></article>)}</div>}</section>;
+  return <section className="space-y-4"><header><p className="text-xs font-bold uppercase tracking-widest text-amber-500">{judgeWorkspace ? "Espace juge" : "Fight Live"}</p><h1 className="mt-2 text-2xl font-black">{mode === "organizer" || mode === "admin" ? "Pilotage des combats" : judgeWorkspace ? "Scorecards" : mode === "public" ? "Combats en direct" : "Combats affectés"}</h1></header>{fights.length === 0 ? <p className="rounded-xl border p-8 text-center text-neutral-500">{judgeWorkspace ? "Aucune scorecard liée à une désignation de juge active." : mode === "public" ? "Aucun combat public en direct." : "Aucun combat affecté."}</p> : <div className="grid gap-4 md:grid-cols-2">{fights.map((fight) => <article key={fight.fightId} className="rounded-xl border border-neutral-200 p-5 dark:border-neutral-800"><div className="flex justify-between gap-3"><div><p className="text-xs uppercase text-neutral-500">{fight.eventName}{fight.eventStartsAt ? ` · ${new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(fight.eventStartsAt))}` : ""}</p><h2 className="mt-1 font-bold">{fight.fightOrder ? `Combat ${fight.fightOrder} · ` : ""}{fight.redFighter.name} vs {fight.blueFighter.name}</h2><p className="mt-2 text-sm text-neutral-500">{fight.disciplineName}{fight.weightCategory ? ` · ${fight.weightCategory}` : ""} · {fight.status}</p>{judgeWorkspace && <p className="mt-2 text-xs font-semibold text-neutral-500">Désignation : {fight.assignmentStatus ?? "assignée"} · Carte : {fight.scorecardStatus ?? "en attente"}</p>}</div><span className="h-fit rounded-full bg-amber-500/15 px-3 py-1 text-xs text-amber-500">R{fight.timer.roundNumber}/{fight.timer.totalRounds}</span></div><Link href={detailHref ? detailHref(fight.fightId) : `${base}/${fight.fightId}`} className="mt-4 inline-flex rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-black">{judgeWorkspace ? "Ouvrir la scorecard" : "Ouvrir le combat"}</Link></article>)}</div>}</section>;
 }
 
 export function PublicFightLiveListFeature() {

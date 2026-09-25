@@ -6,6 +6,7 @@ import {
 import { RealModuleDataView } from "@/modules/organizer-erp/components/RealModuleDataView";
 import { SellerAgendaFeature } from "@/modules/seller-agenda";
 import { FinanceFeature } from "@/modules/finance-erp";
+import { isRoleLiveRole, RoleLiveFeature } from "@/modules/fight-live";
 import { getWorkspaceDefinition, getWorkspaceSectionLabel } from "../config";
 import type { WorkspaceRole, WorkspaceSection } from "../types";
 
@@ -71,6 +72,10 @@ export function WorkspaceSectionPage({
 
   if (resolvedRegistryEntry.handlerKey === "finance-erp") {
     return <FinanceFeature role={role} />;
+  }
+
+  if (resolvedRegistryEntry.handlerKey === "role-live" && isRoleLiveRole(role)) {
+    return <RoleLiveFeature role={role} />;
   }
 
   const workspace = getWorkspaceDefinition(role);

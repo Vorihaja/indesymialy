@@ -23,6 +23,7 @@ import { useErpNavigationState } from "@/modules/erp-navigation";
 import { ErpCalendarWorkspace } from "@/modules/erp-calendar/components/ErpCalendarWorkspace";
 import { OfficialAssignmentsFeature } from "@/modules/officials/assignments";
 import { OfficialAvailabilityFeature } from "@/modules/officials/availability";
+import { isRoleLiveRole, RoleLiveFeature } from "@/modules/fight-live";
 import {
   getEffectiveOfficialModules,
   OFFICIAL_ADDITIONAL_MODULES,
@@ -331,6 +332,8 @@ export function UniversalErpPrototype({
       ) : activeModule.id === "calendar" &&
       role !== "seller" ? (
         <ErpCalendarWorkspace role={role} />
+      ) : activeModule.id === "live" && isRoleLiveRole(role) ? (
+        <RoleLiveFeature role={role} />
       ) : activeModule.id === "assignments" &&
       (role === "official" || role === "referee") ? (
         <OfficialAssignmentsFeature

@@ -31,6 +31,7 @@ const makeEntry = (
     "organizer-fight-center",
     "organizer-settings",
     "fighter-overview",
+    "role-live",
   ]);
 
   if (
@@ -153,6 +154,22 @@ const makeEntry = (
     };
   }
 
+  if (moduleId === "live" && handlerKey === "role-live") {
+    const platformManager = canonicalRole === "admin" || canonicalRole === "super-admin";
+    entry = {
+      ...entry,
+      capabilities: platformManager
+        ? { read: true, update: true }
+        : { read: true, create: false, update: false, delete: false },
+      readScope: platformManager ? "platform" : "public",
+      mutationScope: platformManager ? "event" : "none",
+      capabilityMode: "permission-aware",
+      capabilityPolicy: platformManager
+        ? "Platform administrators use deployed Fight Live event authority; database authorization remains final."
+        : "Public live projection only; no timer, official action, judging, decision, or publication controls.",
+    };
+  }
+
   return entry;
 };
 
@@ -169,7 +186,7 @@ export const ERP_DISPATCH_REGISTRY: readonly ErpDispatchRegistryEntry[] = [
   makeEntry("super-admin", "personnel", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
   makeEntry("super-admin", "analytics", "implemented", "generic-erp", "real-erp-supabase", "platform", { read: true }),
   makeEntry("super-admin", "settings", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
-  makeEntry("super-admin", "live", "implemented", "platform-live", "platform-erp", "platform", { read: true }),
+  makeEntry("super-admin", "live", "implemented", "role-live", "fight-live", "platform", { read: true, update: true }),
 
   makeEntry("admin", "overview", "implemented", "admin-overview", "platform-erp", "platform", { read: true }),
   makeEntry("admin", "users", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
@@ -183,7 +200,7 @@ export const ERP_DISPATCH_REGISTRY: readonly ErpDispatchRegistryEntry[] = [
   makeEntry("admin", "personnel", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
   makeEntry("admin", "reports", "implemented", "generic-erp", "real-erp-supabase", "platform", { read: true }),
   makeEntry("admin", "settings", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
-  makeEntry("admin", "live", "implemented", "platform-live", "platform-erp", "platform", { read: true }),
+  makeEntry("admin", "live", "implemented", "role-live", "fight-live", "platform", { read: true, update: true }),
 
   makeEntry("federation", "overview", "implemented", "federation-overview", "real-erp-supabase", "organization", { read: true }),
   makeEntry("federation", "affiliations", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
@@ -198,7 +215,7 @@ export const ERP_DISPATCH_REGISTRY: readonly ErpDispatchRegistryEntry[] = [
   makeEntry("federation", "communication", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
   makeEntry("federation", "performance", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true }),
   makeEntry("federation", "settings", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
-  makeEntry("federation", "live", "implemented", "platform-live", "platform-erp", "platform", { read: true }),
+  makeEntry("federation", "live", "implemented", "role-live", "fight-live-public", "public", { read: true }),
 
   makeEntry("league", "overview", "implemented", "league-overview", "real-erp-supabase", "organization", { read: true }),
   makeEntry("league", "clubs", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
@@ -212,7 +229,7 @@ export const ERP_DISPATCH_REGISTRY: readonly ErpDispatchRegistryEntry[] = [
   makeEntry("league", "personnel", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
   makeEntry("league", "performance", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true }),
   makeEntry("league", "settings", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
-  makeEntry("league", "live", "implemented", "platform-live", "platform-erp", "platform", { read: true }),
+  makeEntry("league", "live", "implemented", "role-live", "fight-live-public", "public", { read: true }),
 
   makeEntry("club", "overview", "implemented", "club-overview", "real-erp-supabase", "organization", { read: true }),
   makeEntry("club", "members", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
@@ -227,7 +244,7 @@ export const ERP_DISPATCH_REGISTRY: readonly ErpDispatchRegistryEntry[] = [
   makeEntry("club", "communication", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
   makeEntry("club", "performance", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true }),
   makeEntry("club", "settings", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
-  makeEntry("club", "live", "implemented", "platform-live", "platform-erp", "platform", { read: true }),
+  makeEntry("club", "live", "implemented", "role-live", "fight-live-public", "public", { read: true }),
 
   makeEntry("coach", "overview", "implemented", "coach-overview", "real-erp-supabase", "personal", { read: true }),
   makeEntry("coach", "athletes", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
@@ -242,7 +259,7 @@ export const ERP_DISPATCH_REGISTRY: readonly ErpDispatchRegistryEntry[] = [
   makeEntry("coach", "personnel", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
   makeEntry("coach", "communication", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
   makeEntry("coach", "settings", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
-  makeEntry("coach", "live", "implemented", "platform-live", "platform-erp", "platform", { read: true }),
+  makeEntry("coach", "live", "implemented", "role-live", "fight-live-public", "public", { read: true }),
 
   makeEntry("fighter", "overview", "implemented", "fighter-overview", "real-erp-supabase", "personal", { read: true }),
   makeEntry("fighter", "profile", "implemented", "generic-erp", "real-erp-supabase", "personal", { read: true, create: true, update: true, delete: true }),
@@ -304,7 +321,7 @@ export const ERP_DISPATCH_REGISTRY: readonly ErpDispatchRegistryEntry[] = [
   makeEntry("sponsor", "personnel", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
   makeEntry("sponsor", "performance", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true }),
   makeEntry("sponsor", "settings", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
-  makeEntry("sponsor", "live", "implemented", "platform-live", "platform-erp", "platform", { read: true }),
+  makeEntry("sponsor", "live", "implemented", "role-live", "fight-live-public", "public", { read: true }),
 
   makeEntry("seller", "overview", "implemented", "seller-dashboard", "seller-dashboard", "organization", { read: true }),
   makeEntry("seller", "catalog", "implemented", "seller-products", "seller-products", "organization", { read: true, create: true, update: true, delete: true }),
@@ -316,7 +333,7 @@ export const ERP_DISPATCH_REGISTRY: readonly ErpDispatchRegistryEntry[] = [
   makeEntry("seller", "finance", "implemented", "finance-erp", "finance-erp", "platform", { read: true, create: true, update: true, delete: true }),
   makeEntry("seller", "performance", "implemented", "seller-performance", "seller-performance", "organization", { read: true }),
   makeEntry("seller", "settings", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
-  makeEntry("seller", "live", "implemented", "seller-live", "seller-live", "platform", { read: true }),
+  makeEntry("seller", "live", "implemented", "role-live", "fight-live-public", "public", { read: true }),
   makeEntry("seller", "marketplace", "implemented", "seller-marketplace", "seller-marketplace", "public", { read: true, create: true, update: true, delete: true }),
   makeEntry("seller", "calendar", "implemented", "seller-agenda", "seller-agenda", "organization", { read: true, create: true, update: true, delete: true }),
   makeEntry("seller", "personnel", "implemented", "seller-personnel", "seller-personnel", "organization", { read: true, create: true, update: true, delete: true }),
@@ -325,7 +342,7 @@ export const ERP_DISPATCH_REGISTRY: readonly ErpDispatchRegistryEntry[] = [
   makeEntry("fan", "finance", "implemented", "finance-erp", "finance-erp", "platform", { read: true, create: true, update: true, delete: true }),
   makeEntry("fan", "following", "implemented", "generic-erp", "real-erp-supabase", "personal", { read: true, create: true, update: true, delete: true }),
   makeEntry("fan", "events", "implemented", "generic-erp", "real-erp-supabase", "event", { read: true, create: true, update: true, delete: true }),
-  makeEntry("fan", "live", "implemented", "fan-live", "fan-live", "event", { read: true }),
+  makeEntry("fan", "live", "implemented", "role-live", "fight-live-public", "public", { read: true }),
   makeEntry("fan", "content", "implemented", "generic-erp", "real-erp-supabase", "public", { read: true }),
   makeEntry("fan", "community", "implemented", "generic-erp", "real-erp-supabase", "public", { read: true, create: true, update: true, delete: true }),
   makeEntry("fan", "tickets", "implemented", "generic-erp", "real-erp-supabase", "personal", { read: true, create: true, update: true, delete: true }),
