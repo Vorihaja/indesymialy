@@ -227,6 +227,23 @@ export function UniversalErpPrototype({
   });
 
   const navigateFromSidebar = useCallback((nextModuleId: string) => {
+    // MARKETPLACE_SURFACE_ROUTING
+    if (nextModuleId === "marketplace") {
+      if (role === "admin") {
+        router.push("/dashboard/admin/marketplace");
+        return;
+      }
+
+      if (role === "super-admin") {
+        router.push("/vh-teck/marketplace");
+        return;
+      }
+
+      if (role !== "seller") {
+        router.push("/marketplace");
+        return;
+      }
+    }
     if (role === "official") {
       const route = OFFICIAL_MODULE_ROUTES[nextModuleId];
 
