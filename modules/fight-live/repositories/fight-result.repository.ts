@@ -16,15 +16,17 @@ export class FightResultRepository {
    */
   async publishFightResult(
     fightId: string,
-    userId?: string
+    _userId?: string
   ) {
+
+    void _userId
 
     const { data, error } =
       await this.supabase.rpc(
         "publish_fight_result",
         {
           p_fight_id: fightId,
-          p_user: userId ?? undefined
+          p_user: undefined
         }
       )
 

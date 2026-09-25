@@ -1,4 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const fs = require('fs');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const path = require('path');
 
 const projectRoot = path.resolve(__dirname, '..');
@@ -6,10 +8,8 @@ const registryFile = path.join(projectRoot, 'modules', 'erp-dispatch-registry', 
 const reportFile = path.join(projectRoot, 'erp-dispatch-registry-p1a-report.txt');
 
 const resolverFile = path.join(projectRoot, 'modules', 'erp-dispatch-registry', 'resolver.ts');
-const coverageFile = path.join(projectRoot, 'modules', 'erp-dispatch-registry', 'coverage.ts');
 const registryText = fs.readFileSync(registryFile, 'utf8');
 const resolverText = fs.readFileSync(resolverFile, 'utf8');
-const coverageText = fs.readFileSync(coverageFile, 'utf8');
 
 function read(relativePath) {
   return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8');
@@ -160,7 +160,7 @@ function semanticEntry(entry) {
   } else if (entry.role === 'official' && entry.moduleId === 'scorecards') {
     effective = { ...effective, capabilities: ' read: true, create: true, update: true, delete: false ', capabilityMode: 'permission-aware', capabilityPolicy: 'Judge submits or corrects own scorecards subject to fight assignment and lock state.' };
   } else if (entry.role === 'official' && ['live', 'fights'].includes(entry.moduleId)) {
-    effective = { ...effective, capabilities: ' read: true, create: false, update: false, delete: false ', capabilityMode: 'permission-aware', capabilityPolicy: 'Official live/fight access is scoped to assigned fights.' };
+    effective = { ...effective, capabilities: ' read: true, create: true, update: true, delete: false ', capabilityMode: 'permission-aware', capabilityPolicy: 'Assigned referee/timekeeper timer control and assigned operational-official action recording; no deletion.' };
   }
 
   return {

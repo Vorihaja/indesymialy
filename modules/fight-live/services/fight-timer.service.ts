@@ -147,9 +147,13 @@ export class FightTimerService {
   /**
    * Synchronisation chrono → timeline
    */
-  async syncTimerToTimeline() {
+  async syncTimerToTimeline(fightId: string) {
 
-    return await this.timerRepository.syncTimerToTimeline()
+    if (!fightId) {
+      throw new Error("Fight ID obligatoire")
+    }
+
+    return await this.timerRepository.syncTimerToTimeline(fightId)
 
   }
 

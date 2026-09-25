@@ -52,72 +52,21 @@ export class FightRepository {
 
 
   /**
-   * Modifier le statut d'un combat
-   */
-  async updateFightStatus(
-    fightId: string,
-    status: string
-  ) {
-
-    const { data, error } = await this.supabase
-      .from("fights")
-      .update({
-        status,
-        updated_at: new Date().toISOString()
-      })
-      .eq("id", fightId)
-      .select()
-      .single()
-
-
-    if (error) throw normalizeBackendError(error)
-
-    return data
-  }
-
-
-  /**
-   * Terminer un combat
-   */
-  async finishFight(
-    fightId: string,
-    winnerId: string | null,
-    method: string
-  ) {
-
-    const { data, error } = await this.supabase
-      .from("fights")
-      .update({
-        status: "completed",
-        winner_id: winnerId,
-        method,
-        updated_at: new Date().toISOString()
-      })
-      .eq("id", fightId)
-      .select()
-      .single()
-
-
-    if (error) throw normalizeBackendError(error)
-
-    return data
-  }
-
-
-  /**
    * Publier le résultat officiel
    */
   async publishFightResult(
     fightId: string,
-    userId?: string
+    _userId?: string
   ) {
+
+    void _userId
 
     const { data, error } = await this.supabase
       .rpc(
         "publish_fight_result",
         {
           p_fight_id: fightId,
-          p_user: userId ?? undefined
+          p_user: undefined
         }
       )
 
@@ -156,7 +105,7 @@ export class FightRepository {
   ) {
 
     const { data, error } = await this.supabase
-      .from("fight_officials")
+      .from("fight_official_assignments")
       .select("*")
       .eq("fight_id", fightId)
 

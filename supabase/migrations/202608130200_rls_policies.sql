@@ -286,17 +286,15 @@ with check (exists (select 1 from public.profile_system_roles psr join public.sy
 -- END 040_events.sql
 
 -- BEGIN 050_fight_live.sql
--- No new fight_* table is introduced by STAB-003.
--- RPC execution is restricted here as an additional deployment check.
+-- Fight Live least-privilege execution baseline. The complete table policies
+-- and private authorization helpers are installed by the later forward
+-- migration 20260923130720_complete_fight_live_authority.sql.
 revoke all on function public.sync_timer_to_timeline(uuid) from public, anon;
 revoke all on function public.update_fight_statistics(uuid) from public, anon;
 revoke all on function public.update_fighter_career_stats(uuid) from public, anon;
 grant execute on function public.sync_timer_to_timeline(uuid) to authenticated;
 grant execute on function public.update_fight_statistics(uuid) to authenticated;
 grant execute on function public.update_fighter_career_stats(uuid) to authenticated;
-
--- Existing Fight Live table policies must be audited on the target branch before deployment.
--- This blueprint deliberately does not drop or replace remote policies.
 
 -- END 050_fight_live.sql
 

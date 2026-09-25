@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 import type { Database } from "@/infrastructure/supabase/database.types"
-import { normalizeBackendError, storageNotImplemented } from "@/shared/errors/backend-error"
+import { normalizeBackendError } from "@/shared/errors/backend-error"
 
 export class FightTimerRepository {
   constructor(
@@ -25,7 +25,7 @@ export class FightTimerRepository {
           p_fight_id: params.fightId,
           p_round_count: params.roundCount,
           p_round_duration: params.roundDuration,
-          p_user: params.userId ?? undefined
+          p_user: undefined
         }
       )
 
@@ -53,7 +53,7 @@ export class FightTimerRepository {
           p_round_id: params.roundId,
           p_event_type: params.eventType,
           p_reason: params.reason ?? undefined,
-          p_user: params.userId ?? undefined
+          p_user: undefined
         }
       )
 
@@ -77,7 +77,7 @@ export class FightTimerRepository {
         "resume_round_timer",
         {
           p_round_id: params.roundId,
-          p_user: params.userId ?? undefined
+          p_user: undefined
         }
       )
 
@@ -101,7 +101,7 @@ export class FightTimerRepository {
         "end_round_timer",
         {
           p_round_id: params.roundId,
-          p_user: params.userId ?? undefined
+          p_user: undefined
         }
       )
 
@@ -157,7 +157,12 @@ export class FightTimerRepository {
   /**
    * Synchronisation timeline
    */
-  async syncTimerToTimeline(): Promise<never> {
-    throw storageNotImplemented("synchronisation du timer vers la timeline")
+  async syncTimerToTimeline(fightId: string): Promise<number> {
+    const { data, error } = await this.supabase.rpc("sync_timer_to_timeline", {
+      p_fight_id: fightId
+    })
+
+    if (error) throw normalizeBackendError(error)
+    return data
   }
 }

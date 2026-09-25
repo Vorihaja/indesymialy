@@ -149,9 +149,9 @@ export function useFightTimer(
 
 
 
-  async function syncTimerToTimeline() {
+  async function syncTimerToTimeline(fightId: string) {
 
-    return await timerService.syncTimerToTimeline()
+    return await timerService.syncTimerToTimeline(fightId)
 
   }
 

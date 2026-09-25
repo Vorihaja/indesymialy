@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 import type { Database } from "@/infrastructure/supabase/database.types"
-import { normalizeBackendError, storageNotImplemented } from "@/shared/errors/backend-error"
+import { normalizeBackendError } from "@/shared/errors/backend-error"
 
 export class FightStatisticsRepository {
   constructor(
@@ -66,16 +66,25 @@ export class FightStatisticsRepository {
   /**
    * Recalcul des statistiques
    */
-  async updateFightStatistics(): Promise<never> {
-    throw storageNotImplemented("recalcul automatique des statistiques du combat")
+  async updateFightStatistics(fightId: string): Promise<number> {
+    const { data, error } = await this.supabase.rpc("update_fight_statistics", {
+      p_fight_id: fightId
+    })
+
+    if (error) throw normalizeBackendError(error)
+    return data
   }
 
 
   /**
    * Recalcul carrière
    */
-  async updateCareerStatistics(): Promise<never> {
-    throw storageNotImplemented("recalcul automatique des statistiques de carrière")
+  async updateCareerStatistics(fighterId: string): Promise<void> {
+    const { error } = await this.supabase.rpc("update_fighter_career_stats", {
+      p_fighter_id: fighterId
+    })
+
+    if (error) throw normalizeBackendError(error)
   }
 
 

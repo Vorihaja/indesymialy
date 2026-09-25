@@ -24,7 +24,7 @@ export class FightJudgeRepository {
         "submit_judge_card",
         {
           p_judge_card_id: params.judgeCardId,
-          p_judge_id: params.judgeId
+          p_judge_id: undefined
         }
       )
 
@@ -74,7 +74,7 @@ export class FightJudgeRepository {
         "calculate_final_decision",
         {
           p_fight_id: params.fightId,
-          p_approved_by: params.approvedBy ?? undefined
+          p_approved_by: undefined
         }
       )
 

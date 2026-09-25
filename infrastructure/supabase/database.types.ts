@@ -4482,6 +4482,7 @@ export type Database = {
           id: string
           recorded_by: string | null
           round_id: string | null
+          source_timer_event_id: string | null
         }
         Insert: {
           action_type_id?: string | null
@@ -4494,6 +4495,7 @@ export type Database = {
           id?: string
           recorded_by?: string | null
           round_id?: string | null
+          source_timer_event_id?: string | null
         }
         Update: {
           action_type_id?: string | null
@@ -4506,8 +4508,16 @@ export type Database = {
           id?: string
           recorded_by?: string | null
           round_id?: string | null
+          source_timer_event_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fight_events_timeline_source_timer_event_id_fkey"
+            columns: ["source_timer_event_id"]
+            isOneToOne: false
+            referencedRelation: "fight_timer_events"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "fight_events_timeline_action_type_id_fkey"
             columns: ["action_type_id"]
@@ -14512,6 +14522,45 @@ export type Database = {
         }
         Returns: string
       }
+      fight_live_decide: {
+        Args: { p_fight_id: string; p_method: string; p_winner_id: string | null }
+        Returns: string
+      }
+      fight_live_list_ids: {
+        Args: { p_scope: string }
+        Returns: { fight_id: string }[]
+      }
+      fight_live_publish_result: {
+        Args: { p_fight_id: string }
+        Returns: undefined
+      }
+      fight_live_record_action: {
+        Args: { p_action_type: string; p_corner?: string; p_fight_id: string }
+        Returns: string
+      }
+      fight_live_save_judge_score: {
+        Args: {
+          p_blue_score: number
+          p_fight_id: string
+          p_judge_card_id: string
+          p_red_score: number
+          p_round_number: number
+        }
+        Returns: undefined
+      }
+      fight_live_submit_judge_card: {
+        Args: { p_judge_card_id: string }
+        Returns: undefined
+      }
+      fight_live_timer_action: {
+        Args: {
+          p_action: string
+          p_fight_id: string
+          p_pause_type?: string
+          p_reason?: string
+        }
+        Returns: undefined
+      }
       register_my_verification_document: {
         Args: {
           p_document_type: string
@@ -14622,7 +14671,7 @@ export type Database = {
         Returns: undefined
       }
       submit_judge_card: {
-        Args: { p_judge_card_id: string; p_judge_id: string }
+        Args: { p_judge_card_id: string; p_judge_id?: string }
         Returns: undefined
       }
       submit_my_profile_verification: {

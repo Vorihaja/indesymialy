@@ -68,7 +68,7 @@ export class EventSupabaseRepository implements EventPlatformRepository {
           Database['public']['Tables']['fight_card']['Row'][] = [];
 
         let publicFights:
-          Database['public']['Tables']['fights']['Row'][] = [];
+          Pick<Database['public']['Tables']['fights']['Row'], 'id' | 'event_id' | 'fight_order'>[] = [];
 
         let publicTicketTypes:
           Database['public']['Tables']['ticket_types']['Row'][] = [];
@@ -92,7 +92,7 @@ export class EventSupabaseRepository implements EventPlatformRepository {
 
             this.supabase
               .from('fights')
-              .select('*')
+              .select('id,event_id,fight_order')
               .in(
                 'event_id',
                 publicEventIds,

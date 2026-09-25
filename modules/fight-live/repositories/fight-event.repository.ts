@@ -33,7 +33,7 @@ export class FightEventRepository {
           p_event_code: params.eventCode,
           p_round_number: params.roundNumber ?? undefined,
           p_fighter_id: params.fighterId ?? undefined,
-          p_recorded_by: params.recordedBy ?? undefined,
+          p_recorded_by: undefined,
           p_payload: payload,
           p_source: params.source ?? "OFFICIAL",
           p_operation_mode:

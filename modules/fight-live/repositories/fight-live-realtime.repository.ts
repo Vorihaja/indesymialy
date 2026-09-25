@@ -242,6 +242,33 @@ export class FightLiveRealtimeRepository {
     );
   }
 
+  subscribeToLiveActions(fightId: string, callback: (payload: RealtimePostgresChangesPayload<RealtimeRow>) => void) {
+    const observation = this.observability.createSubscriptionObserver("fight_live", "actions");
+    const channel = this.supabase
+      .channel(`fight-actions-${fightId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "fight_live_actions", filter: `fight_id=eq.${fightId}` }, callback)
+      .subscribe((status, error) => { observation.observe(status, error); });
+    return this.remember(channel, observation);
+  }
+
+  subscribeToStatistics(fightId: string, callback: (payload: RealtimePostgresChangesPayload<RealtimeRow>) => void) {
+    const observation = this.observability.createSubscriptionObserver("fight_live", "statistics");
+    const channel = this.supabase
+      .channel(`fight-statistics-${fightId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "fight_statistics", filter: `fight_id=eq.${fightId}` }, callback)
+      .subscribe((status, error) => { observation.observe(status, error); });
+    return this.remember(channel, observation);
+  }
+
+  subscribeToJudgeCards(fightId: string, callback: (payload: RealtimePostgresChangesPayload<RealtimeRow>) => void) {
+    const observation = this.observability.createSubscriptionObserver("fight_live", "judge_cards");
+    const channel = this.supabase
+      .channel(`fight-judge-cards-${fightId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "fight_judge_cards", filter: `fight_id=eq.${fightId}` }, callback)
+      .subscribe((status, error) => { observation.observe(status, error); });
+    return this.remember(channel, observation);
+  }
+
 
   subscribeToStatus(
     fightId:

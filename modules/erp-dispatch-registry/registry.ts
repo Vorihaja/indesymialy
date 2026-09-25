@@ -147,9 +147,9 @@ const makeEntry = (
   if (canonicalRole === "official" && (moduleId === "live" || moduleId === "fights")) {
     entry = {
       ...entry,
-      capabilities: { read: true, create: false, update: false, delete: false },
+      capabilities: { read: true, create: true, update: true, delete: false },
       capabilityMode: "permission-aware",
-      capabilityPolicy: "Official live/fight access is scoped to assigned fights; mutations are not granted by this registry entry.",
+      capabilityPolicy: "Assigned referees and timekeepers control the timer; assigned operational officials record live actions; deletion is never exposed.",
     };
   }
 

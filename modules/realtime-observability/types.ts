@@ -16,6 +16,9 @@ export type RealtimeFightLiveChannelKind =
   | "fight_events"
   | "timer"
   | "scores"
+  | "actions"
+  | "statistics"
+  | "judge_cards"
   | "status"
   | "result";
 

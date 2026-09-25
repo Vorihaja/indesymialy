@@ -63,6 +63,9 @@ export class FightLiveRealtimeService {
   }
 
   subscribeToScores(fightId: string, callback: (payload: RealtimePostgresChangesPayload<RealtimeRow>) => void) { if (!fightId) throw new Error("Fight ID obligatoire"); return this.realtimeRepository.subscribeToScores(fightId, callback) }
+  subscribeToLiveActions(fightId: string, callback: (payload: RealtimePostgresChangesPayload<RealtimeRow>) => void) { if (!fightId) throw new Error("Fight ID obligatoire"); return this.realtimeRepository.subscribeToLiveActions(fightId, callback) }
+  subscribeToStatistics(fightId: string, callback: (payload: RealtimePostgresChangesPayload<RealtimeRow>) => void) { if (!fightId) throw new Error("Fight ID obligatoire"); return this.realtimeRepository.subscribeToStatistics(fightId, callback) }
+  subscribeToJudgeCards(fightId: string, callback: (payload: RealtimePostgresChangesPayload<RealtimeRow>) => void) { if (!fightId) throw new Error("Fight ID obligatoire"); return this.realtimeRepository.subscribeToJudgeCards(fightId, callback) }
   subscribeToStatus(fightId: string, callback: (payload: RealtimePostgresChangesPayload<RealtimeRow>) => void) { if (!fightId) throw new Error("Fight ID obligatoire"); return this.realtimeRepository.subscribeToStatus(fightId, callback) }
   subscribeToResult(fightId: string, callback: (payload: RealtimePostgresChangesPayload<RealtimeRow>) => void) { if (!fightId) throw new Error("Fight ID obligatoire"); return this.realtimeRepository.subscribeToResult(fightId, callback) }
 

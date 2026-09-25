@@ -12,6 +12,8 @@ import type {
   FightLiveSnapshot,
   FightLiveStatistics,
   FightLiveStatus,
+  FightTimelineKind,
+  FightTimerAction,
   PublicFightLiveSnapshot,
 } from "../types";
 
@@ -26,7 +28,7 @@ function liveStatus(value: string | null): FightLiveStatus {
 function decisionMethod(value: string): FightDecisionMethod {
   return [
     "unanimous_decision", "split_decision", "majority_decision", "ko", "tko",
-    "submission", "disqualification", "retirement", "no_contest", "draw",
+    "submission", "disqualification", "medical_stoppage", "no_contest", "draw",
   ].includes(value) ? value as FightDecisionMethod : "unanimous_decision";
 }
 
@@ -38,17 +40,31 @@ function actionKind(value: string): FightActionKind {
   ].includes(value) ? value as FightActionKind : "strike";
 }
 
+function timelineKind(eventType: string, description: string | null): FightTimelineKind {
+  const normalized = (description ?? "").trim().toLowerCase().replaceAll(" ", "_");
+  if ([
+    "strike", "takedown", "knockdown", "submission", "warning", "penalty",
+    "incident", "interruption", "resume", "medical_stoppage",
+    "disqualification", "retirement",
+  ].includes(normalized)) return actionKind(normalized);
+  if (eventType === "score") return "score";
+  if (eventType === "decision") return "decision";
+  if (eventType === "system" || eventType === "medical") return "timer";
+  return "system";
+}
+
 export class FightLiveSupabaseRepository implements FightLiveRepositoryPort {
   constructor(private readonly supabase: SupabaseClient<Database>) {
   }
 
-  async list(): Promise<FightLiveSnapshot[]> {
-    const { data, error } = await this.supabase
-      .from("fights")
-      .select("id")
-      .order("fight_order");
+  async list(scope: "public" | "organizer" | "official" | "fighter"): Promise<Array<FightLiveSnapshot | PublicFightLiveSnapshot>> {
+    const { data, error } = await this.supabase.rpc("fight_live_list_ids", {
+      p_scope: scope,
+    });
     if (error) throw normalizeBackendError(error);
-    return Promise.all((data ?? []).map((fight) => this.get(fight.id)));
+    return Promise.all((data ?? []).map((fight) =>
+      scope === "public" ? this.getPublic(fight.fight_id) : this.get(fight.fight_id)
+    ));
   }
 
   async listJudgeAssignments(): Promise<FightLiveSnapshot[]> {
@@ -118,27 +134,23 @@ export class FightLiveSupabaseRepository implements FightLiveRepositoryPort {
         timerResult,
         officialsResult,
         cardsResult,
-        actionsResult,
+        timelineResult,
         statisticsResult,
         decisionsResult,
-        penaltiesResult,
-        incidentsResult,
       ] = await Promise.all([
         this.supabase.from("fights").select("*").eq("id", fightId).maybeSingle(),
         this.supabase.from("fight_rounds").select("*").eq("fight_id", fightId).order("round_number"),
         this.supabase.from("fight_timer_events").select("*").eq("fight_id", fightId).order("created_at"),
         this.supabase.from("fight_official_assignments").select("*").eq("fight_id", fightId),
         cardsRequest,
-        this.supabase.from("fight_live_actions").select("*").eq("fight_id", fightId).order("recorded_at", { ascending: false }),
+        this.supabase.from("fight_events_timeline").select("*").eq("fight_id", fightId).order("created_at", { ascending: false }),
         this.supabase.from("fight_statistics").select("*").eq("fight_id", fightId),
         this.supabase.from("fight_decisions").select("*").eq("fight_id", fightId).order("created_at", { ascending: false }),
-        this.supabase.from("fight_penalties").select("*").eq("fight_id", fightId).order("issued_at", { ascending: false }),
-        this.supabase.from("fight_incidents").select("*").eq("fight_id", fightId).order("detected_at", { ascending: false }),
       ]);
       const firstError = [
         fightResult.error, roundsResult.error, timerResult.error, officialsResult.error,
-        cardsResult.error, actionsResult.error, statisticsResult.error,
-        decisionsResult.error, penaltiesResult.error, incidentsResult.error,
+        cardsResult.error, timelineResult.error, statisticsResult.error,
+        decisionsResult.error,
       ].find(Boolean);
       if (firstError) throw firstError;
       const fight = fightResult.data;
@@ -168,7 +180,21 @@ export class FightLiveSupabaseRepository implements FightLiveRepositoryPort {
         : { data: [], error: null };
       if (profileError) throw profileError;
       const profileNames = new Map((profiles ?? []).map((profile) => [profile.id, profile.full_name]));
+      const { data: authData } = await this.supabase.auth.getUser();
+      const currentOperatorRoles = (officialsResult.data ?? [])
+        .filter((official) =>
+          official.user_id === authData.user?.id &&
+          official.status !== "cancelled" && official.status !== "declined"
+        )
+        .map((official) => official.role)
+        .filter((role): role is FightLiveSnapshot["currentOperatorRoles"][number] =>
+          ["referee", "judge", "timekeeper", "doctor", "supervisor"].includes(role)
+        );
 
+      const rounds = roundsResult.data ?? [];
+      const scorableRoundNumbers = rounds
+        .filter((round) => round.status === "completed")
+        .map((round) => round.round_number);
       const cards = await Promise.all((cardsResult.data ?? []).map(async (card): Promise<FightJudgeCard> => {
         const { data: scores, error: scoreError } = await this.supabase
           .from("fight_judge_round_scores")
@@ -181,54 +207,35 @@ export class FightLiveSupabaseRepository implements FightLiveRepositoryPort {
           judgeId: card.judge_id,
           judgeName: profileNames.get(card.judge_id) ?? "Juge",
           status: card.card_status ?? undefined,
-          scores: (scores ?? []).map((score) => ({
-            roundNumber: score.round_number,
-            red: score.red_score,
-            blue: score.blue_score,
+          scores: scorableRoundNumbers.map((roundNumber) => {
+            const score = (scores ?? []).find((item) => item.round_number === roundNumber);
+            return {
+            roundNumber,
+            red: score?.red_score ?? 10,
+            blue: score?.blue_score ?? 10,
             warnings: [],
             penalties: [],
             locked: card.card_status === "submitted" || card.card_status === "locked",
-          })),
+          }; }),
           submitted: Boolean(card.submitted_at) || card.card_status === "submitted",
           locked: card.card_status === "submitted" || card.card_status === "locked",
           submittedAt: card.submitted_at ?? undefined,
         };
       }));
 
-      const rounds = roundsResult.data ?? [];
       const currentRound = [...rounds].reverse().find((round) => round.status !== "completed") ?? rounds.at(-1);
       const roundDuration = currentRound?.duration_seconds ?? 300;
-      const latestTimer = timerResult.data?.at(-1);
-      const elapsed = latestTimer?.duration_seconds ?? 0;
-      const actions: FightLiveAction[] = [
-        ...(actionsResult.data ?? []).map((action) => this.mapAction(
-          action.id,
-          action.action_type,
-          this.corner(fight, action.fighter_id),
-          action.round_number,
-          0,
-          action.recorded_at,
-          true
-        )),
-        ...(penaltiesResult.data ?? []).map((penalty) => this.mapAction(
-          penalty.id,
-          "penalty",
-          this.corner(fight, penalty.fighter_id),
-          rounds.find((round) => round.id === penalty.round_id)?.round_number ?? currentRound?.round_number ?? 1,
-          0,
-          penalty.issued_at,
-          true
-        )),
-        ...(incidentsResult.data ?? []).map((incident) => this.mapAction(
-          incident.id,
-          "incident",
-          undefined,
-          currentRound?.round_number ?? 1,
-          0,
-          incident.detected_at,
-          false
-        )),
-      ].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      const remainingResult = currentRound
+        ? await this.supabase.rpc("get_round_remaining_time", { p_round_id: currentRound.id })
+        : { data: roundDuration, error: null };
+      if (remainingResult.error) throw remainingResult.error;
+      const remaining = Math.max(0, Number(remainingResult.data ?? roundDuration));
+      const elapsed = Math.max(0, roundDuration - remaining);
+      const actions = (timelineResult.data ?? []).map((item) => this.mapTimeline(
+        fight,
+        rounds,
+        item,
+      ));
 
       return {
         fightId: fight.id,
@@ -237,6 +244,7 @@ export class FightLiveSupabaseRepository implements FightLiveRepositoryPort {
         eventStartsAt: eventResult.data?.starts_at ?? undefined,
         fightOrder: fight.fight_order,
         weightCategory: fight.weight_category ?? undefined,
+        currentOperatorRoles,
         disciplineId: fight.discipline_id,
         disciplineName: disciplineResult.data?.name ?? "Discipline",
         redFighter: {
@@ -257,7 +265,7 @@ export class FightLiveSupabaseRepository implements FightLiveRepositoryPort {
           totalRounds: fight.scheduled_rounds ?? Math.max(rounds.length, 1),
           roundDurationSeconds: roundDuration,
           recoveryDurationSeconds: 60,
-          remainingSeconds: Math.max(0, roundDuration - elapsed),
+          remainingSeconds: remaining,
           elapsedSeconds: elapsed,
           status: liveStatus(fight.status),
         },
@@ -306,68 +314,113 @@ export class FightLiveSupabaseRepository implements FightLiveRepositoryPort {
   }
 
   async getPublic(fightId: string): Promise<PublicFightLiveSnapshot> {
-    const fight = await this.get(fightId);
-    return {
-      fightId: fight.fightId,
-      eventName: fight.eventName,
-      disciplineName: fight.disciplineName,
-      redFighter: fight.redFighter,
-      blueFighter: fight.blueFighter,
-      status: fight.status,
-      timer: fight.timer,
-      actions: fight.actions.filter((action) => action.public),
-      statistics: fight.statistics,
-      result: fight.status === "published" ? fight.decision : null,
-    };
+    try {
+      const [fightResult, roundsResult, timelineResult, statisticsResult, decisionsResult] = await Promise.all([
+        this.supabase.from("fights")
+          .select("id,event_id,fight_order,weight_category,scheduled_rounds,status,winner_id,method,ending_round,ending_time,discipline_id,fighter_red_id,fighter_blue_id")
+          .eq("id", fightId)
+          .maybeSingle(),
+        this.supabase.from("fight_rounds")
+          .select("id,fight_id,round_number,duration_seconds,started_at,ended_at,status,winner_id,created_at")
+          .eq("fight_id", fightId)
+          .order("round_number"),
+        this.supabase.from("fight_events_timeline")
+          .select("id,fight_id,round_id,fighter_id,action_type_id,event_type,event_time,description,created_at")
+          .eq("fight_id", fightId)
+          .order("created_at", { ascending: false }),
+        this.supabase.from("fight_statistics").select("*").eq("fight_id", fightId),
+        this.supabase.from("fight_decisions")
+          .select("id,fight_id,winner_id,loser_id,decision_type,victory_method_id,round_number,time_of_end,description,created_at")
+          .eq("fight_id", fightId)
+          .order("created_at", { ascending: false })
+          .limit(1),
+      ]);
+      const firstError = [
+        fightResult.error, roundsResult.error, timelineResult.error,
+        statisticsResult.error, decisionsResult.error,
+      ].find(Boolean);
+      if (firstError) throw firstError;
+      if (!fightResult.data) throw new BackendError("NOT_FOUND", "Le combat est introuvable.");
+      const fight = fightResult.data as FightRow;
+
+      const [eventResult, disciplineResult, redResult, blueResult] = await Promise.all([
+        fight.event_id
+          ? this.supabase.from("events").select("id,title,starts_at").eq("id", fight.event_id).maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+        this.supabase.from("disciplines").select("id,name").eq("id", fight.discipline_id).maybeSingle(),
+        fight.fighter_red_id
+          ? this.supabase.from("fighters").select("id,full_name,nickname").eq("id", fight.fighter_red_id).maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+        fight.fighter_blue_id
+          ? this.supabase.from("fighters").select("id,full_name,nickname").eq("id", fight.fighter_blue_id).maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+      ]);
+      const contextError = [eventResult.error, disciplineResult.error, redResult.error, blueResult.error].find(Boolean);
+      if (contextError) throw contextError;
+
+      const rounds = roundsResult.data ?? [];
+      const currentRound = [...rounds].reverse().find((round) => round.status !== "completed") ?? rounds.at(-1);
+      const roundDuration = currentRound?.duration_seconds ?? 300;
+      const remainingResult = currentRound
+        ? await this.supabase.rpc("get_round_remaining_time", { p_round_id: currentRound.id })
+        : { data: roundDuration, error: null };
+      if (remainingResult.error) throw remainingResult.error;
+      const remaining = Math.max(0, Number(remainingResult.data ?? roundDuration));
+      const actions = (timelineResult.data ?? []).map((item) => this.mapTimeline(
+        fight,
+        rounds,
+        item as Database["public"]["Tables"]["fight_events_timeline"]["Row"],
+      ));
+      const decision = decisionsResult.data?.[0] as Database["public"]["Tables"]["fight_decisions"]["Row"] | undefined;
+
+      return {
+        fightId: fight.id,
+        eventName: eventResult.data?.title ?? "Événement",
+        eventStartsAt: eventResult.data?.starts_at ?? undefined,
+        fightOrder: fight.fight_order,
+        weightCategory: fight.weight_category ?? undefined,
+        disciplineName: disciplineResult.data?.name ?? "Discipline",
+        redFighter: {
+          id: fight.fighter_red_id ?? "",
+          name: redResult.data?.full_name ?? "Coin rouge",
+          nickname: redResult.data?.nickname ?? undefined,
+          corner: "red",
+        },
+        blueFighter: {
+          id: fight.fighter_blue_id ?? "",
+          name: blueResult.data?.full_name ?? "Coin bleu",
+          nickname: blueResult.data?.nickname ?? undefined,
+          corner: "blue",
+        },
+        status: liveStatus(fight.status),
+        timer: {
+          roundNumber: currentRound?.round_number ?? 1,
+          totalRounds: fight.scheduled_rounds ?? Math.max(rounds.length, 1),
+          roundDurationSeconds: roundDuration,
+          recoveryDurationSeconds: 60,
+          remainingSeconds: remaining,
+          elapsedSeconds: Math.max(0, roundDuration - remaining),
+          status: liveStatus(fight.status),
+        },
+        actions,
+        statistics: this.mapStatistics(fight, statisticsResult.data ?? [], actions),
+        result: fight.status === "published" ? this.mapDecision(fight, decision, []) : null,
+      };
+    } catch (reason) {
+      throw normalizeBackendError(reason);
+    }
   }
 
   async updateTimer(
     fightId: string,
-    action: "start" | "pause" | "resume" | "end_round" | "next_round" | "end_fight"
+    action: FightTimerAction
   ): Promise<FightLiveSnapshot> {
-    const fight = await this.get(fightId);
-    const round = await this.currentRound(fightId);
     try {
-      const nextStatus: FightLiveStatus =
-        action === "pause" ? "paused" :
-        action === "end_round" ? "recovery" :
-        action === "end_fight" ? "completed" : "live";
-      const { error: timerError } = await this.supabase.from("fight_timer_events").insert({
-        fight_id: fightId,
-        round_id: round?.id ?? null,
-        event_type: action,
-        duration_seconds: fight.timer.elapsedSeconds,
-        started_at: action === "start" || action === "resume" || action === "next_round"
-          ? new Date().toISOString()
-          : null,
-        ended_at: action === "pause" || action === "end_round" || action === "end_fight"
-          ? new Date().toISOString()
-          : null,
+      const { error } = await this.supabase.rpc("fight_live_timer_action", {
+        p_action: action,
+        p_fight_id: fightId,
       });
-      if (timerError) throw timerError;
-
-      if (action === "end_round" && round) {
-        const { error } = await this.supabase.from("fight_rounds").update({
-          status: "completed",
-          ended_at: new Date().toISOString(),
-        }).eq("id", round.id);
-        if (error) throw error;
-      }
-      if (action === "next_round") {
-        const { error } = await this.supabase.from("fight_rounds").insert({
-          fight_id: fightId,
-          round_number: Math.min(fight.timer.roundNumber + 1, fight.timer.totalRounds),
-          duration_seconds: fight.timer.roundDurationSeconds,
-          status: "live",
-          started_at: new Date().toISOString(),
-        });
-        if (error) throw error;
-      }
-      const { error: fightError } = await this.supabase
-        .from("fights")
-        .update({ status: nextStatus, updated_at: new Date().toISOString() })
-        .eq("id", fightId);
-      if (fightError) throw fightError;
+      if (error) throw error;
       return this.get(fightId);
     } catch (reason) {
       throw normalizeBackendError(reason);
@@ -379,64 +432,13 @@ export class FightLiveSupabaseRepository implements FightLiveRepositoryPort {
     kind: FightActionKind,
     corner?: FightCorner
   ): Promise<FightLiveSnapshot> {
-    const fight = await this.get(fightId);
-    const fighterId = corner === "red" ? fight.redFighter.id : corner === "blue" ? fight.blueFighter.id : null;
     try {
-      if (kind === "incident") {
-        const { error } = await this.supabase.from("fight_incidents").insert({
-          fight_id: fightId,
-          incident_type: "incident",
-          severity: "medium",
-        });
-        if (error) throw error;
-      } else if (kind === "penalty") {
-        if (!fighterId) throw new BackendError("VALIDATION_ERROR");
-        const round = await this.currentRound(fightId);
-        const { error } = await this.supabase.from("fight_penalties").insert({
-          fight_id: fightId,
-          fighter_id: fighterId,
-          round_id: round?.id ?? null,
-          penalty_type: "penalty",
-          points_deducted: 1,
-          status: "issued",
-        });
-        if (error) throw error;
-      } else {
-        const { error } = await this.supabase.from("fight_live_actions").insert({
-          fight_id: fightId,
-          fighter_id: fighterId,
-          action_type: kind,
-          round_number: fight.timer.roundNumber,
-          points_delta: kind === "knockdown" ? 1 : 0,
-        });
-        if (error) throw error;
-      }
-      return this.get(fightId);
-    } catch (reason) {
-      throw normalizeBackendError(reason);
-    }
-  }
-
-  async assignOfficial(fightId: string, officialId: string): Promise<FightLiveSnapshot> {
-    try {
-      const { data: existing, error: readError } = await this.supabase
-        .from("fight_official_assignments")
-        .select("id")
-        .eq("fight_id", fightId)
-        .eq("user_id", officialId)
-        .maybeSingle();
-      if (readError) throw readError;
-      if (!existing) {
-        throw new BackendError(
-          "NOT_FOUND",
-          "Cet officiel n’est pas affecté à ce combat dans Fight Center."
-        );
-      }
-      const result = await this.supabase
-        .from("fight_official_assignments")
-        .update({ status: "confirmed" })
-        .eq("id", existing.id);
-      if (result.error) throw result.error;
+      const { error } = await this.supabase.rpc("fight_live_record_action", {
+        p_corner: corner,
+        p_fight_id: fightId,
+        p_action_type: kind,
+      });
+      if (error) throw error;
       return this.get(fightId);
     } catch (reason) {
       throw normalizeBackendError(reason);
@@ -451,42 +453,14 @@ export class FightLiveSupabaseRepository implements FightLiveRepositoryPort {
     blue: number
   ): Promise<FightLiveSnapshot> {
     try {
-      const userId = await this.authenticatedUserId();
-      await this.requireJudgeAssignment(fightId, userId);
-      const { data: card, error: cardError } = await this.supabase
-        .from("fight_judge_cards")
-        .select("id,card_status")
-        .eq("id", cardId)
-        .eq("fight_id", fightId)
-        .eq("judge_id", userId)
-        .maybeSingle();
-      if (cardError) throw cardError;
-      if (!card) throw new BackendError("NOT_FOUND");
-      if (card.card_status === "submitted" || card.card_status === "locked") {
-        throw new BackendError("FORBIDDEN", "Cette carte est verrouillée.");
-      }
-      const { data: existing, error: scoreReadError } = await this.supabase
-        .from("fight_judge_round_scores")
-        .select("id")
-        .eq("judge_card_id", cardId)
-        .eq("round_number", roundNumber)
-        .maybeSingle();
-      if (scoreReadError) throw scoreReadError;
-      const result = existing
-        ? await this.supabase.from("fight_judge_round_scores").update({
-            red_score: red,
-            blue_score: blue,
-          }).eq("id", existing.id).select("id").maybeSingle()
-        : await this.supabase.from("fight_judge_round_scores").insert({
-            judge_card_id: cardId,
-            round_number: roundNumber,
-            red_score: red,
-            blue_score: blue,
-          }).select("id").maybeSingle();
-      if (result.error) throw result.error;
-      if (!result.data) {
-        throw new BackendError("FORBIDDEN", "Le score n'a pas pu être enregistré.");
-      }
+      const { error } = await this.supabase.rpc("fight_live_save_judge_score", {
+        p_blue_score: blue,
+        p_fight_id: fightId,
+        p_judge_card_id: cardId,
+        p_red_score: red,
+        p_round_number: roundNumber,
+      });
+      if (error) throw error;
       return this.getJudgeScorecard(fightId);
     } catch (reason) {
       throw normalizeBackendError(reason);
@@ -495,20 +469,10 @@ export class FightLiveSupabaseRepository implements FightLiveRepositoryPort {
 
   async submitCard(fightId: string, cardId: string): Promise<FightLiveSnapshot> {
     try {
-      const userId = await this.authenticatedUserId();
-      await this.requireJudgeAssignment(fightId, userId);
-      const { data, error } = await this.supabase
-        .from("fight_judge_cards")
-        .update({ card_status: "submitted", submitted_at: new Date().toISOString() })
-        .eq("id", cardId)
-        .eq("fight_id", fightId)
-        .eq("judge_id", userId)
-        .select("id")
-        .maybeSingle();
+      const { error } = await this.supabase.rpc("fight_live_submit_judge_card", {
+        p_judge_card_id: cardId,
+      });
       if (error) throw error;
-      if (!data) {
-        throw new BackendError("FORBIDDEN", "La scorecard n'a pas pu être soumise.");
-      }
       return this.getJudgeScorecard(fightId);
     } catch (reason) {
       throw normalizeBackendError(reason);
@@ -551,31 +515,13 @@ export class FightLiveSupabaseRepository implements FightLiveRepositoryPort {
     winnerId: string | null,
     method: FightDecisionMethod
   ): Promise<FightLiveSnapshot> {
-    const fight = await this.get(fightId);
-    const loserId = winnerId === fight.redFighter.id
-      ? fight.blueFighter.id
-      : winnerId === fight.blueFighter.id
-        ? fight.redFighter.id
-        : null;
     try {
-      const { error: decisionError } = await this.supabase.from("fight_decisions").insert({
-        fight_id: fightId,
-        decision_type: method,
-        winner_id: winnerId,
-        loser_id: loserId,
-        round_number: fight.timer.roundNumber,
-        time_of_end: String(fight.timer.elapsedSeconds),
+      const { error } = await this.supabase.rpc("fight_live_decide", {
+        p_fight_id: fightId,
+        p_method: method,
+        p_winner_id: winnerId,
       });
-      if (decisionError) throw decisionError;
-      const { error: fightError } = await this.supabase.from("fights").update({
-        winner_id: winnerId,
-        method,
-        ending_round: fight.timer.roundNumber,
-        ending_time: String(fight.timer.elapsedSeconds),
-        status: "completed",
-        updated_at: new Date().toISOString(),
-      }).eq("id", fightId);
-      if (fightError) throw fightError;
+      if (error) throw error;
       return this.get(fightId);
     } catch (reason) {
       throw normalizeBackendError(reason);
@@ -583,26 +529,19 @@ export class FightLiveSupabaseRepository implements FightLiveRepositoryPort {
   }
 
   async publish(fightId: string): Promise<FightLiveSnapshot> {
-    const fight = await this.get(fightId);
-    if (!fight.decision) throw new BackendError("VALIDATION_ERROR", "La décision doit être validée avant publication.");
-    const { error } = await this.supabase
-      .from("fights")
-      .update({ status: "published", updated_at: new Date().toISOString() })
-      .eq("id", fightId);
+    const { error } = await this.supabase.rpc("fight_live_publish_result", {
+      p_fight_id: fightId,
+    });
     if (error) throw normalizeBackendError(error);
     return this.get(fightId);
   }
 
-  private async currentRound(fightId: string) {
-    const { data, error } = await this.supabase
-      .from("fight_rounds")
-      .select("*")
-      .eq("fight_id", fightId)
-      .order("round_number", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+  async recalculateStatistics(fightId: string): Promise<FightLiveSnapshot> {
+    const { error } = await this.supabase.rpc("update_fight_statistics", {
+      p_fight_id: fightId,
+    });
     if (error) throw normalizeBackendError(error);
-    return data;
+    return this.get(fightId);
   }
 
   private corner(fight: FightRow, fighterId: string | null): FightCorner | undefined {
@@ -611,24 +550,21 @@ export class FightLiveSupabaseRepository implements FightLiveRepositoryPort {
     return undefined;
   }
 
-  private mapAction(
-    id: string,
-    kind: string,
-    corner: FightCorner | undefined,
-    roundNumber: number,
-    elapsedSeconds: number,
-    createdAt: string | null,
-    isPublic: boolean
+  private mapTimeline(
+    fight: FightRow,
+    rounds: Array<{ id: string; round_number: number }>,
+    item: Database["public"]["Tables"]["fight_events_timeline"]["Row"],
   ): FightLiveAction {
+    const parsedTime = Number.parseInt(item.event_time ?? "0", 10);
     return {
-      id,
-      kind: actionKind(kind),
-      corner,
-      roundNumber,
-      elapsedSeconds,
-      label: kind.replaceAll("_", " "),
-      public: isPublic,
-      createdAt: createdAt ?? new Date(0).toISOString(),
+      id: item.id,
+      kind: timelineKind(item.event_type, item.description),
+      corner: this.corner(fight, item.fighter_id),
+      roundNumber: rounds.find((round) => round.id === item.round_id)?.round_number ?? 0,
+      elapsedSeconds: Number.isFinite(parsedTime) ? parsedTime : 0,
+      label: item.description?.trim() || item.event_type.replaceAll("_", " "),
+      public: true,
+      createdAt: item.created_at ?? new Date(0).toISOString(),
     };
   }
 

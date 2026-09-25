@@ -62,19 +62,6 @@ export class FightLiveRepository {
             full_name,
             nickname,
             profile_id
-          ),
-
-
-
-          officials:fight_officials(
-            id,
-            role,
-
-            user:profiles!fight_officials_official_id_fkey(
-              id,
-              full_name,
-              photo_url
-            )
           )
 
           `
@@ -94,6 +81,21 @@ export class FightLiveRepository {
       throw normalizeBackendError(error)
 
     }
+
+    const { data: assignments, error: assignmentError } = await this.supabase
+      .from("fight_official_assignments")
+      .select("id,user_id,role,status")
+      .eq("fight_id", fightId);
+
+    if (assignmentError) throw normalizeBackendError(assignmentError);
+
+    const profileIds = (assignments ?? []).map((assignment) => assignment.user_id);
+    const { data: profiles, error: profileError } = profileIds.length
+      ? await this.supabase.from("profiles").select("id,full_name,photo_url").in("id", profileIds)
+      : { data: [], error: null };
+
+    if (profileError) throw normalizeBackendError(profileError);
+    const profileById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
 
 
 
@@ -122,7 +124,14 @@ export class FightLiveRepository {
       blue_fighter:
         Array.isArray(data.blue_fighter)
           ? data.blue_fighter[0]
-          : data.blue_fighter
+          : data.blue_fighter,
+
+      officials: (assignments ?? []).map((assignment) => ({
+        id: assignment.id,
+        role: assignment.role,
+        status: assignment.status,
+        user: profileById.get(assignment.user_id) ?? null,
+      }))
 
     }
 
