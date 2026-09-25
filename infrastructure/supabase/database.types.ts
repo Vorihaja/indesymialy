@@ -14530,6 +14530,28 @@ export type Database = {
         Args: { p_scope: string }
         Returns: { fight_id: string }[]
       }
+      fight_public_projection: {
+        Args: {
+          p_event_ids?: string[] | null
+          p_fight_id?: string | null
+        }
+        Returns: {
+          archived_at: string | null
+          created_at: string | null
+          discipline_id: string
+          event_id: string | null
+          fight_order: number
+          fight_type: string
+          fighter_blue_id: string | null
+          fighter_red_id: string | null
+          id: string
+          scheduled_rounds: number | null
+          status: string
+          updated_at: string | null
+          weight_category: string | null
+          weight_category_id: string | null
+        }[]
+      }
       fight_live_publish_result: {
         Args: { p_fight_id: string }
         Returns: undefined

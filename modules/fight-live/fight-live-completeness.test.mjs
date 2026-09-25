@@ -27,7 +27,7 @@ test("the primary repository does not directly mutate protected live tables", as
   assert.doesNotMatch(source, /\.from\("fight_(?:timer_events|rounds|live_actions|penalties|incidents|judge_round_scores|decisions)"\)\s*\.(?:insert|update|delete)/);
   assert.match(source, /fight_live_list_ids/);
   assert.match(source, /get_round_remaining_time/);
-  assert.match(source, /scope === "public" \? this\.getPublic/);
+  assert.match(source, /if \(scope === "public"\)[\s\S]*fight_public_projection[\s\S]*this\.getPublic/);
   assert.match(source, /\.from\("fight_events_timeline"\)/);
   assert.doesNotMatch(source, /async assignOfficial/);
 });
@@ -60,9 +60,8 @@ test("visible controls cover both corners and persisted realtime refresh", async
 test("public reads use an explicit safe projection and the persisted timeline", async () => {
   const source = await read("modules/fight-live/repositories/fight-live-supabase.repository.ts");
   const publicMethod = source.slice(source.indexOf("async getPublic"), source.indexOf("async updateTimer"));
-  const publicFightSelect = publicMethod.match(/\.from\("fights"\)\s*\.select\("([^"]+)"\)/)?.[1] ?? "";
-  assert.ok(publicFightSelect);
-  assert.doesNotMatch(publicFightSelect, /winner_id|method|ending_round|ending_time/);
+  assert.match(publicMethod, /\.rpc\("fight_public_projection", \{ p_fight_id: fightId \}\)/);
+  assert.doesNotMatch(publicMethod, /\.from\("fights"\)/);
   assert.match(publicMethod, /fight_events_timeline/);
   assert.match(publicMethod, /\.from\("fight_decisions"\)/);
   assert.match(publicMethod, /result: fight\.status === "published" \? this\.mapDecision\(fight, decision, \[\]\) : null/);
@@ -70,4 +69,30 @@ test("public reads use an explicit safe projection and the persisted timeline", 
   assert.doesNotMatch(publicMethod, /recorded_by/);
   assert.doesNotMatch(publicMethod, /as FightRow/);
   assert.match(source, /type PublicFightRow = Pick</);
+});
+
+test("all public event fight consumers use the safe database projection", async () => {
+  const [eventSource, homeSource] = await Promise.all([
+    read("modules/event-core/repositories/event-supabase.repository.ts"),
+    read("modules/home-season/repositories/home-season-supabase.repository.ts"),
+  ]);
+  const publicEventBranch = eventSource.slice(
+    eventSource.indexOf("if (this.mode === 'public')"),
+    eventSource.indexOf("const organizationId = await this.organizationId()"),
+  );
+  assert.match(publicEventBranch, /fight_public_projection/);
+  assert.doesNotMatch(publicEventBranch, /\.from\('fights'\)/);
+  assert.match(homeSource, /countFightsForEvents[\s\S]*fight_public_projection/);
+  assert.doesNotMatch(homeSource, /\.from\("fights"\)/);
+});
+
+test("public status refreshes use the safe timeline rather than full fight rows", async () => {
+  const source = await read("modules/fight-live/repositories/fight-live-realtime.repository.ts");
+  const statusSubscription = source.slice(
+    source.indexOf("subscribeToStatus"),
+    source.indexOf("subscribeToResult"),
+  );
+  assert.match(statusSubscription, /table:\s*"fight_events_timeline"/);
+  assert.match(statusSubscription, /`fight_id=eq\.\$\{fightId\}`/);
+  assert.doesNotMatch(statusSubscription, /table:\s*"fights"/);
 });

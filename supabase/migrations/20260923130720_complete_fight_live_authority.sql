@@ -194,16 +194,81 @@ grant execute on function private.can_control_fight_timer(uuid) to authenticated
 grant execute on function private.can_judge_fight_live(uuid) to authenticated, service_role;
 grant execute on function private.can_view_fight_live(uuid) to anon, authenticated, service_role;
 
--- Anonymous Fight Live consumers need public bout state, never internal
--- operator assignment or cancellation notes. Authenticated access remains
--- governed by the existing grants and RLS policies.
-revoke select on table public.fights from anon;
+-- Public clients receive only a safe bout projection. Authenticated
+-- operational consumers retain direct CRUD behind scoped RLS policies.
+alter table public.fights enable row level security;
+revoke all privileges on table public.fights from anon, authenticated;
 grant select (
   id, event_id, fight_order, fighter_red_id, fighter_blue_id,
   weight_category, scheduled_rounds, fight_type, status,
   created_at, archived_at, updated_at,
   discipline_id, weight_category_id
 ) on public.fights to anon;
+grant select, insert, update, delete on table public.fights to authenticated;
+
+drop policy if exists fights_public_published_read on public.fights;
+drop policy if exists fights_public_safe_read on public.fights;
+create policy fights_public_safe_read
+on public.fights for select to anon
+using (exists (
+  select 1 from public.events e
+  where e.id = fights.event_id
+    and e.visibility = 'public'
+    and e.published_at is not null
+    and e.archived_at is null
+));
+
+drop policy if exists fights_organizer_manage on public.fights;
+create policy fights_organizer_manage
+on public.fights for all to authenticated
+using (public.can_manage_event(event_id))
+with check (public.can_manage_event(event_id));
+
+create or replace function public.fight_public_projection(
+  p_fight_id uuid default null,
+  p_event_ids uuid[] default null
+)
+returns table(
+  id uuid,
+  event_id uuid,
+  fight_order integer,
+  fighter_red_id uuid,
+  fighter_blue_id uuid,
+  weight_category text,
+  scheduled_rounds integer,
+  fight_type text,
+  status text,
+  created_at timestamptz,
+  archived_at timestamptz,
+  updated_at timestamptz,
+  discipline_id uuid,
+  weight_category_id uuid
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select
+    f.id, f.event_id, f.fight_order,
+    f.fighter_red_id, f.fighter_blue_id,
+    f.weight_category, f.scheduled_rounds, f.fight_type, f.status,
+    f.created_at, f.archived_at, f.updated_at,
+    f.discipline_id, f.weight_category_id
+  from public.fights f
+  join public.events e on e.id = f.event_id
+  where e.visibility = 'public'
+    and e.published_at is not null
+    and e.archived_at is null
+    and (p_fight_id is null or f.id = p_fight_id)
+    and (p_event_ids is null or f.event_id = any(p_event_ids))
+  order by f.event_id, f.fight_order;
+$$;
+
+revoke all on function public.fight_public_projection(uuid, uuid[])
+  from public, anon, authenticated;
+grant execute on function public.fight_public_projection(uuid, uuid[])
+  to anon, authenticated, service_role;
 
 create or replace function public.fight_live_list_ids(p_scope text)
 returns table(fight_id uuid)
@@ -241,7 +306,7 @@ as $$
 $$;
 
 revoke all on function public.fight_live_list_ids(text) from public, anon, authenticated;
-grant execute on function public.fight_live_list_ids(text) to anon, authenticated, service_role;
+grant execute on function public.fight_live_list_ids(text) to authenticated, service_role;
 
 drop policy if exists fights_assigned_official_read on public.fights;
 create policy fights_assigned_official_read

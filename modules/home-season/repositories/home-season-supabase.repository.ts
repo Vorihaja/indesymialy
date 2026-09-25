@@ -75,15 +75,14 @@ export class HomeSeasonSupabaseRepository implements HomeSeasonRepository {
       return 0;
     }
 
-    const result = await this.supabase
-      .from("fights")
-      .select("id", { count: "exact", head: true })
-      .in("event_id", eventIds);
+    const result = await this.supabase.rpc("fight_public_projection", {
+      p_event_ids: eventIds,
+    });
 
     if (result.error) {
       throw normalizeBackendError(result.error);
     }
 
-    return result.count ?? 0;
+    return result.data?.length ?? 0;
   }
 }

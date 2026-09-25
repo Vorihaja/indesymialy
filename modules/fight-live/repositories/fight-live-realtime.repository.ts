@@ -298,16 +298,16 @@ export class FightLiveRealtimeRepository {
           "postgres_changes",
           {
             event:
-              "UPDATE",
+              "*",
 
             schema:
               "public",
 
             table:
-              "fights",
+              "fight_events_timeline",
 
             filter:
-              `id=eq.${fightId}`,
+              `fight_id=eq.${fightId}`,
           },
           callback,
         )

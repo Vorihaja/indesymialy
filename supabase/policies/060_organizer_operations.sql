@@ -87,8 +87,8 @@ on public.fight_replacements for all to authenticated
 using (public.can_manage_event(event_id))
 with check (public.can_manage_event(event_id) and replaced_by = auth.uid());
 
-create policy fights_public_published_read
-on public.fights for select to anon, authenticated
+create policy fights_public_safe_read
+on public.fights for select to anon
 using (exists (
   select 1 from public.events e
   where e.id = event_id and e.visibility = 'public' and e.published_at is not null and e.archived_at is null

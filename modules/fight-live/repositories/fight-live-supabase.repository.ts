@@ -73,13 +73,20 @@ export class FightLiveSupabaseRepository implements FightLiveRepositoryPort {
   }
 
   async list(scope: "public" | "organizer" | "official" | "fighter"): Promise<Array<FightLiveSnapshot | PublicFightLiveSnapshot>> {
+    if (scope === "public") {
+      const { data, error } = await this.supabase.rpc("fight_public_projection", {});
+      if (error) throw normalizeBackendError(error);
+      const publicFightIds = (data ?? [])
+        .filter((fight) => ["live", "paused", "recovery", "completed", "published"].includes(fight.status))
+        .map((fight) => fight.id);
+      return Promise.all(publicFightIds.map((fightId) => this.getPublic(fightId)));
+    }
+
     const { data, error } = await this.supabase.rpc("fight_live_list_ids", {
       p_scope: scope,
     });
     if (error) throw normalizeBackendError(error);
-    return Promise.all((data ?? []).map((fight) =>
-      scope === "public" ? this.getPublic(fight.fight_id) : this.get(fight.fight_id)
-    ));
+    return Promise.all((data ?? []).map((fight) => this.get(fight.fight_id)));
   }
 
   async listJudgeAssignments(): Promise<FightLiveSnapshot[]> {
@@ -331,9 +338,7 @@ export class FightLiveSupabaseRepository implements FightLiveRepositoryPort {
   async getPublic(fightId: string): Promise<PublicFightLiveSnapshot> {
     try {
       const [fightResult, roundsResult, timelineResult, statisticsResult, decisionsResult] = await Promise.all([
-        this.supabase.from("fights")
-          .select("id,event_id,fight_order,weight_category,scheduled_rounds,status,discipline_id,fighter_red_id,fighter_blue_id")
-          .eq("id", fightId)
+        this.supabase.rpc("fight_public_projection", { p_fight_id: fightId })
           .maybeSingle(),
         this.supabase.from("fight_rounds")
           .select("id,fight_id,round_number,duration_seconds,started_at,ended_at,status,winner_id,created_at")

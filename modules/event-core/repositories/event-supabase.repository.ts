@@ -90,16 +90,13 @@ export class EventSupabaseRepository implements EventPlatformRepository {
                 'fight_order',
               ),
 
-            this.supabase
-              .from('fights')
-              .select('id,event_id,fight_order')
-              .in(
-                'event_id',
-                publicEventIds,
-              )
-              .order(
-                'fight_order',
-              ),
+            this.supabase.rpc(
+              'fight_public_projection',
+              {
+                p_event_ids:
+                  publicEventIds,
+              },
+            ),
 
             this.supabase
               .from('ticket_types')

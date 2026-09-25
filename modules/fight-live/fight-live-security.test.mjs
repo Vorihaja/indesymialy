@@ -4,6 +4,10 @@ import test from "node:test";
 
 const migrationUrl = new URL("../../supabase/migrations/20260923130720_complete_fight_live_authority.sql", import.meta.url);
 const migration = await readFile(migrationUrl, "utf8");
+const eventAuthority = await readFile(
+  new URL("../../supabase/migrations/202608130230_event_geography_coorganization.sql", import.meta.url),
+  "utf8",
+);
 
 function functionBlock(signature) {
   const marker = `create or replace function ${signature}`;
@@ -17,7 +21,7 @@ function functionBlock(signature) {
 const anonReadRpcSignatures = [
   "private.fight_live_is_public(uuid)",
   "private.can_view_fight_live(uuid)",
-  "public.fight_live_list_ids(text)",
+  "public.fight_public_projection(uuid, uuid\\[\\])",
   "public.get_round_remaining_time(uuid)",
 ];
 
@@ -144,7 +148,7 @@ test("judge assignments create exactly one persistent judge card", () => {
 });
 
 test("public table grants expose only the live read model", () => {
-  assert.match(migration, /revoke select on table public\.fights from anon/);
+  assert.match(migration, /revoke all privileges on table public\.fights from anon, authenticated/);
   assert.match(migration, /grant select \([\s\S]*?discipline_id, weight_category_id[\s\S]*?\) on public\.fights to anon/);
   const anonFightGrant = migration.match(/grant select \([\s\S]*?\) on public\.fights to anon/)?.[0] ?? "";
   assert.doesNotMatch(
@@ -157,6 +161,56 @@ test("public table grants expose only the live read model", () => {
   assert.doesNotMatch(migration, /create policy fight_timer_events_public_read/);
   assert.doesNotMatch(migration, /create policy fight_live_actions_public_read/);
   assert.doesNotMatch(migration, /create policy fight_penalties_public_read/);
+});
+
+test("anonymous fights table privileges are select-only safe columns", () => {
+  const anonFightGrants = migration.match(/grant[^;]+public\.fights to anon;/gi) ?? [];
+  assert.equal(anonFightGrants.length, 1);
+  assert.match(anonFightGrants[0], /^grant select \(/i);
+  assert.doesNotMatch(anonFightGrants[0], /\b(insert|update|delete|truncate|references|trigger)\b/i);
+});
+
+test("ordinary authenticated public users cannot select full fight rows", () => {
+  const safePolicy = migration.match(/create policy fights_public_safe_read[\s\S]*?\);/)?.[0] ?? "";
+  assert.match(migration, /drop policy if exists fights_public_published_read on public\.fights/);
+  assert.match(safePolicy, /on public\.fights for select to anon/);
+  assert.doesNotMatch(safePolicy, /authenticated/);
+  assert.doesNotMatch(migration, /on public\.fights for select to anon, authenticated/);
+});
+
+test("authorized organizers officials and participants retain scoped fight access", () => {
+  assert.match(migration, /create policy fights_organizer_manage[\s\S]*on public\.fights for all to authenticated[\s\S]*public\.can_manage_event\(event_id\)/);
+  assert.match(eventAuthority, /create or replace function public\.can_manage_event[\s\S]*public\.is_platform_admin\(\)/);
+  assert.match(migration, /create policy fights_assigned_official_read[\s\S]*foa\.user_id = auth\.uid\(\)/);
+  assert.match(migration, /create policy fights_participant_read[\s\S]*fi\.profile_id = auth\.uid\(\)/);
+});
+
+test("authenticated fights privileges retain CRUD and revoke database-owner capabilities", () => {
+  assert.match(migration, /grant select, insert, update, delete on table public\.fights to authenticated/);
+  const authenticatedFightGrants = migration.match(/grant[^;]+public\.fights to authenticated;/gi) ?? [];
+  assert.equal(authenticatedFightGrants.length, 1);
+  assert.doesNotMatch(authenticatedFightGrants[0], /\b(truncate|references|trigger)\b/i);
+});
+
+test("public fight projection exposes only safe columns for published public events", () => {
+  const projection = functionBlock("public.fight_public_projection(\n  p_fight_id uuid default null,");
+  assert.match(projection, /returns table\([\s\S]*weight_category_id uuid[\s\S]*\)/);
+  assert.match(projection, /join public\.events e on e\.id = f\.event_id/);
+  assert.match(projection, /e\.visibility = 'public'/);
+  assert.match(projection, /e\.published_at is not null/);
+  assert.match(projection, /e\.archived_at is null/);
+  assert.doesNotMatch(projection, /winner_id|method|ending_round|ending_time|referee_id|cancellation_reason/);
+});
+
+test("authenticated pending result columns are blocked at the database boundary", () => {
+  const projection = functionBlock("public.fight_public_projection(\n  p_fight_id uuid default null,");
+  const safePolicy = migration.match(/create policy fights_public_safe_read[\s\S]*?\);/)?.[0] ?? "";
+  assert.doesNotMatch(safePolicy, /authenticated/);
+  assert.doesNotMatch(
+    projection,
+    /winner_id|method|ending_round|ending_time|referee_id|cancellation_reason/,
+  );
+  assert.match(migration, /fight_decisions_public_read[\s\S]*f\.status = 'published'/);
 });
 
 test("legacy completed result data is not destructively rewritten for compatibility", () => {
