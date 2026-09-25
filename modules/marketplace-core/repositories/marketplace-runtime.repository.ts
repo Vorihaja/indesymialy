@@ -540,19 +540,33 @@ export class MarketplaceRuntimeRepository
 
   async setCartItem(product: CartItem["product"], quantity: number, mode: CartItem["mode"], rental?: RentalSelection): Promise<void> {
     await this.safe(async () => {
+      if (product.status !== "published") throw new Error("Cette offre n'est plus disponible.");
+      if (!Number.isInteger(quantity) || quantity < 1) throw new Error("La quantité doit être un entier positif.");
+      if (quantity > product.stock) throw new Error("La quantité demandée dépasse le stock disponible.");
       const cartId = await this.cartId(await this.user(), true);
       const result = await this.runtime.from("marketplace_cart_items").upsert({ cart_id: cartId, product_id: product.id, quantity: Math.max(1, quantity), mode, rental_start: rental?.startDate || null, rental_end: rental?.endDate || null, updated_at: new Date().toISOString() }, { onConflict: "cart_id,product_id,mode" });
       if (result.error) throw result.error;
     });
   }
 
-  async removeCartItem(id: string): Promise<void> { await this.safe(async () => { const result = await this.runtime.from("marketplace_cart_items").delete().eq("id", id); if (result.error) throw result.error; }); }
-  async clearCart(): Promise<void> { await this.safe(async () => { const userId = await this.user(false); if (!userId) return; const cartId = await this.cartId(userId, false); if (!cartId) return; const result = await this.runtime.from("marketplace_cart_items").delete().eq("cart_id", cartId); if (result.error) throw result.error; }); }
+  async addCartItem(product: CartItem["product"], quantity: number, mode: CartItem["mode"], rental?: RentalSelection): Promise<void> {
+    await this.safe(async () => {
+      if (!Number.isInteger(quantity) || quantity < 1) throw new Error("La quantité ajoutée doit être un entier positif.");
+      const cartId = await this.cartId(await this.user(), true);
+      const current = await this.runtime.from("marketplace_cart_items").select("quantity").eq("cart_id", cartId).eq("product_id", product.id).eq("mode", mode).maybeSingle();
+      if (current.error) throw current.error;
+      const nextQuantity = num((current.data as Row | null)?.quantity) + quantity;
+      await this.setCartItem(product, nextQuantity, mode, rental);
+    });
+  }
+
+  async removeCartItem(id: string): Promise<void> { await this.safe(async () => { await this.user(); const result = await this.runtime.from("marketplace_cart_items").delete().eq("id", id); if (result.error) throw result.error; }); }
+  async clearCart(): Promise<void> { await this.safe(async () => { const userId = await this.user(); const cartId = await this.cartId(userId, false); if (!cartId) return; const result = await this.runtime.from("marketplace_cart_items").delete().eq("cart_id", cartId); if (result.error) throw result.error; }); }
 
   async createOrder(input: CheckoutInput): Promise<MarketplaceOrder> {
     return this.safe(async () => {
       const cartId = await this.cartId(await this.user(), false); if (!cartId) throw new Error("Le panier est vide.");
-      const result = await this.runtime.rpc("marketplace_checkout", { p_cart_id: cartId, p_customer_name: input.customerName, p_customer_email: input.customerEmail, p_customer_phone: input.customerPhone, p_fulfillment_method: input.fulfillment, p_delivery_address: input.address, p_payment_method: input.paymentMethod.type, p_idempotency_key: crypto.randomUUID() });
+      const result = await this.runtime.rpc("marketplace_checkout", { p_cart_id: cartId, p_customer_name: input.customerName, p_customer_email: input.customerEmail, p_customer_phone: input.customerPhone, p_fulfillment_method: input.fulfillment, p_delivery_address: input.address, p_payment_method: input.paymentMethod.type, p_idempotency_key: input.idempotencyKey });
       if (result.error) throw result.error;
       const id = str(rows(result.data)[0]?.order_id); const order = id ? await this.findOrder(id) : null;
       if (!order) throw new Error("La commande n'a pas ÃƒÂ©tÃƒÂ© crÃƒÂ©ÃƒÂ©e."); return order;
@@ -565,6 +579,24 @@ export class MarketplaceRuntimeRepository
 
   async findOrder(id: string): Promise<MarketplaceOrder | null> {
     return this.safe(async () => { const result = await this.runtime.from("marketplace_orders").select("*").eq("id", id).maybeSingle(); if (result.error) throw result.error; return result.data ? this.hydrateOrder(result.data as Row) : null; });
+  }
+
+  async listBuyerOrders(): Promise<MarketplaceOrder[]> {
+    return this.safe(async () => {
+      const userId = await this.user();
+      const result = await this.runtime.from("marketplace_orders").select("*").eq("customer_id", userId).order("created_at", { ascending: false });
+      if (result.error) throw result.error;
+      return Promise.all(rows(result.data).map((order) => this.hydrateOrder(order)));
+    });
+  }
+
+  async findBuyerOrder(id: string): Promise<MarketplaceOrder | null> {
+    return this.safe(async () => {
+      const userId = await this.user();
+      const result = await this.runtime.from("marketplace_orders").select("*").eq("id", id).eq("customer_id", userId).maybeSingle();
+      if (result.error) throw result.error;
+      return result.data ? this.hydrateOrder(result.data as Row) : null;
+    });
   }
 
   async updateOrderStatus(
@@ -699,6 +731,7 @@ export class MarketplaceRuntimeRepository
       lineResult,
       historyResult,
       transactionResult,
+      deliveryResult,
     ] = await Promise.all([
       this.runtime
         .from("marketplace_order_lines")
@@ -724,6 +757,12 @@ export class MarketplaceRuntimeRepository
         )
         .limit(1)
         .maybeSingle(),
+
+      this.runtime
+        .from("marketplace_deliveries")
+        .select("*")
+        .eq("order_id", id)
+        .maybeSingle(),
     ]);
 
     if (lineResult.error) {
@@ -736,6 +775,10 @@ export class MarketplaceRuntimeRepository
 
     if (transactionResult.error) {
       throw transactionResult.error;
+    }
+
+    if (deliveryResult.error) {
+      throw deliveryResult.error;
     }
 
     let method = methods.cash;
@@ -881,6 +924,20 @@ export class MarketplaceRuntimeRepository
         str(
           order.fulfillment_method
         ) as MarketplaceOrder["fulfillment"],
+
+      delivery:
+        deliveryResult.data
+          ? {
+              id: str((deliveryResult.data as Row).id),
+              orderId: id,
+              method: str((deliveryResult.data as Row).method) as DeliveryRecord["method"],
+              address: str((deliveryResult.data as Row).address),
+              carrier: str((deliveryResult.data as Row).carrier) || undefined,
+              trackingNumber: str((deliveryResult.data as Row).tracking_number) || undefined,
+              status: str((deliveryResult.data as Row).status) as DeliveryRecord["status"],
+              updatedAt: str((deliveryResult.data as Row).updated_at),
+            }
+          : undefined,
 
       subtotal:
         num(

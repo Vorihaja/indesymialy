@@ -1,145 +1,65 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createOrdersUseCase } from "../factories";
-import type {
-  CheckoutInput,
-  MarketplaceOrder,
-  OrderStatus,
-} from "../types";
+import type { CheckoutInput, MarketplaceOrder, OrderStatus } from "../types";
 
-export function useOrders() {
-  const useCase =
-    useMemo(
-      () => createOrdersUseCase(),
-      []
-    );
+const explain = (cause: unknown) =>
+  cause instanceof Error ? cause.message : "L'opération sur la commande a échoué.";
 
-  const [orders, setOrders] =
-    useState<MarketplaceOrder[]>([]);
+export function useOrders(seller = false) {
+  const useCase = useMemo(() => createOrdersUseCase(seller), [seller]);
+  const [orders, setOrders] = useState<MarketplaceOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [acting, setActing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const [loading, setLoading] =
-    useState(true);
+  const refresh = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      setOrders(await useCase.list());
+    } catch (cause) {
+      setError(explain(cause));
+    } finally {
+      setLoading(false);
+    }
+  }, [useCase]);
 
-  const refresh =
-    useCallback(
-      async () => {
-        setLoading(true);
+  useEffect(() => { queueMicrotask(() => { void refresh(); }); }, [refresh]);
 
-        try {
-          setOrders(
-            await useCase.list()
-          );
-        } finally {
-          setLoading(false);
-        }
-      },
-      [useCase]
-    );
+  const detail = useCallback(async (id: string) => {
+    try {
+      setError(null);
+      return await useCase.detail(id);
+    } catch (cause) {
+      setError(explain(cause));
+      throw cause;
+    }
+  }, [useCase]);
 
-  useEffect(
-    () => {
-      queueMicrotask(
-        () => {
-          void refresh();
-        }
-      );
-    },
-    [refresh]
-  );
-
-  const checkout =
-    useCallback(
-      async (
-        input: CheckoutInput
-      ) => {
-        const order =
-          await useCase.checkout(input);
-
-        await refresh();
-
-        return order;
-      },
-      [
-        refresh,
-        useCase,
-      ]
-    );
-
-  const updateStatus =
-    useCallback(
-      async (
-        id: string,
-        status: OrderStatus,
-        reason?: string
-      ) => {
-        await useCase.updateStatus(
-          id,
-          status,
-          reason
-        );
-
-        await refresh();
-      },
-      [
-        refresh,
-        useCase,
-      ]
-    );
-
-  const confirmPaymentPaid =
-    useCallback(
-      async (
-        paymentId: string,
-        providerReference?: string,
-        reason?: string
-      ) => {
-        const orderId =
-          await useCase.confirmPaymentPaid(
-            paymentId,
-            providerReference,
-            reason
-          );
-
-        await refresh();
-
-        return orderId;
-      },
-      [
-        refresh,
-        useCase,
-      ]
-    );
-
-  const remove =
-    useCallback(
-      async (
-        id: string
-      ) => {
-        await useCase.remove(id);
-
-        await refresh();
-      },
-      [
-        refresh,
-        useCase,
-      ]
-    );
+  const mutate = useCallback(async <T,>(operation: () => Promise<T>) => {
+    try {
+      setActing(true);
+      setError(null);
+      const result = await operation();
+      await refresh();
+      return result;
+    } catch (cause) {
+      setError(explain(cause));
+      throw cause;
+    } finally {
+      setActing(false);
+    }
+  }, [refresh]);
 
   return {
-    orders,
-    loading,
-    refresh,
-    detail: useCase.detail.bind(useCase),
-    checkout,
-    updateStatus,
-    confirmPaymentPaid,
-    remove,
+    orders, loading, acting, error, refresh, detail,
+    checkout: (input: CheckoutInput) => mutate(() => useCase.checkout(input)),
+    updateStatus: (id: string, status: OrderStatus, reason?: string) =>
+      mutate(() => useCase.updateStatus(id, status, reason)),
+    confirmPaymentPaid: (paymentId: string, providerReference?: string, reason?: string) =>
+      mutate(() => useCase.confirmPaymentPaid(paymentId, providerReference, reason)),
+    remove: (id: string) => mutate(() => useCase.remove(id)),
   };
 }

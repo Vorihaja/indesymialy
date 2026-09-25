@@ -149,7 +149,7 @@ export class MarketplaceService {
           throw new Error("Produit introuvable.");
         }
 
-        return this.repository.setCartItem(
+        return this.repository.addCartItem(
           product,
           quantity,
           mode,

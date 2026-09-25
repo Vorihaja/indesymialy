@@ -58,9 +58,12 @@ html {
   scroll-behavior: smooth;
 }
 
-html,
-body {
+html {
   overflow-y: scroll;
+}
+
+body {
+  overflow-y: visible;
 }
 
 * {

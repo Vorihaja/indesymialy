@@ -4,12 +4,18 @@ const marketplaceRuntimeRepository =
   createMarketplaceRuntimeRepository();
 
 export class OrderRepository {
+  constructor(private readonly seller = false) {}
+
   list() {
-    return marketplaceRuntimeRepository.listOrders();
+    return this.seller
+      ? marketplaceRuntimeRepository.listOrders()
+      : marketplaceRuntimeRepository.listBuyerOrders();
   }
 
   find(id: string) {
-    return marketplaceRuntimeRepository.findOrder(id);
+    return this.seller
+      ? marketplaceRuntimeRepository.findOrder(id)
+      : marketplaceRuntimeRepository.findBuyerOrder(id);
   }
 
   create(

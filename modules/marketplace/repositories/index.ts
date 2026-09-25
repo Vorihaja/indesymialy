@@ -13,6 +13,13 @@ export class CatalogRepository {
     if (error) throw error;
     return ((data ?? []) as unknown as Array<{product_id:string}>).map(item => item.product_id);
   }
+  async favoriteProducts(){
+    const favoriteIds = await this.favorites();
+    if (!favoriteIds.length) return [];
+    const products = await this.marketplace.listProducts();
+    const favorites = new Set(favoriteIds);
+    return products.filter((product) => favorites.has(product.id));
+  }
   async toggleFavorite(id:string){
     const { data: userData, error: userError } = await this.supabase.auth.getUser();
     if (userError || !userData.user) throw userError ?? new Error("Connectez-vous pour gérer vos favoris.");

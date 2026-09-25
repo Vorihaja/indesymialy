@@ -3,6 +3,7 @@
 import Link from "next/link";
 import IndesyDualOrbitLoader from "@/components/loading/IndesyDualOrbitLoader";
 import { useIndesyDialog } from "@/components/ui/indesy-dialog";
+import { useAuth } from "@/modules/auth/hooks";
 import {
   useEffect,
   useMemo,
@@ -295,8 +296,10 @@ export function OrdersFeature({
   const dialog =
     useIndesyDialog();
 
+  const auth = useAuth();
+
   const data =
-    useOrders();
+    useOrders(seller);
 
 
   const [
@@ -306,6 +309,9 @@ export function OrdersFeature({
     useState<
       MarketplaceOrder | null
     >(null);
+
+  const [detailLoading, setDetailLoading] = useState(Boolean(orderId));
+  const loadOrder = data.detail;
 
 
   const [
@@ -339,13 +345,15 @@ export function OrdersFeature({
       }
 
 
-      void data
-        .detail(orderId)
-        .then(setOrder);
+      void loadOrder(orderId)
+        .then(setOrder)
+        .catch(() => setOrder(null))
+        .finally(() => setDetailLoading(false));
 
     },
     [
       orderId,
+      loadOrder,
     ]
   );
 
@@ -522,6 +530,22 @@ export function OrdersFeature({
     }
   }
 
+  if (auth.loading) {
+    return <p className="p-5 text-sm text-zinc-500">Chargement de la session…</p>;
+  }
+
+  if (!seller && !auth.authenticated) {
+    return (
+      <main className="grid min-h-72 place-items-center p-5 text-center">
+        <div>
+          <h1 className="text-lg font-semibold">Connexion requise</h1>
+          <p className="mt-2 text-sm text-zinc-500">Connectez-vous pour consulter uniquement vos commandes.</p>
+          <Link href="/auth" className="mt-4 inline-flex bg-[#c82335] px-4 py-2 text-sm font-semibold text-white">Se connecter</Link>
+        </div>
+      </main>
+    );
+  }
+
 
   if (
     mode === "checkout"
@@ -597,11 +621,15 @@ export function OrdersFeature({
     mode === "detail"
   ) {
 
+    if (detailLoading) {
+      return <div className="min-h-52"><IndesyDualOrbitLoader variant="data" label="Chargement de la commande" /></div>;
+    }
+
     if (!order) {
 
       return (
-        <p className="text-sm text-zinc-500">
-          Commande introuvable.
+        <p role={data.error ? "alert" : undefined} className="p-5 text-sm text-zinc-500">
+          {data.error ?? "Commande introuvable ou inaccessible."}
         </p>
       );
     }
@@ -683,7 +711,7 @@ export function OrdersFeature({
         </header>
 
 
-        {actionError && (
+        {(actionError || data.error) && (
           <div
             className={
               "mb-4 border " +
@@ -693,7 +721,7 @@ export function OrdersFeature({
               "text-red-300"
             }
           >
-            {actionError}
+            {actionError ?? data.error}
           </div>
         )}
 
@@ -785,6 +813,16 @@ export function OrdersFeature({
               "space-y-4"
             }
           >
+            <section className="border border-[#292c31] bg-[#111216] p-4">
+              <h2 className="mb-3 text-[10px] font-semibold">Remise</h2>
+              <div className="space-y-2 text-[8px] text-zinc-400">
+                <div className="flex justify-between gap-3"><span>Mode</span><strong className="text-zinc-200">{order.fulfillment === "pickup" ? "Retrait" : "Livraison"}</strong></div>
+                {order.delivery && <div className="flex justify-between gap-3"><span>État réel</span><strong className="text-zinc-200">{order.delivery.status}</strong></div>}
+                {order.address && <p className="border-t border-[#292c31] pt-2 text-zinc-500">{order.address}</p>}
+                {!order.delivery && <p className="text-zinc-600">Aucun suivi de remise persisté.</p>}
+              </div>
+            </section>
+
             <section
               className={
                 "border border-[#292c31] " +
@@ -1188,6 +1226,11 @@ export function OrdersFeature({
         </h1>
       </header>
 
+      {data.error && (
+        <p role="alert" className="mb-4 border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+          {data.error}
+        </p>
+      )}
 
       <div
         className={
@@ -1222,6 +1265,10 @@ export function OrdersFeature({
 
               <th className="px-3">
                 Client
+              </th>
+
+              <th className="px-3">
+                Créée le
               </th>
 
               <th className="px-3">
@@ -1281,6 +1328,10 @@ export function OrdersFeature({
                     {item.customerName}
                   </td>
 
+                  <td className="px-3">
+                    {new Date(item.createdAt).toLocaleDateString("fr-FR")}
+                  </td>
+
                   <td
                     className={
                       "px-3 font-semibold " +
@@ -1314,7 +1365,7 @@ export function OrdersFeature({
             {!data.orders.length && (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={6}
                   className={
                     "p-8 text-center " +
                     "text-[9px] text-zinc-600"

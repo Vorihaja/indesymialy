@@ -42,6 +42,13 @@ export interface MarketplaceStoreRepository {
     rental?: RentalSelection,
   ): Promise<void>;
 
+  addCartItem(
+    product: MarketplaceProduct,
+    quantity: number,
+    mode: "sale" | "rental",
+    rental?: RentalSelection,
+  ): Promise<void>;
+
   removeCartItem(
     id: string,
   ): Promise<void>;

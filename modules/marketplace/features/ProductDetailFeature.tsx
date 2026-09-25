@@ -30,6 +30,8 @@ export function ProductDetailFeature({ id }: { id: string }) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [message, setMessage] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [adding, setAdding] = useState(false);
 
   useEffect(() => {
     void useCase
@@ -40,7 +42,7 @@ export function ProductDetailFeature({ id }: { id: string }) {
 
   if (loading) {
     return (
-      <main className="mx-auto max-w-[1500px] px-3 py-5 sm:px-5">
+      <main className="mx-auto max-w-[1500px] px-3 py-4 sm:px-5">
         <p className="border border-[#303238] bg-[#151619] p-6 text-[9px] text-zinc-500">
           Chargement du produit…
         </p>
@@ -49,7 +51,7 @@ export function ProductDetailFeature({ id }: { id: string }) {
   }
   if (!product) {
     return (
-      <main className="mx-auto max-w-[1500px] px-3 py-5 sm:px-5">
+      <main className="mx-auto max-w-[1500px] px-3 py-4 sm:px-5">
         <p className="border border-[#303238] bg-[#151619] p-6 text-[9px] text-zinc-500">
           Produit introuvable.
         </p>
@@ -79,7 +81,7 @@ export function ProductDetailFeature({ id }: { id: string }) {
       : (product.salePrice ?? 0);
 
   return (
-    <main className="mx-auto max-w-[1500px] px-3 py-5 sm:px-5">
+    <main className="mx-auto max-w-[1500px] px-3 py-4 sm:px-5">
       <header className="mb-3 border-b border-[#303238] pb-3">
         <span className="text-[7px] font-bold uppercase tracking-[0.14em] text-[#3d92ff]">
           Fiche produit
@@ -89,13 +91,15 @@ export function ProductDetailFeature({ id }: { id: string }) {
         </h1>
       </header>
 
-      <section className="grid gap-px border border-[#303238] bg-[#303238] lg:grid-cols-[1.05fr_.95fr]">
-        <div className="grid min-h-72 place-items-center bg-[#101114] p-3 sm:p-5">
+      <section className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_420px]">
+        <div className="grid place-items-center border border-[#303238] bg-[#101114] p-3 sm:p-4">
           {product.images[0] ? (
+            // Marketplace media can use persisted external URLs.
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={product.images[0]}
               alt={product.title}
-              className="max-h-[500px] w-full object-cover"
+              className="max-h-[420px] w-full object-contain"
             />
           ) : (
             <span className="text-[9px] uppercase tracking-[0.08em] text-zinc-600">
@@ -104,7 +108,7 @@ export function ProductDetailFeature({ id }: { id: string }) {
           )}
         </div>
 
-        <div className="bg-[#151619] p-4 sm:p-6">
+        <div className="border border-[#303238] bg-[#151619] p-4 sm:p-5">
           <div className="flex flex-wrap gap-1.5">
             <span className="border border-blue-800/60 bg-blue-950/30 px-2 py-1 text-[7px] font-bold uppercase text-blue-300">
               {typeLabels[product.type]}
@@ -121,7 +125,7 @@ export function ProductDetailFeature({ id }: { id: string }) {
             {product.description}
           </p>
 
-          <dl className="mt-4 grid grid-cols-2 gap-px border border-[#303238] bg-[#303238]">
+          <dl className="mt-3 grid grid-cols-2 gap-px border border-[#303238] bg-[#303238]">
             <div className="bg-[#111214] p-3">
               <dt className="text-[7px] font-bold uppercase text-zinc-600">
                 Vendeur
@@ -173,29 +177,35 @@ export function ProductDetailFeature({ id }: { id: string }) {
             </div>
           )}
 
-          <div className="my-4 border-y border-[#303238] py-3">
+          <div className="my-3 border-y border-[#303238] py-2.5">
             <span className="text-[7px] font-bold uppercase tracking-[0.1em] text-zinc-600">
-              Total estimé
+              {product.type === "rental" ? "Total estimé" : "Prix de vente"}
             </span>
-            <strong className="mt-1 block text-[22px] font-semibold text-zinc-100">
+            <strong className="mt-1 block text-[20px] font-semibold text-zinc-100">
               {amount.toLocaleString()} Ar
             </strong>
           </div>
 
           <button
-            onClick={() =>
-              void useCase
-                .addToCart(
+            type="button"
+            disabled={adding || product.stock <= 0}
+            onClick={() => {
+              setAdding(true);
+              setMessage("");
+              setActionError("");
+              void useCase.addToCart(
                   product.id,
                   1,
                   product.type === "rental" ? "rental" : "sale",
                   rental,
                 )
                 .then(() => setMessage("Produit ajouté au panier."))
-            }
-            className="h-10 w-full border border-[#b91f30] bg-[#c82335] px-4 text-[9px] font-semibold uppercase tracking-[0.08em] text-white hover:bg-[#ad1d2e]"
+                .catch((cause: unknown) => setActionError(cause instanceof Error ? cause.message : "Impossible d'ajouter ce produit au panier."))
+                .finally(() => setAdding(false));
+            }}
+            className="h-9 w-full border border-[#b91f30] bg-[#c82335] px-4 text-[9px] font-semibold uppercase tracking-[0.08em] text-white hover:bg-[#ad1d2e] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Ajouter au panier
+            {product.stock <= 0 ? "Stock épuisé" : adding ? "Ajout…" : "Ajouter au panier"}
           </button>
 
           {message && (
@@ -206,6 +216,7 @@ export function ProductDetailFeature({ id }: { id: string }) {
               {message}
             </p>
           )}
+          {actionError && <p role="alert" className="mt-3 border border-red-500/40 bg-red-500/10 p-3 text-[9px] text-red-300">{actionError}</p>}
         </div>
       </section>
     </main>
