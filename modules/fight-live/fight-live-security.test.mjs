@@ -235,6 +235,23 @@ test("judge cards and points decisions are lifecycle constrained", () => {
   assert.match(migration, /JUDGE_CARDS_INCOMPLETE/);
 });
 
+test("decision comparison compiles as an unambiguous PL/pgSQL predicate", () => {
+  const decision = functionBlock("public.fight_live_decide(\n  p_fight_id uuid,");
+  assert.match(decision, /v_expected_winner_id uuid;/);
+  assert.match(
+    decision,
+    /v_expected_winner_id := case v_judge_result->>'winner'[\s\S]*?end;/,
+  );
+  assert.match(
+    decision,
+    /if lower\(v_judge_result->>'decision'\) <> v_method\s+or v_expected_winner_id is distinct from p_winner_id then/,
+  );
+  assert.doesNotMatch(
+    decision,
+    /or\s+case v_judge_result->>'winner'[\s\S]*?end is distinct from p_winner_id then/,
+  );
+});
+
 test("result is not exposed before publication", () => {
   const decision = functionBlock("public.fight_live_decide(\n  p_fight_id uuid,");
   assert.match(migration, /fight_decisions_public_read[\s\S]*f\.status = 'published'/);

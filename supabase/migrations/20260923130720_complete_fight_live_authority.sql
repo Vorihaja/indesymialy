@@ -584,6 +584,7 @@ declare
   v_loser_id uuid;
   v_decision_id uuid;
   v_judge_result jsonb;
+  v_expected_winner_id uuid;
 begin
   if auth.uid() is null then
     raise exception 'AUTHENTICATION_REQUIRED' using errcode = '42501';
@@ -640,12 +641,13 @@ begin
       raise exception 'JUDGE_CARDS_INCOMPLETE' using errcode = '22023';
     end if;
     v_judge_result := public.calculate_judge_decision(p_fight_id);
+    v_expected_winner_id := case v_judge_result->>'winner'
+      when 'RED' then v_fight.fighter_red_id
+      when 'BLUE' then v_fight.fighter_blue_id
+      else null
+    end;
     if lower(v_judge_result->>'decision') <> v_method
-       or case v_judge_result->>'winner'
-            when 'RED' then v_fight.fighter_red_id
-            when 'BLUE' then v_fight.fighter_blue_id
-            else null
-          end is distinct from p_winner_id then
+       or v_expected_winner_id is distinct from p_winner_id then
       raise exception 'DECISION_DOES_NOT_MATCH_JUDGE_CARDS' using errcode = '22023';
     end if;
   end if;
