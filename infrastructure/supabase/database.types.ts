@@ -13946,6 +13946,23 @@ export type Database = {
         Args: { p_order_id: string; p_reason: string }
         Returns: number
       }
+      list_my_organization_invitations: {
+        Args: never
+        Returns: {
+          created_at: string
+          expires_at: string
+          id: string
+          member_role: string
+          organization_id: string
+          organization_name: string
+          organization_type: string
+          status: string
+        }[]
+      }
+      respond_organization_invitation: {
+        Args: { p_accept: boolean; p_invitation_id: string }
+        Returns: undefined
+      }
       marketplace_respond_seller_personnel_invitation: {
         Args: { p_accept: boolean; p_invitation_id: string }
         Returns: undefined
