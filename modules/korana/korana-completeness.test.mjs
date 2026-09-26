@@ -23,7 +23,19 @@ const organizerService = read(
 const organizerUseCase = read(
   "../organizer-erp/real-data/save-organizer-event-workflow.use-case.ts",
 );
-const officialRepository = read(
+
+const organizationInvitationRequests = read(
+  "./features/KoranaOrganizationInvitationRequests.tsx",
+);
+const organizationInvitationHook = read(
+  "../identity-core/organization-invitations/hooks/useOrganizationInvitations.ts",
+);
+const organizationInvitationRepository = read(
+  "../identity-core/organization-invitations/repositories/organization-invitation-supabase.repository.ts",
+);
+const organizationInvitationMigration = read(
+  "../../supabase/migrations/20260926190000_organization_invitation_response_normalization.sql",
+);const officialRepository = read(
   "../referees/assignments/repositories/referee-assignments-supabase.repository.ts",
 );
 const officialService = read(
@@ -39,7 +51,7 @@ const notificationRepository = communicationRepository;
 const databaseTypes = read("../../infrastructure/supabase/database.types.ts");
 const activityProjection = read("./activities/activity-projection.mjs");
 
-test("Korana request sources include proposals, official assignments and event coorganization", () => {
+test("Korana request sources include proposals, official assignments, event coorganization and organization invitations", () => {
   const configuredSources = requestSources.split(
     "export const KORANA_REQUEST_SOURCES",
   )[1];
@@ -51,6 +63,7 @@ test("Korana request sources include proposals, official assignments and event c
     "event-coorganization",
     "fight-proposals",
     "official-assignments",
+    "organization-invitations",
     "sponsor-offers",
   ]);
   assert.match(requestSources, /actionModel: "accept-refuse-counter"/);
@@ -106,8 +119,83 @@ test("event coorganization requests delegate to organizer authority and expose i
   assert.match(organizerService, /actionableInvitations/);
   assert.match(organizerUseCase, /actionableInvitations/);
 
-  assert.doesNotMatch(requestSources, /organization_invitations/);
   assert.doesNotMatch(requestSources, /seller-personnel-invitations/);
+});
+test("organization invitation requests delegate to the canonical identity authority without a seller duplicate", () => {
+  assert.match(
+    requestSources,
+    /id: "organization-invitations"/,
+  );
+
+  assert.match(
+    requestSources,
+    /authority: "organization_invitations"/,
+  );
+
+  assert.match(
+    requestSources,
+    /actionModel: "accept-decline"/,
+  );
+
+  assert.match(
+    requestSources,
+    /renderStrategy: "organization-invitations"/,
+  );
+
+  assert.match(
+    requestsFeature,
+    /KoranaOrganizationInvitationRequests/,
+  );
+
+  assert.match(
+    organizationInvitationRequests,
+    /useOrganizationInvitations/,
+  );
+
+  assert.doesNotMatch(
+    organizationInvitationRequests,
+    /\.from\(|\.rpc\(/,
+  );
+
+  assert.match(
+    organizationInvitationHook,
+    /createOrganizationInvitationUseCase/,
+  );
+
+  assert.match(
+    organizationInvitationHook,
+    /useCase\.listPending/,
+  );
+
+  assert.match(
+    organizationInvitationHook,
+    /useCase\.respond/,
+  );
+
+  assert.doesNotMatch(
+    organizationInvitationHook,
+    /\.from\(|\.rpc\(/,
+  );
+
+  assert.match(
+    organizationInvitationRepository,
+    /list_my_organization_invitations/,
+  );
+
+  assert.match(
+    organizationInvitationRepository,
+    /respond_organization_invitation/,
+  );
+
+  assert.match(
+    organizationInvitationMigration,
+    /public\.respond_organization_invitation/,
+  );
+
+  assert.doesNotMatch(
+    requestSources,
+    /id: "seller-personnel-invitations"/,
+  );
 });
 test("activities are a personal system-notification projection, not the inbox", () => {
   assert.match(notificationTypes, /actionRequired\?: boolean/);

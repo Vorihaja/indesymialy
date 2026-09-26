@@ -11,6 +11,9 @@ import {
   KoranaEventCoorganizationRequests,
 } from "./KoranaEventCoorganizationRequests";
 import {
+  KoranaOrganizationInvitationRequests,
+} from "./KoranaOrganizationInvitationRequests";
+import {
   KoranaOfficialAssignmentRequests,
 } from "./KoranaOfficialAssignmentRequests";
 
@@ -62,8 +65,10 @@ export function KoranaRequestsFeature() {
                 />
               ) : source.renderStrategy === "official-assignments" ? (
                 <KoranaOfficialAssignmentRequests />
-              ) : (
+              ) : source.renderStrategy === "event-coorganization" ? (
                 <KoranaEventCoorganizationRequests />
+              ) : (
+                <KoranaOrganizationInvitationRequests />
               )}
             </section>
           ))}

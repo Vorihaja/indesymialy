@@ -218,7 +218,7 @@ test(
 );
 
 test(
-  "R5G-P2 does not prematurely expose generic organization invitations in Korana",
+  "R5G exposes organization invitations once while preserving the canonical authority",
   () => {
     const arrayMatch =
       requestSources.match(
@@ -242,12 +242,18 @@ test(
         "sponsor-offers",
         "official-assignments",
         "event-coorganization",
+        "organization-invitations",
       ],
+    );
+
+    assert.match(
+      requestSources,
+      /authority: "organization_invitations"/,
     );
 
     assert.doesNotMatch(
       requestSources,
-      /organization-invitations/,
+      /id: "seller-personnel-invitations"/,
     );
   },
 );
