@@ -14626,6 +14626,27 @@ export type Database = {
           status: string
         }[]
       }
+      list_my_staff_assignments: {
+        Args: never
+        Returns: {
+          assigned_at: string
+          ends_at: string | null
+          event_id: string
+          event_starts_at: string | null
+          event_title: string
+          event_venue: string | null
+          id: string
+          role: string
+          staff_name: string
+          starts_at: string | null
+          status: string
+          zone: string | null
+        }[]
+      }
+      respond_staff_assignment: {
+        Args: { p_accept: boolean; p_assignment_id: string }
+        Returns: undefined
+      }
       respond_event_invitation: {
         Args: { p_accept: boolean; p_invitation_id: string }
         Returns: undefined
