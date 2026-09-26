@@ -187,7 +187,7 @@ test(
 );
 
 test(
-  "R5J-P2 does not connect staff assignments to Korana before the UI phase",
+  "R5J exposes one profile-linked staff request source backed by the canonical authority",
   () => {
     const arrayMatch =
       requestSources.match(
@@ -198,9 +198,26 @@ test(
       arrayMatch,
     );
 
-    assert.doesNotMatch(
-      arrayMatch[1],
+    const runtimeBody =
+      arrayMatch[1];
+
+    assert.match(
+      runtimeBody,
       /id: "staff-assignments"/,
+    );
+
+    assert.match(
+      runtimeBody,
+      /authority: "staff_assignments"/,
+    );
+
+    assert.equal(
+      (
+        runtimeBody.match(
+          /id: "staff-assignments"/g,
+        ) ?? []
+      ).length,
+      1,
     );
   },
 );

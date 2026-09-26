@@ -44,6 +44,15 @@ const eventInvitationHook = read(
 );
 const eventInvitationRepository = read(
   "../event-core/event-invitations/repositories/event-invitation-supabase.repository.ts",
+);
+const staffAssignmentRequests = read(
+  "./features/KoranaStaffAssignmentRequests.tsx",
+);
+const staffAssignmentHook = read(
+  "../event-core/staff-assignments/hooks/useStaffAssignments.ts",
+);
+const staffAssignmentRepository = read(
+  "../event-core/staff-assignments/repositories/staff-assignment-supabase.repository.ts",
 );const officialRepository = read(
   "../referees/assignments/repositories/referee-assignments-supabase.repository.ts",
 );
@@ -60,7 +69,7 @@ const notificationRepository = communicationRepository;
 const databaseTypes = read("../../infrastructure/supabase/database.types.ts");
 const activityProjection = read("./activities/activity-projection.mjs");
 
-test("Korana request sources include all six canonical decision authorities", () => {
+test("Korana request sources include all seven canonical decision authorities", () => {
   const configuredSources = requestSources.split(
     "export const KORANA_REQUEST_SOURCES",
   )[1];
@@ -75,6 +84,7 @@ test("Korana request sources include all six canonical decision authorities", ()
     "official-assignments",
     "organization-invitations",
     "sponsor-offers",
+    "staff-assignments",
   ]);
   assert.match(requestSources, /actionModel: "accept-refuse-counter"/);
   assert.match(requestSources, /actionModel: "confirm-decline"/);
@@ -271,6 +281,72 @@ test("event invitation requests delegate to the canonical event authority withou
   assert.match(
     eventInvitationRepository,
     /respond_event_invitation/,
+  );
+});
+test("staff assignment requests expose profile-linked decisions through Event Core only", () => {
+  assert.match(
+    requestSources,
+    /id: "staff-assignments"/,
+  );
+
+  assert.match(
+    requestSources,
+    /authority: "staff_assignments"/,
+  );
+
+  assert.match(
+    requestSources,
+    /actionModel: "confirm-decline"/,
+  );
+
+  assert.match(
+    requestSources,
+    /renderStrategy: "staff-assignments"/,
+  );
+
+  assert.match(
+    requestsFeature,
+    /KoranaStaffAssignmentRequests/,
+  );
+
+  assert.match(
+    staffAssignmentRequests,
+    /useStaffAssignments/,
+  );
+
+  assert.doesNotMatch(
+    staffAssignmentRequests,
+    /\.from\(|\.rpc\(/,
+  );
+
+  assert.match(
+    staffAssignmentHook,
+    /createStaffAssignmentUseCase/,
+  );
+
+  assert.match(
+    staffAssignmentHook,
+    /useCase\.listActionable/,
+  );
+
+  assert.match(
+    staffAssignmentHook,
+    /useCase\.respond/,
+  );
+
+  assert.doesNotMatch(
+    staffAssignmentHook,
+    /\.from\(|\.rpc\(/,
+  );
+
+  assert.match(
+    staffAssignmentRepository,
+    /list_my_staff_assignments/,
+  );
+
+  assert.match(
+    staffAssignmentRepository,
+    /respond_staff_assignment/,
   );
 });
 test("activities are a personal system-notification projection, not the inbox", () => {

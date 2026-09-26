@@ -20,6 +20,9 @@ import {
 import {
   KoranaEventInvitationRequests,
 } from "./KoranaEventInvitationRequests";
+import {
+  KoranaStaffAssignmentRequests,
+} from "./KoranaStaffAssignmentRequests";
 export function KoranaRequestsFeature() {
   return (
     <div className="h-full min-h-0 overflow-y-auto bg-[#090a0c] text-zinc-100">
@@ -72,8 +75,10 @@ export function KoranaRequestsFeature() {
                 <KoranaEventCoorganizationRequests />
               ) : source.renderStrategy === "organization-invitations" ? (
                 <KoranaOrganizationInvitationRequests />
-              ) : (
+              ) : source.renderStrategy === "event-invitations" ? (
                 <KoranaEventInvitationRequests />
+              ) : (
+                <KoranaStaffAssignmentRequests />
               )}
             </section>
           ))}

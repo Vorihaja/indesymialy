@@ -46,12 +46,22 @@ type KoranaEventInvitationRequestSource = {
   actionModel: "accept-decline";
   renderStrategy: "event-invitations";
 };
+type KoranaStaffAssignmentRequestSource = {
+  id: "staff-assignments";
+  authority: "staff_assignments";
+  category: string;
+  title: string;
+  description: string;
+  actionModel: "confirm-decline";
+  renderStrategy: "staff-assignments";
+};
 export type KoranaRequestSource =
   | KoranaProposalRequestSource
   | KoranaOfficialAssignmentRequestSource
   | KoranaEventCoorganizationRequestSource
   | KoranaOrganizationInvitationRequestSource
-  | KoranaEventInvitationRequestSource;
+  | KoranaEventInvitationRequestSource
+  | KoranaStaffAssignmentRequestSource;
 
 export const KORANA_REQUEST_SOURCES:
   readonly KoranaRequestSource[] = [
@@ -116,5 +126,15 @@ export const KORANA_REQUEST_SOURCES:
         "Accepter ou refuser les invitations d’événement qui vous sont adressées.",
       actionModel: "accept-decline",
       renderStrategy: "event-invitations",
+    },
+    {
+      id: "staff-assignments",
+      authority: "staff_assignments",
+      category: "Événement",
+      title: "Affectations",
+      description:
+        "Confirmer ou refuser les affectations d’événement liées à votre profil.",
+      actionModel: "confirm-decline",
+      renderStrategy: "staff-assignments",
     },
   ];
