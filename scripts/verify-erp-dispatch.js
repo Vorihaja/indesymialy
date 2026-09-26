@@ -12,7 +12,7 @@ const registryText = fs.readFileSync(registryFile, 'utf8');
 const resolverText = fs.readFileSync(resolverFile, 'utf8');
 
 function read(relativePath) {
-  return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8');
+  return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8').replace(/\r\n/g, '\n');
 }
 
 function parseRegistry() {
