@@ -8,6 +8,21 @@ const read = (relativePath) =>
 const requestSources = read("./requests/request-sources.ts");
 const requestsFeature = read("./features/KoranaRequestsFeature.tsx");
 const officialRequests = read("./features/KoranaOfficialAssignmentRequests.tsx");
+const coorganizationRequests = read(
+  "./features/KoranaEventCoorganizationRequests.tsx",
+);
+const coorganizationHook = read(
+  "../organizer-erp/real-data/useEventCoorganizationRequests.ts",
+);
+const organizerRepository = read(
+  "../organizer-erp/real-data/organizer-event-workflow.repository.ts",
+);
+const organizerService = read(
+  "../organizer-erp/real-data/organizer-event-workflow.service.ts",
+);
+const organizerUseCase = read(
+  "../organizer-erp/real-data/save-organizer-event-workflow.use-case.ts",
+);
 const officialRepository = read(
   "../referees/assignments/repositories/referee-assignments-supabase.repository.ts",
 );
@@ -24,7 +39,7 @@ const notificationRepository = communicationRepository;
 const databaseTypes = read("../../infrastructure/supabase/database.types.ts");
 const activityProjection = read("./activities/activity-projection.mjs");
 
-test("Korana request sources are the two preserved sources plus official assignments", () => {
+test("Korana request sources include proposals, official assignments and event coorganization", () => {
   const configuredSources = requestSources.split(
     "export const KORANA_REQUEST_SOURCES",
   )[1];
@@ -33,6 +48,7 @@ test("Korana request sources are the two preserved sources plus official assignm
     .sort();
 
   assert.deepEqual(ids, [
+    "event-coorganization",
     "fight-proposals",
     "official-assignments",
     "sponsor-offers",
@@ -66,6 +82,33 @@ test("official requests delegate scoped decisions to the existing domain hook", 
   assert.match(requestsFeature, /KoranaOfficialAssignmentRequests/);
 });
 
+test("event coorganization requests delegate to organizer authority and expose inbound pending invitations only", () => {
+  assert.match(requestSources, /id: "event-coorganization"/);
+  assert.match(requestSources, /authority: "event_coorganizers"/);
+  assert.match(requestSources, /actionModel: "accept-decline"/);
+  assert.match(requestSources, /renderStrategy: "event-coorganization"/);
+
+  assert.match(requestsFeature, /KoranaEventCoorganizationRequests/);
+
+  assert.match(coorganizationRequests, /useEventCoorganizationRequests/);
+  assert.doesNotMatch(coorganizationRequests, /\.from\(|\.rpc\(/);
+
+  assert.match(coorganizationHook, /actionableInvitations/);
+  assert.match(coorganizationHook, /useCase\.respond/);
+  assert.doesNotMatch(coorganizationHook, /\.from\(|\.rpc\(/);
+
+  assert.match(organizerRepository, /list_my_event_coorganizations/);
+  assert.match(organizerRepository, /item\.status === 'pending'/);
+  assert.match(organizerRepository, /can_manage_organization/);
+  assert.match(organizerRepository, /manageableOrganizationIds/);
+  assert.match(organizerRepository, /respond_event_coorganization/);
+
+  assert.match(organizerService, /actionableInvitations/);
+  assert.match(organizerUseCase, /actionableInvitations/);
+
+  assert.doesNotMatch(requestSources, /organization_invitations/);
+  assert.doesNotMatch(requestSources, /seller-personnel-invitations/);
+});
 test("activities are a personal system-notification projection, not the inbox", () => {
   assert.match(notificationTypes, /actionRequired\?: boolean/);
   assert.match(notificationRepository, /notificationActionRequired[\s\S]*action_required === true/);

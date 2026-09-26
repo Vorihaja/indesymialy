@@ -26,6 +26,9 @@ export class SaveOrganizerEventWorkflowUseCase {
     return this.service.invitations();
   }
 
+  actionableInvitations() {
+    return this.service.actionableInvitations();
+  }
   respond(invitationId: string, accept: boolean) {
     return this.service.respond(invitationId, accept);
   }

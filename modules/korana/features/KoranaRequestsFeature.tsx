@@ -8,6 +8,9 @@ import {
   KORANA_REQUEST_SOURCES,
 } from "../requests/request-sources";
 import {
+  KoranaEventCoorganizationRequests,
+} from "./KoranaEventCoorganizationRequests";
+import {
   KoranaOfficialAssignmentRequests,
 } from "./KoranaOfficialAssignmentRequests";
 
@@ -57,8 +60,10 @@ export function KoranaRequestsFeature() {
                   kind={source.kind}
                   actionableOnly
                 />
-              ) : (
+              ) : source.renderStrategy === "official-assignments" ? (
                 <KoranaOfficialAssignmentRequests />
+              ) : (
+                <KoranaEventCoorganizationRequests />
               )}
             </section>
           ))}

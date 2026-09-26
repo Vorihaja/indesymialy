@@ -26,6 +26,9 @@ export class OrganizerEventWorkflowService {
     return this.repository.invitations();
   }
 
+  actionableInvitations() {
+    return this.repository.actionableInvitations();
+  }
   respond(invitationId: string, accept: boolean) {
     return this.repository.respond(invitationId, accept);
   }

@@ -19,9 +19,19 @@ type KoranaOfficialAssignmentRequestSource = {
   renderStrategy: "official-assignments";
 };
 
+type KoranaEventCoorganizationRequestSource = {
+  id: "event-coorganization";
+  authority: "event_coorganizers";
+  category: string;
+  title: string;
+  description: string;
+  actionModel: "accept-decline";
+  renderStrategy: "event-coorganization";
+};
 export type KoranaRequestSource =
   | KoranaProposalRequestSource
-  | KoranaOfficialAssignmentRequestSource;
+  | KoranaOfficialAssignmentRequestSource
+  | KoranaEventCoorganizationRequestSource;
 
 export const KORANA_REQUEST_SOURCES:
   readonly KoranaRequestSource[] = [
@@ -56,5 +66,15 @@ export const KORANA_REQUEST_SOURCES:
         "Confirmer ou refuser les désignations qui vous sont adressées.",
       actionModel: "confirm-decline",
       renderStrategy: "official-assignments",
+    },
+    {
+      id: "event-coorganization",
+      authority: "event_coorganizers",
+      category: "Événement",
+      title: "Coorganisations",
+      description:
+        "Accepter ou refuser les invitations à coorganiser un événement.",
+      actionModel: "accept-decline",
+      renderStrategy: "event-coorganization",
     },
   ];

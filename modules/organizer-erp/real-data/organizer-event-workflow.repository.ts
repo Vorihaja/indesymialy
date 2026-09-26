@@ -247,6 +247,56 @@ export class OrganizerEventWorkflowRepository {
     return data ?? [];
   }
 
+  async actionableInvitations() {
+    const invitations = await this.invitations();
+
+    const pending = invitations.filter(
+      (item) => item.status === 'pending',
+    );
+
+    if (pending.length === 0) {
+      return [];
+    }
+
+    const organizationIds = Array.from(
+      new Set(
+        pending.map(
+          (item) => item.organization_id,
+        ),
+      ),
+    );
+
+    const manageability = await Promise.all(
+      organizationIds.map(async (organizationId) => {
+        const { data, error } = await this.supabase.rpc(
+          'can_manage_organization',
+          {
+            p_organization_id: organizationId,
+          },
+        );
+
+        if (error) throw error;
+
+        return [
+          organizationId,
+          data === true,
+        ] as const;
+      }),
+    );
+
+    const manageableOrganizationIds = new Set(
+      manageability
+        .filter(([, manageable]) => manageable)
+        .map(([organizationId]) => organizationId),
+    );
+
+    return pending.filter(
+      (item) =>
+        manageableOrganizationIds.has(
+          item.organization_id,
+        ),
+    );
+  }
   async respond(invitationId: string, accept: boolean) {
     const { error } = await this.supabase.rpc(
       'respond_event_coorganization',
