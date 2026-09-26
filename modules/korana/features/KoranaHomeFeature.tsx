@@ -141,11 +141,11 @@ export function KoranaHomeFeature() {
             <div className="korana-feed-heading min-w-0">
 
               <h1 className="truncate text-lg font-black tracking-[-0.025em] text-white">
-                Accueil
+                Actualités
               </h1>
 
               <p className="korana-feed-kicker mt-0.5 text-[8px] font-bold uppercase tracking-[0.16em] text-[#94a0b0]">
-                Feed Korana
+                Nouvelles de votre réseau
               </p>
 
             </div>

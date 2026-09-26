@@ -22,7 +22,7 @@ import type {
 import {
   ArrowLeft,
   Bell,
-  Bookmark,
+  Inbox,
   Home,
   MessageCircle,
   PanelLeftClose,
@@ -50,27 +50,26 @@ const KORANA_SIDEBAR_STORAGE_KEY =
 const primaryNavigation:
   readonly KoranaNavigationItem[] = [
     {
-      label: "Accueil",
+      label: "Actualités",
       href: "/korana",
       icon: Home,
-    },
-    {
-      label: "Enregistrés",
-      href: "/korana/enregistres",
-      icon: Bookmark,
-    },
-    {
-      label: "Notifications",
-      href: "/notifications",
-      icon: Bell,
     },
     {
       label: "Messages",
       href: "/korana/messages",
       icon: MessageCircle,
     },
+    {
+      label: "Requêtes",
+      href: "/korana/requetes",
+      icon: Inbox,
+    },
+    {
+      label: "Activités",
+      href: "/korana/activites",
+      icon: Bell,
+    },
   ];
-
 
 const futureNavigation:
   readonly KoranaNavigationItem[] = [
