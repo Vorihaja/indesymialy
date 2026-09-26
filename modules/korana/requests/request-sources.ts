@@ -1,19 +1,27 @@
-export type KoranaProposalRequestKind =
-  | "fight"
-  | "sponsor";
-
-export type KoranaRequestSource = {
-  id:
-    | "fight-proposals"
-    | "sponsor-offers";
-  authority:
-    | "fight_proposals"
-    | "sponsor_offers";
+type KoranaProposalRequestSource = {
+  id: "fight-proposals" | "sponsor-offers";
+  authority: "fight_proposals" | "sponsor_offers";
   category: string;
   title: string;
   description: string;
-  kind: KoranaProposalRequestKind;
+  actionModel: "accept-refuse-counter";
+  renderStrategy: "proposal";
+  kind: "fight" | "sponsor";
 };
+
+type KoranaOfficialAssignmentRequestSource = {
+  id: "official-assignments";
+  authority: "event_official_assignments+fight_official_assignments";
+  category: string;
+  title: string;
+  description: string;
+  actionModel: "confirm-decline";
+  renderStrategy: "official-assignments";
+};
+
+export type KoranaRequestSource =
+  | KoranaProposalRequestSource
+  | KoranaOfficialAssignmentRequestSource;
 
 export const KORANA_REQUEST_SOURCES:
   readonly KoranaRequestSource[] = [
@@ -24,6 +32,8 @@ export const KORANA_REQUEST_SOURCES:
       title: "Propositions de combat",
       description:
         "Examiner, accepter, refuser ou contre-proposer.",
+      actionModel: "accept-refuse-counter",
+      renderStrategy: "proposal",
       kind: "fight",
     },
     {
@@ -33,6 +43,18 @@ export const KORANA_REQUEST_SOURCES:
       title: "Offres de sponsoring",
       description:
         "Examiner les propositions de partenariat qui vous concernent.",
+      actionModel: "accept-refuse-counter",
+      renderStrategy: "proposal",
       kind: "sponsor",
+    },
+    {
+      id: "official-assignments",
+      authority: "event_official_assignments+fight_official_assignments",
+      category: "Officiel",
+      title: "Désignations officielles",
+      description:
+        "Confirmer ou refuser les désignations qui vous sont adressées.",
+      actionModel: "confirm-decline",
+      renderStrategy: "official-assignments",
     },
   ];

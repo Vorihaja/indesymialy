@@ -167,6 +167,22 @@ function notificationCategory(
   return "system";
 }
 
+function notificationActionRequired(
+  metadata: unknown,
+): boolean {
+  if (
+    !metadata ||
+    typeof metadata !== "object" ||
+    Array.isArray(metadata)
+  ) {
+    return false;
+  }
+
+  return (
+    metadata as Record<string, unknown>
+  ).action_required === true;
+}
+
 function conversationKind(
   value: string | null,
 ): ConversationKind {
@@ -2229,10 +2245,116 @@ export class CommunicationSupabaseRepository
     }
   }
 
+  private async incomingPrivateMessageIds(): Promise<string[]> {
+    const userId = await this.userId();
+    const currentParticipantResult = await this.supabase
+      .from("conversation_participants")
+      .select("conversation_id")
+      .eq("profile_id", userId)
+      .is("left_at", null);
+
+    if (currentParticipantResult.error) {
+      throw normalizeBackendError(currentParticipantResult.error);
+    }
+
+    const conversationIds = Array.from(
+      new Set(
+        (currentParticipantResult.data ?? []).map(
+          (participant) => participant.conversation_id,
+        ),
+      ),
+    );
+
+    if (conversationIds.length === 0) {
+      return [];
+    }
+
+    const conversationResult = await this.supabase
+      .from("conversations")
+      .select("id")
+      .in("id", conversationIds)
+      .eq("conversation_type", "private");
+
+    if (conversationResult.error) {
+      throw normalizeBackendError(conversationResult.error);
+    }
+
+    const privateConversationIds = (conversationResult.data ?? []).map(
+      (conversation) => conversation.id,
+    );
+
+    if (privateConversationIds.length === 0) {
+      return [];
+    }
+
+    const participantResult = await this.supabase
+      .from("conversation_participants")
+      .select("conversation_id,profile_id,organization_id")
+      .in("conversation_id", privateConversationIds)
+      .is("left_at", null);
+
+    if (participantResult.error) {
+      throw normalizeBackendError(participantResult.error);
+    }
+
+    const profileIdsByConversation = new Map<string, string[]>();
+    for (const participant of participantResult.data ?? []) {
+      if (!participant.profile_id || participant.organization_id) {
+        continue;
+      }
+
+      const profileIds = profileIdsByConversation.get(
+        participant.conversation_id,
+      ) ?? [];
+      profileIds.push(participant.profile_id);
+      profileIdsByConversation.set(
+        participant.conversation_id,
+        profileIds,
+      );
+    }
+
+    const eligibleConversationIds = Array.from(
+      profileIdsByConversation,
+    )
+      .filter(([, profileIds]) =>
+        profileIds.length === 2 &&
+        new Set(profileIds).size === 2 &&
+        profileIds.includes(userId),
+      )
+      .map(([conversationId]) => conversationId);
+
+    if (eligibleConversationIds.length === 0) {
+      return [];
+    }
+
+    const messageResult = await this.supabase
+      .from("messages")
+      .select("id,conversation_id,sent_by_profile_id")
+      .in("conversation_id", eligibleConversationIds)
+      .neq("sent_by_profile_id", userId);
+
+    if (messageResult.error) {
+      throw normalizeBackendError(messageResult.error);
+    }
+
+    return (messageResult.data ?? [])
+      .filter((message) =>
+        profileIdsByConversation
+          .get(message.conversation_id)
+          ?.includes(message.sent_by_profile_id),
+      )
+      .map((message) => message.id);
+  }
+
   async listFightProposals(): Promise<
     FightProposal[]
   > {
     try {
+      const messageIds = await this.incomingPrivateMessageIds();
+      if (messageIds.length === 0) {
+        return [];
+      }
+
       const {
         data,
         error,
@@ -2240,6 +2362,8 @@ export class CommunicationSupabaseRepository
         await this.supabase
           .from("fight_proposals")
           .select("*")
+          .in("message_id", messageIds)
+          .eq("status", "pending")
           .order(
             "created_at",
             {
@@ -2320,7 +2444,28 @@ export class CommunicationSupabaseRepository
     >,
   ): Promise<FightProposal | null> {
     try {
+      const messageIds = await this.incomingPrivateMessageIds();
+      if (messageIds.length === 0) {
+        return null;
+      }
+
+      const { data: current, error: currentError } = await this.supabase
+        .from("fight_proposals")
+        .select("message_id")
+        .eq("id", id)
+        .eq("status", "pending")
+        .in("message_id", messageIds)
+        .maybeSingle();
+
+      if (currentError) {
+        throw currentError;
+      }
+      if (!current?.message_id) {
+        return null;
+      }
+
       const {
+        data,
         error,
       } =
         await this.supabase
@@ -2330,10 +2475,17 @@ export class CommunicationSupabaseRepository
             responded_at:
               new Date().toISOString(),
           })
-          .eq("id", id);
+          .eq("id", id)
+          .eq("message_id", current.message_id)
+          .eq("status", "pending")
+          .select("id")
+          .maybeSingle();
 
       if (error) {
         throw error;
+      }
+      if (!data) {
+        return null;
       }
 
       return (
@@ -2355,6 +2507,11 @@ export class CommunicationSupabaseRepository
     SponsorOffer[]
   > {
     try {
+      const messageIds = await this.incomingPrivateMessageIds();
+      if (messageIds.length === 0) {
+        return [];
+      }
+
       const {
         data,
         error,
@@ -2362,6 +2519,8 @@ export class CommunicationSupabaseRepository
         await this.supabase
           .from("sponsor_offers")
           .select("*")
+          .in("message_id", messageIds)
+          .eq("status", "pending")
           .order(
             "created_at",
             {
@@ -2449,7 +2608,28 @@ export class CommunicationSupabaseRepository
     >,
   ): Promise<SponsorOffer | null> {
     try {
+      const messageIds = await this.incomingPrivateMessageIds();
+      if (messageIds.length === 0) {
+        return null;
+      }
+
+      const { data: current, error: currentError } = await this.supabase
+        .from("sponsor_offers")
+        .select("message_id")
+        .eq("id", id)
+        .eq("status", "pending")
+        .in("message_id", messageIds)
+        .maybeSingle();
+
+      if (currentError) {
+        throw currentError;
+      }
+      if (!current?.message_id) {
+        return null;
+      }
+
       const {
+        data,
         error,
       } =
         await this.supabase
@@ -2459,10 +2639,17 @@ export class CommunicationSupabaseRepository
             responded_at:
               new Date().toISOString(),
           })
-          .eq("id", id);
+          .eq("id", id)
+          .eq("message_id", current.message_id)
+          .eq("status", "pending")
+          .select("id")
+          .maybeSingle();
 
       if (error) {
         throw error;
+      }
+      if (!data) {
+        return null;
       }
 
       return (
@@ -2534,6 +2721,11 @@ export class CommunicationSupabaseRepository
           category:
             notificationCategory(
               item.notification_type,
+            ),
+
+          actionRequired:
+            notificationActionRequired(
+              item.metadata,
             ),
 
           title:

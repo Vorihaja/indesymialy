@@ -289,8 +289,17 @@ export function MessagingFeature({
   );
 }
 
-export function ProposalFeature({ kind }: { kind: "fight" | "sponsor" }) {
+export function ProposalFeature({
+  kind,
+  actionableOnly = false,
+}: {
+  kind: "fight" | "sponsor";
+  actionableOnly?: boolean;
+}) {
   const { items, loading, decide } = useProposals(kind);
+  const visibleItems = actionableOnly
+    ? items.filter((item) => item.status === "pending")
+    : items;
 
   if (loading) {
     return <p className={loadingClass}>Chargement…</p>;
@@ -299,7 +308,7 @@ export function ProposalFeature({ kind }: { kind: "fight" | "sponsor" }) {
   return (
     <ProposalList
       kind={kind}
-      items={items}
+      items={visibleItems}
       onDecision={(id, status) => {
         void decide(id, status);
       }}

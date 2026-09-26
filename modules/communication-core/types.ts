@@ -204,6 +204,7 @@ export interface CommunicationNotification {
   id: string;
   recipientId: string;
   category: NotificationCategory;
+  actionRequired?: boolean;
   title: string;
   content: string;
   priority: "low" | "normal" | "high" | "critical";

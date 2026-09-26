@@ -7,6 +7,9 @@ import {
 import {
   KORANA_REQUEST_SOURCES,
 } from "../requests/request-sources";
+import {
+  KoranaOfficialAssignmentRequests,
+} from "./KoranaOfficialAssignmentRequests";
 
 export function KoranaRequestsFeature() {
   return (
@@ -49,7 +52,14 @@ export function KoranaRequestsFeature() {
                 </p>
               </div>
 
-              <ProposalFeature kind={source.kind} />
+              {source.renderStrategy === "proposal" ? (
+                <ProposalFeature
+                  kind={source.kind}
+                  actionableOnly
+                />
+              ) : (
+                <KoranaOfficialAssignmentRequests />
+              )}
             </section>
           ))}
         </div>
