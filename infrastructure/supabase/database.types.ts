@@ -14612,6 +14612,24 @@ export type Database = {
         }
         Returns: string
       }
+      list_my_event_invitations: {
+        Args: never
+        Returns: {
+          event_id: string
+          event_starts_at: string | null
+          event_title: string
+          event_venue: string | null
+          id: string
+          invitation_type: string
+          role: string
+          sent_at: string
+          status: string
+        }[]
+      }
+      respond_event_invitation: {
+        Args: { p_accept: boolean; p_invitation_id: string }
+        Returns: undefined
+      }
       respond_event_coorganization: {
         Args: { p_accept: boolean; p_invitation_id: string }
         Returns: undefined
