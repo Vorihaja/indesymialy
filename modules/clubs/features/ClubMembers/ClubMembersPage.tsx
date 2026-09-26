@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useIndesyDialog } from "@/components/ui/indesy-dialog";
+import { ContextualMessageAction } from "@/modules/communication-core";
 import { useClubMembers } from "../../hooks/useClubMembers";
 
 const panelClass = "rounded-[2px] border border-[#303238] bg-[#151619] p-4";
@@ -80,7 +81,14 @@ export default function ClubMembersPage({ organizationId }: { organizationId: st
           {members.map((member) => (
             <li className="flex flex-wrap items-center justify-between gap-3 rounded-[2px] border border-[#303238] bg-[#151619] p-3" key={member.id}>
               <span className="text-sm">{member.full_name ?? `${member.first_name} ${member.last_name}`} · <span className="text-zinc-400">{roleLabels[member.role ?? ""] ?? member.role ?? "Membre"}</span></span>
-              <button className="rounded-[2px] border border-red-500/30 bg-red-500/5 px-3 py-1.5 text-sm font-semibold text-red-300 transition hover:bg-red-500/10" onClick={() => void requestMemberRemoval(member.id)}>Retirer</button>
+              <div className="flex flex-wrap items-center gap-2">
+                {member.profile_id && (
+                  <ContextualMessageAction
+                    recipientProfileId={member.profile_id}
+                  />
+                )}
+                <button className="rounded-[2px] border border-red-500/30 bg-red-500/5 px-3 py-1.5 text-sm font-semibold text-red-300 transition hover:bg-red-500/10" onClick={() => void requestMemberRemoval(member.id)}>Retirer</button>
+              </div>
             </li>
           ))}
           {members.length === 0 && <li className="rounded-[2px] border border-dashed border-[#303238] bg-[#151619] p-4 text-sm text-zinc-500">Aucun membre enregistré.</li>}

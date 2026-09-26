@@ -263,4 +263,12 @@ export class ManageCommunicationUseCase {
         value,
       );
   }
+
+  openPrivateConversationForProfile(
+    profileId: string,
+  ) {
+    return this.service.openPrivateConversationForProfile(
+      profileId,
+    );
+  }
 }

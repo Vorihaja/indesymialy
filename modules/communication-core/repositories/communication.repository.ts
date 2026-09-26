@@ -36,6 +36,11 @@ export interface CommunicationRepository {
   openPrivateConversation(
     actorId: string,
   ): Promise<CommunicationConversation>;
+
+  openPrivateConversationForProfile(
+    profileId: string,
+  ): Promise<CommunicationConversation>;
+
   createConversation(
     title: string,
     kind: ConversationKind,

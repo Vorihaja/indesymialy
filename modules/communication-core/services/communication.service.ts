@@ -97,6 +97,20 @@ export class CommunicationService {
       );
   }
 
+  openPrivateConversationForProfile(
+    profileId: string,
+  ) {
+    const normalized = profileId.trim();
+
+    if (!normalized) {
+      throw new Error("Profil destinataire obligatoire");
+    }
+
+    return this.repository.openPrivateConversationForProfile(
+      normalized,
+    );
+  }
+
   createConversation(
     title: string,
     kind: ConversationKind,

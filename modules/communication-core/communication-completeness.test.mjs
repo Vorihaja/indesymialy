@@ -41,6 +41,26 @@ const recipientPicker =
     "./components/RecipientPicker.tsx",
   );
 
+const contextualMessageAction =
+  read(
+    "./components/ContextualMessageAction.tsx",
+  );
+
+const contextualMessageHook =
+  read(
+    "./hooks/useContextualMessage.ts",
+  );
+
+const communicationService =
+  read(
+    "./services/communication.service.ts",
+  );
+
+const communicationUseCase =
+  read(
+    "./use-cases/manage-communication.use-case.ts",
+  );
+
 test(
   "attachment validation accepts supported files and rejects invalid files",
   () => {
@@ -150,6 +170,44 @@ test(
     assert.match(
       authority,
       /message_attachments_storage_select/,
+    );
+  },
+);
+
+test(
+  "contextual profile messaging resolves the Korana actor before opening",
+  () => {
+    assert.match(
+      repository,
+      /openPrivateConversationForProfile\([\s\S]*?from\("korana_actors"\)[\s\S]*?select\("id"\)[\s\S]*?eq\("profile_id",\s*profileId\)[\s\S]*?eq\("actor_type",\s*"profile"\)[\s\S]*?eq\("status",\s*"active"\)[\s\S]*?this\.openPrivateConversation\(actor\.id\)/,
+    );
+    assert.doesNotMatch(
+      repository,
+      /p_recipient_actor_id:\s*profileId/,
+    );
+    assert.match(
+      communicationService,
+      /openPrivateConversationForProfile\([\s\S]*?repository\.openPrivateConversationForProfile\(/,
+    );
+    assert.match(
+      communicationUseCase,
+      /openPrivateConversationForProfile\([\s\S]*?service\.openPrivateConversationForProfile\(/,
+    );
+    assert.match(
+      contextualMessageHook,
+      /openPrivateConversationForProfile\([\s\S]*?router\.push\(\s*`/,
+    );
+    assert.match(
+      contextualMessageHook,
+      /\/korana\/messages\/\$\{encodeURIComponent\(conversation\.id\)\}/,
+    );
+    assert.match(
+      contextualMessageAction,
+      /useContextualMessage/,
+    );
+    assert.doesNotMatch(
+      contextualMessageAction,
+      /\.from\(|\.rpc\(/,
     );
   },
 );

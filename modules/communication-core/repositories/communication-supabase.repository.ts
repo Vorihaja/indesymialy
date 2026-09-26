@@ -1712,6 +1712,35 @@ export class CommunicationSupabaseRepository
     }
   }
 
+  async openPrivateConversationForProfile(
+    profileId: string,
+  ): Promise<CommunicationConversation> {
+    try {
+      const { data: actor, error } = await this.supabase
+        .from("korana_actors")
+        .select("id")
+        .eq("profile_id", profileId)
+        .eq("actor_type", "profile")
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+
+      if (!actor) {
+        throw new BackendError(
+          "NOT_FOUND",
+          "Ce profil n’est pas disponible dans Korana.",
+        );
+      }
+
+      return this.openPrivateConversation(actor.id);
+    } catch (reason) {
+      throw normalizeBackendError(reason);
+    }
+  }
+
   async createConversation(
     title: string,
     kind: ConversationKind,

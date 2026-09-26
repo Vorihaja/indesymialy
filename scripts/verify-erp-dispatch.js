@@ -10,6 +10,7 @@ const reportFile = path.join(projectRoot, 'erp-dispatch-registry-p1a-report.txt'
 const resolverFile = path.join(projectRoot, 'modules', 'erp-dispatch-registry', 'resolver.ts');
 const registryText = fs.readFileSync(registryFile, 'utf8');
 const resolverText = fs.readFileSync(resolverFile, 'utf8');
+const externalSurfacesText = fs.readFileSync(path.join(projectRoot, 'modules', 'erp-dispatch-registry', 'external-surfaces.ts'), 'utf8').replace(/\r\n/g, '\n');
 
 function read(relativePath) {
   return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8').replace(/\r\n/g, '\n');
@@ -198,6 +199,34 @@ const navigationKeys = navigation.map((entry) => `${entry.role}:${entry.moduleId
 const duplicateKeys = registryKeys.length - new Set(registryKeys).size;
 const navigationSet = new Set(navigationKeys);
 const missing = [...navigationSet].filter((key) => !new Set(registryKeys).has(key));
+const externalSurfaceEntries = [...externalSurfacesText.matchAll(/\{\s*role:\s*"([^"]+)"\s*,\s*moduleId:\s*"([^"]+)"\s*,\s*surface:\s*"([^"]+)"\s*,\s*href:\s*"([^"]+)"\s*,\s*authority:\s*"([^"]+)"\s*,\s*\}/g)].map((match) => ({
+  role: match[1],
+  moduleId: match[2],
+  surface: match[3],
+  href: match[4],
+  authority: match[5],
+}));
+const expectedExternalSurfaceRoles = new Set(['federation', 'club', 'coach', 'official']);
+const externalSurfaceKeys = externalSurfaceEntries.map((entry) => `${entry.role}:${entry.moduleId}`);
+const externalSurfaceRoleCount = new Set(externalSurfaceEntries.map((entry) => entry.role)).size;
+const externalSurfaceCommunicationCount = externalSurfaceEntries.filter((entry) => entry.moduleId === 'communication').length;
+const externalSurfaceKoranaCount = externalSurfaceEntries.filter((entry) => entry.surface === 'korana').length;
+const externalSurfaceAuthorities = new Set(externalSurfaceEntries.map((entry) => entry.authority));
+const externalSurfaceAuthority = externalSurfaceAuthorities.size === 1 ? [...externalSurfaceAuthorities][0] : 'invalid';
+const externalSurfaceCoverageValid = externalSurfaceEntries.length === 4 &&
+  externalSurfaceRoleCount === 4 &&
+  [...expectedExternalSurfaceRoles].every((role) => externalSurfaceEntries.some((entry) => entry.role === role)) &&
+  externalSurfaceKeys.length === new Set(externalSurfaceKeys).size &&
+  externalSurfaceCommunicationCount === 4 &&
+  externalSurfaceKoranaCount === 4 &&
+  externalSurfaceAuthority === 'communication-core' &&
+  externalSurfaceEntries.every((entry) => entry.href === '/korana/messages' &&
+    !navigationSet.has(`${entry.role}:${entry.moduleId}`) &&
+    registry.find((registered) => registered.role === entry.role && registered.moduleId === entry.moduleId)?.status === 'unavailable');
+const userFacingNavigationOrExternalCoverageCount = new Set([
+  ...navigationSet,
+  ...externalSurfaceKeys,
+]).size;
 const unavailableMutationCount = registry.filter((entry) => entry.status === 'unavailable' && hasAnyCapability(entry.capabilities)).length;
 const implementedCount = registry.filter((entry) => entry.status === 'implemented').length;
 const unavailableCount = registry.filter((entry) => entry.status === 'unavailable').length;
@@ -218,7 +247,7 @@ const genericHandlerMarkedImplemented = registry.filter((entry) => entry.status 
 const crossDomainAuthorityMismatch = registry.filter((entry) => entry.status === 'implemented' && entry.handlerKey === 'seller-agenda' && entry.authority !== 'seller-agenda').length;
 const navigationUnavailableCount = registry.filter((entry) => navigationSet.has(`${entry.role}:${entry.moduleId}`) && entry.status === 'unavailable').length;
 const nonNavigationRegistryCount = registry.filter((entry) => !navigationSet.has(`${entry.role}:${entry.moduleId}`)).length;
-const p1aSuccess = registry.length > 0 && canonicalRoleResolution && coveragePercent === 100 && duplicateKeys === 0 && missing.length === 0 && !moduleLabelDispatch && !workspaceRecordsFallback && !memoryCrudRuntime && !unknownModuleFallback && unavailableMutationCount === 0 && calendarHandlerExplicit && sellerAgendaAuthorityPreserved && financeHandlerPreserved && implementedWithoutEvidence === 0 && genericHandlerMarkedImplemented === 0 && crossDomainAuthorityMismatch === 0;
+const p1aSuccess = registry.length > 0 && canonicalRoleResolution && coveragePercent === 100 && duplicateKeys === 0 && missing.length === 0 && externalSurfaceCoverageValid && !moduleLabelDispatch && !workspaceRecordsFallback && !memoryCrudRuntime && !unknownModuleFallback && unavailableMutationCount === 0 && calendarHandlerExplicit && sellerAgendaAuthorityPreserved && financeHandlerPreserved && implementedWithoutEvidence === 0 && genericHandlerMarkedImplemented === 0 && crossDomainAuthorityMismatch === 0;
 const booleanText = (value) => value ? 'True' : 'False';
 const capabilityFlags = (entry) => ({
   read: /read:\s*true/.test(entry.capabilities),
@@ -304,6 +333,13 @@ const report = [
   `NAVIGATION_IMPLEMENTED_COUNT=${navigationImplementedCount}`,
   `NAVIGATION_UNAVAILABLE_COUNT=${navigationUnavailableCount}`,
   `NON_NAVIGATION_REGISTRY_COUNT=${nonNavigationRegistryCount}`,
+  `EXTERNAL_SURFACE_COUNT=${externalSurfaceEntries.length}`,
+  `EXTERNAL_SURFACE_ROLE_COUNT=${externalSurfaceRoleCount}`,
+  `EXTERNAL_SURFACE_COMMUNICATION_COUNT=${externalSurfaceCommunicationCount}`,
+  `EXTERNAL_SURFACE_KORANA_COUNT=${externalSurfaceKoranaCount}`,
+  `EXTERNAL_SURFACE_AUTHORITY=${externalSurfaceAuthority}`,
+  `EXTERNAL_SURFACE_COVERAGE_VALID=${booleanText(externalSurfaceCoverageValid)}`,
+  `USER_FACING_NAVIGATION_OR_EXTERNAL_COVERAGE_COUNT=${userFacingNavigationOrExternalCoverageCount}`,
   `UNAVAILABLE_MUTATION_COUNT=${unavailableMutationCount}`,
   `GENERIC_HANDLER_MARKED_IMPLEMENTED=${genericHandlerMarkedImplemented}`,
   `CROSS_DOMAIN_AUTHORITY_MISMATCH=${crossDomainAuthorityMismatch}`,
