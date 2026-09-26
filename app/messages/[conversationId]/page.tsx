@@ -1,1 +1,21 @@
-import { AuthenticatedCommunicationGuard } from "@/modules/communication-core/components/AuthenticatedCommunicationGuard"; import { MessagingFeature } from "@/modules/communication-core/features/CommunicationFeatures"; export default async function Page({ params }: { params: Promise<{ conversationId: string }> }) { const { conversationId } = await params; return <AuthenticatedCommunicationGuard><MessagingFeature conversationId={conversationId} /></AuthenticatedCommunicationGuard>; }
+import {
+  redirect,
+} from "next/navigation";
+
+export default async function LegacyConversationPage({
+  params,
+}: {
+  params: Promise<{
+    conversationId: string;
+  }>;
+}) {
+  const {
+    conversationId,
+  } = await params;
+
+  redirect(
+    `/korana/messages/${encodeURIComponent(
+      conversationId,
+    )}`,
+  );
+}

@@ -1,1 +1,7 @@
-import { NewsFeature } from "@/modules/news"; export default function Page() { return <NewsFeature/>; }
+import {
+  redirect,
+} from "next/navigation";
+
+export default function LegacySocialNewsPage() {
+  redirect("/korana");
+}

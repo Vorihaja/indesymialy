@@ -4,6 +4,10 @@ import {
   ProposalFeature,
 } from "@/modules/communication-core/features/CommunicationFeatures";
 
+import {
+  KORANA_REQUEST_SOURCES,
+} from "../requests/request-sources";
+
 export function KoranaRequestsFeature() {
   return (
     <div className="h-full min-h-0 overflow-y-auto bg-[#090a0c] text-zinc-100">
@@ -17,42 +21,38 @@ export function KoranaRequestsFeature() {
         </p>
       </header>
 
-      <div className="grid gap-4 p-4 sm:p-6 xl:grid-cols-2">
-        <section className="min-w-0 border border-white/[0.07] bg-[#101216] p-4">
-          <div className="mb-4 border-b border-white/[0.06] pb-3">
-            <span className="text-[9px] font-black uppercase tracking-[0.14em] text-[#ff4058]">
-              Combat
-            </span>
+      <div className="p-4 sm:p-6">
+        <div className="mb-3">
+          <span className="text-[9px] font-black uppercase tracking-[0.14em] text-zinc-600">
+            Reçues
+          </span>
+        </div>
 
-            <h2 className="mt-1 text-sm font-black">
-              Propositions de combat
-            </h2>
+        <div className="grid gap-4 xl:grid-cols-2">
+          {KORANA_REQUEST_SOURCES.map((source) => (
+            <section
+              key={source.id}
+              data-request-authority={source.authority}
+              className="min-w-0 border border-white/[0.07] bg-[#101216] p-4"
+            >
+              <div className="mb-4 border-b border-white/[0.06] pb-3">
+                <span className="text-[9px] font-black uppercase tracking-[0.14em] text-[#ff4058]">
+                  {source.category}
+                </span>
 
-            <p className="mt-1 text-[10px] leading-5 text-zinc-600">
-              Examiner, accepter, refuser ou contre-proposer.
-            </p>
-          </div>
+                <h2 className="mt-1 text-sm font-black">
+                  {source.title}
+                </h2>
 
-          <ProposalFeature kind="fight" />
-        </section>
+                <p className="mt-1 text-[10px] leading-5 text-zinc-600">
+                  {source.description}
+                </p>
+              </div>
 
-        <section className="min-w-0 border border-white/[0.07] bg-[#101216] p-4">
-          <div className="mb-4 border-b border-white/[0.06] pb-3">
-            <span className="text-[9px] font-black uppercase tracking-[0.14em] text-[#ff4058]">
-              Partenariat
-            </span>
-
-            <h2 className="mt-1 text-sm font-black">
-              Offres de sponsoring
-            </h2>
-
-            <p className="mt-1 text-[10px] leading-5 text-zinc-600">
-              Examiner les propositions de partenariat qui vous concernent.
-            </p>
-          </div>
-
-          <ProposalFeature kind="sponsor" />
-        </section>
+              <ProposalFeature kind={source.kind} />
+            </section>
+          ))}
+        </div>
       </div>
     </div>
   );

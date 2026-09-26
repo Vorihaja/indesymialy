@@ -1,1 +1,7 @@
-import { AuthenticatedCommunicationGuard } from "@/modules/communication-core/components/AuthenticatedCommunicationGuard"; import { MessagingFeature } from "@/modules/communication-core/features/CommunicationFeatures"; export default function Page() { return <AuthenticatedCommunicationGuard><MessagingFeature /></AuthenticatedCommunicationGuard>; }
+import {
+  redirect,
+} from "next/navigation";
+
+export default function LegacyMessagesPage() {
+  redirect("/korana/messages");
+}

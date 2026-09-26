@@ -1,1 +1,7 @@
-import { DiscussionsFeature } from "@/modules/discussions"; export default function Page() { return <DiscussionsFeature/>; }
+import {
+  redirect,
+} from "next/navigation";
+
+export default function LegacySocialDiscussionsPage() {
+  redirect("/korana");
+}

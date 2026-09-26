@@ -1,1 +1,7 @@
-import { AuthenticatedCommunicationGuard } from "@/modules/communication-core/components/AuthenticatedCommunicationGuard"; import { NotificationsFeature } from "@/modules/communication-core/features/CommunicationFeatures"; export default function Page() { return <AuthenticatedCommunicationGuard><NotificationsFeature /></AuthenticatedCommunicationGuard>; }
+import {
+  redirect,
+} from "next/navigation";
+
+export default function LegacyNotificationsPage() {
+  redirect("/korana/activites");
+}

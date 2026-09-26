@@ -1,1 +1,7 @@
-import { ReactionsFeature } from "@/modules/reactions"; export default function Page() { return <ReactionsFeature/>; }
+import {
+  redirect,
+} from "next/navigation";
+
+export default function LegacySocialReactionsPage() {
+  redirect("/korana/activites");
+}
