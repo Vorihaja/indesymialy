@@ -177,7 +177,7 @@ test(
 );
 
 test(
-  "R5I-P2 does not expose event invitations in Korana before the UI phase",
+  "R5I exposes one event-invitation request source backed by the canonical authority",
   () => {
     const arrayMatch =
       requestSources.match(
@@ -188,29 +188,26 @@ test(
       arrayMatch,
     );
 
-    const ids =
-      Array.from(
-        arrayMatch[1].matchAll(
-          /id:\s*"([^"]+)"/g,
-        ),
-        (match) =>
-          match[1],
-      );
+    const runtimeBody =
+      arrayMatch[1];
 
-    assert.deepEqual(
-      ids,
-      [
-        "fight-proposals",
-        "sponsor-offers",
-        "official-assignments",
-        "event-coorganization",
-        "organization-invitations",
-      ],
+    assert.match(
+      runtimeBody,
+      /id: "event-invitations"/,
     );
 
-    assert.doesNotMatch(
-      requestSources,
-      /id: "event-invitations"/,
+    assert.match(
+      runtimeBody,
+      /authority: "event_invitations"/,
+    );
+
+    assert.equal(
+      (
+        runtimeBody.match(
+          /id: "event-invitations"/g,
+        ) ?? []
+      ).length,
+      1,
     );
   },
 );

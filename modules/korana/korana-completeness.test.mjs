@@ -35,6 +35,15 @@ const organizationInvitationRepository = read(
 );
 const organizationInvitationMigration = read(
   "../../supabase/migrations/20260926190000_organization_invitation_response_normalization.sql",
+);
+const eventInvitationRequests = read(
+  "./features/KoranaEventInvitationRequests.tsx",
+);
+const eventInvitationHook = read(
+  "../event-core/event-invitations/hooks/useEventInvitations.ts",
+);
+const eventInvitationRepository = read(
+  "../event-core/event-invitations/repositories/event-invitation-supabase.repository.ts",
 );const officialRepository = read(
   "../referees/assignments/repositories/referee-assignments-supabase.repository.ts",
 );
@@ -51,7 +60,7 @@ const notificationRepository = communicationRepository;
 const databaseTypes = read("../../infrastructure/supabase/database.types.ts");
 const activityProjection = read("./activities/activity-projection.mjs");
 
-test("Korana request sources include proposals, official assignments, event coorganization and organization invitations", () => {
+test("Korana request sources include all six canonical decision authorities", () => {
   const configuredSources = requestSources.split(
     "export const KORANA_REQUEST_SOURCES",
   )[1];
@@ -61,6 +70,7 @@ test("Korana request sources include proposals, official assignments, event coor
 
   assert.deepEqual(ids, [
     "event-coorganization",
+    "event-invitations",
     "fight-proposals",
     "official-assignments",
     "organization-invitations",
@@ -195,6 +205,72 @@ test("organization invitation requests delegate to the canonical identity author
   assert.doesNotMatch(
     requestSources,
     /id: "seller-personnel-invitations"/,
+  );
+});
+test("event invitation requests delegate to the canonical event authority without direct Supabase access in Korana", () => {
+  assert.match(
+    requestSources,
+    /id: "event-invitations"/,
+  );
+
+  assert.match(
+    requestSources,
+    /authority: "event_invitations"/,
+  );
+
+  assert.match(
+    requestSources,
+    /actionModel: "accept-decline"/,
+  );
+
+  assert.match(
+    requestSources,
+    /renderStrategy: "event-invitations"/,
+  );
+
+  assert.match(
+    requestsFeature,
+    /KoranaEventInvitationRequests/,
+  );
+
+  assert.match(
+    eventInvitationRequests,
+    /useEventInvitations/,
+  );
+
+  assert.doesNotMatch(
+    eventInvitationRequests,
+    /\.from\(|\.rpc\(/,
+  );
+
+  assert.match(
+    eventInvitationHook,
+    /createEventInvitationUseCase/,
+  );
+
+  assert.match(
+    eventInvitationHook,
+    /useCase\.listActionable/,
+  );
+
+  assert.match(
+    eventInvitationHook,
+    /useCase\.respond/,
+  );
+
+  assert.doesNotMatch(
+    eventInvitationHook,
+    /\.from\(|\.rpc\(/,
+  );
+
+  assert.match(
+    eventInvitationRepository,
+    /list_my_event_invitations/,
+  );
+
+  assert.match(
+    eventInvitationRepository,
+    /respond_event_invitation/,
   );
 });
 test("activities are a personal system-notification projection, not the inbox", () => {

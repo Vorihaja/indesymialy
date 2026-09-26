@@ -235,15 +235,19 @@ test(
         (match) => match[1],
       );
 
-    assert.deepEqual(
-      ids,
-      [
-        "fight-proposals",
-        "sponsor-offers",
-        "official-assignments",
-        "event-coorganization",
+    assert.ok(
+      ids.includes(
         "organization-invitations",
-      ],
+      ),
+    );
+
+    assert.equal(
+      ids.filter(
+        (id) =>
+          id ===
+          "organization-invitations",
+      ).length,
+      1,
     );
 
     assert.match(

@@ -37,11 +37,21 @@ type KoranaOrganizationInvitationRequestSource = {
   actionModel: "accept-decline";
   renderStrategy: "organization-invitations";
 };
+type KoranaEventInvitationRequestSource = {
+  id: "event-invitations";
+  authority: "event_invitations";
+  category: string;
+  title: string;
+  description: string;
+  actionModel: "accept-decline";
+  renderStrategy: "event-invitations";
+};
 export type KoranaRequestSource =
   | KoranaProposalRequestSource
   | KoranaOfficialAssignmentRequestSource
   | KoranaEventCoorganizationRequestSource
-  | KoranaOrganizationInvitationRequestSource;
+  | KoranaOrganizationInvitationRequestSource
+  | KoranaEventInvitationRequestSource;
 
 export const KORANA_REQUEST_SOURCES:
   readonly KoranaRequestSource[] = [
@@ -96,5 +106,15 @@ export const KORANA_REQUEST_SOURCES:
         "Accepter ou refuser les invitations à rejoindre une organisation.",
       actionModel: "accept-decline",
       renderStrategy: "organization-invitations",
+    },
+    {
+      id: "event-invitations",
+      authority: "event_invitations",
+      category: "Événement",
+      title: "Invitations d’événement",
+      description:
+        "Accepter ou refuser les invitations d’événement qui vous sont adressées.",
+      actionModel: "accept-decline",
+      renderStrategy: "event-invitations",
     },
   ];
