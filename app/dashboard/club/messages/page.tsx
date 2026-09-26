@@ -1,1 +1,23 @@
-import { RoleGuard } from "@/modules/auth/guards"; import { MessagingFeature } from "@/modules/communication-core/features/CommunicationFeatures"; export default function Page() { return <RoleGuard role="club"><MessagingFeature role="club" basePath="/dashboard/club/messages" /></RoleGuard>; }
+import {
+  redirect,
+} from "next/navigation";
+
+import {
+  resolveErpExternalSurface,
+} from "@/modules/erp-dispatch-registry";
+
+export default function ErpCommunicationBridgePage() {
+  const external =
+    resolveErpExternalSurface(
+      "club",
+      "communication",
+    );
+
+  if (!external) {
+    throw new Error(
+      "Korana communication external surface is not configured.",
+    );
+  }
+
+  redirect(external.href);
+}

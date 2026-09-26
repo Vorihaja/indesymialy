@@ -1,17 +1,23 @@
 import {
-  RoleGuard,
-} from "@/modules/auth/guards";
-import {
-  MessagingFeature,
-} from "@/modules/communication-core/features/CommunicationFeatures";
+  redirect,
+} from "next/navigation";
 
-export default function Page() {
-  return (
-    <RoleGuard role="official">
-      <MessagingFeature
-        role="official"
-        basePath="/dashboard/officiel/messages"
-      />
-    </RoleGuard>
-  );
+import {
+  resolveErpExternalSurface,
+} from "@/modules/erp-dispatch-registry";
+
+export default function ErpCommunicationBridgePage() {
+  const external =
+    resolveErpExternalSurface(
+      "official",
+      "communication",
+    );
+
+  if (!external) {
+    throw new Error(
+      "Korana communication external surface is not configured.",
+    );
+  }
+
+  redirect(external.href);
 }

@@ -1,24 +1,37 @@
 import {
-  RoleGuard,
-} from "@/modules/auth/guards";
-import {
-  MessagingFeature,
-} from "@/modules/communication-core/features/CommunicationFeatures";
+  redirect,
+} from "next/navigation";
 
-export default async function Page({
+import {
+  resolveErpExternalSurface,
+} from "@/modules/erp-dispatch-registry";
+
+export default async function ErpCommunicationConversationBridgePage({
   params,
 }: {
-  params: Promise<{ conversationId: string }>;
+  params: Promise<{
+    conversationId: string;
+  }>;
 }) {
-  const { conversationId } = await params;
+  const {
+    conversationId,
+  } = await params;
 
-  return (
-    <RoleGuard role="official">
-      <MessagingFeature
-        conversationId={conversationId}
-        role="official"
-        basePath="/dashboard/officiel/messages"
-      />
-    </RoleGuard>
+  const external =
+    resolveErpExternalSurface(
+      "official",
+      "communication",
+    );
+
+  if (!external) {
+    throw new Error(
+      "Korana communication external surface is not configured.",
+    );
+  }
+
+  redirect(
+    `${external.href}/${encodeURIComponent(
+      conversationId,
+    )}`,
   );
 }
