@@ -765,7 +765,7 @@ begin
   if p_action_type = 'incident' then
     insert into public.fight_incidents(
       fight_id, incident_type, severity, description
-    ) values (p_fight_id, 'OTHER', 'MEDIUM', 'Incident signalé en direct');
+    ) values (p_fight_id, 'OTHER', 'MEDIUM', 'Incident signal├® en direct');
   end if;
 
   insert into public.fight_events_timeline(
@@ -1193,14 +1193,14 @@ declare
   v_timeline_type text := 'system';
 begin
   v_description := case new.event_type
-    when 'start' then 'Début du round'
+    when 'start' then 'D├®but du round'
     when 'pause' then 'Pause du combat'
     when 'timeout' then 'Timeout arbitral'
-    when 'medical_timeout' then 'Temps médical'
+    when 'medical_timeout' then 'Temps m├®dical'
     when 'technical_pause' then 'Pause technique'
     when 'resume' then 'Reprise du combat'
     when 'end' then 'Fin du round'
-    else 'Événement chrono'
+    else '├ëv├®nement chrono'
   end;
   if new.event_type = 'medical_timeout' then
     v_timeline_type := 'medical';
@@ -1286,14 +1286,14 @@ begin
     case when te.event_type = 'medical_timeout' then 'medical' else 'system' end,
     coalesce(te.started_at, te.ended_at, te.created_at)::text,
     coalesce(nullif(btrim(te.reason), ''), case te.event_type
-      when 'start' then 'Début du round'
+      when 'start' then 'D├®but du round'
       when 'pause' then 'Pause du combat'
       when 'timeout' then 'Timeout arbitral'
-      when 'medical_timeout' then 'Temps médical'
+      when 'medical_timeout' then 'Temps m├®dical'
       when 'technical_pause' then 'Pause technique'
       when 'resume' then 'Reprise du combat'
       when 'end' then 'Fin du round'
-      else 'Événement chrono'
+      else '├ëv├®nement chrono'
     end),
     te.recorded_by,
     coalesce(te.created_at, now()),
@@ -1599,10 +1599,10 @@ begin
   ) values (
     p_fight_id,
     'RESULT',
-    'Résultat officiel du combat',
+    'R├®sultat officiel du combat',
     case when v_decision.winner_id is null
-      then 'Combat terminé sans vainqueur'
-      else 'Victoire officielle enregistrée'
+      then 'Combat termin├® sans vainqueur'
+      else 'Victoire officielle enregistr├®e'
     end,
     auth.uid(),
     true
@@ -1618,12 +1618,12 @@ begin
     select 1 from public.fight_events_timeline
     where fight_id = p_fight_id
       and event_type = 'decision'
-      and description = 'Résultat officiel publié'
+      and description = 'R├®sultat officiel publi├®'
   ) then
     insert into public.fight_events_timeline(
       fight_id, event_type, description, recorded_by
     ) values (
-      p_fight_id, 'decision', 'Résultat officiel publié', auth.uid()
+      p_fight_id, 'decision', 'R├®sultat officiel publi├®', auth.uid()
     );
   end if;
 end;

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const migration = await readFile(new URL("../../supabase/migrations/20260923130720_complete_fight_live_authority.sql", import.meta.url), "utf8");
+const migration = await readFile(new URL("../../supabase/migrations/20260925082825_complete_fight_live_authority.sql", import.meta.url), "utf8");
 
 test("fight statistics are fully recomputed from canonical actions, scores, and penalties", () => {
   assert.match(migration, /create or replace function private\.recalculate_fight_statistics/);

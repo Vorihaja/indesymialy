@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const migration = await readFile(new URL("../../supabase/migrations/20260923130720_complete_fight_live_authority.sql", import.meta.url), "utf8");
+const migration = await readFile(new URL("../../supabase/migrations/20260925082825_complete_fight_live_authority.sql", import.meta.url), "utf8");
 
 test("timer transitions are locked and server validated", () => {
   assert.match(migration, /select \* into v_fight from public\.fights where id = p_fight_id for update/);

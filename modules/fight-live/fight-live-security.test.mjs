@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const migrationUrl = new URL("../../supabase/migrations/20260923130720_complete_fight_live_authority.sql", import.meta.url);
+const migrationUrl = new URL("../../supabase/migrations/20260925082825_complete_fight_live_authority.sql", import.meta.url);
 const migration = await readFile(migrationUrl, "utf8");
 const eventAuthority = await readFile(
   new URL("../../supabase/migrations/202608130230_event_geography_coorganization.sql", import.meta.url),

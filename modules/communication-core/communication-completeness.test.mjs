@@ -23,7 +23,7 @@ const foundation =
 
 const authority =
   read(
-    "../../supabase/migrations/20260923070318_complete_messaging_authority.sql",
+    "../../supabase/migrations/20260923081708_complete_messaging_authority.sql",
   );
 
 const repository =

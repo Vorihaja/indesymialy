@@ -6,7 +6,7 @@ const root = new URL("../../", import.meta.url);
 const read = (path) => readFile(new URL(path, root), "utf8");
 
 test("forward migration fixes organization participant visibility without a tautology", async () => {
-  const migration = await read("supabase/migrations/20260923083042_complete_event_registration_authority.sql");
+  const migration = await read("supabase/migrations/20260923122326_complete_event_registration_authority.sql");
   assert.doesNotMatch(migration, /om\.organization_id\s*=\s*om\.organization_id/i);
   assert.match(migration, /om\.organization_id\s*=\s*event_participants\.organization_id/i);
   assert.match(migration, /om\.profile_id\s*=\s*auth\.uid\(\)/i);
@@ -25,14 +25,14 @@ test("historical policy sources are also unambiguous for fresh replay", async ()
 });
 
 test("public participants require an intentionally public published event", async () => {
-  const migration = await read("supabase/migrations/20260923083042_complete_event_registration_authority.sql");
+  const migration = await read("supabase/migrations/20260923122326_complete_event_registration_authority.sql");
   assert.match(migration, /public_visible[\s\S]*e\.visibility\s*=\s*'public'/i);
   assert.match(migration, /e\.published_at is not null/i);
   assert.match(migration, /e\.archived_at is null/i);
 });
 
 test("decision authority authenticates, authorizes, and owns review metadata", async () => {
-  const migration = await read("supabase/migrations/20260923083042_complete_event_registration_authority.sql");
+  const migration = await read("supabase/migrations/20260923122326_complete_event_registration_authority.sql");
   assert.match(migration, /create or replace function public\.review_event_registration/);
   assert.match(migration, /security definer[\s\S]*set search_path = ''/i);
   assert.match(migration, /v_actor uuid := auth\.uid\(\)/);
@@ -42,7 +42,7 @@ test("decision authority authenticates, authorizes, and owns review metadata", a
 });
 
 test("state changes create history and validated registrations sync participants", async () => {
-  const migration = await read("supabase/migrations/20260923083042_complete_event_registration_authority.sql");
+  const migration = await read("supabase/migrations/20260923122326_complete_event_registration_authority.sql");
   assert.match(migration, /INVALID_REGISTRATION_TRANSITION/);
   assert.match(migration, /insert into public\.event_registration_history/);
   assert.match(migration, /changed_by,[\s\S]*auth\.uid\(\)/);

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const migration = await readFile(new URL("../../supabase/migrations/20260923130720_complete_fight_live_authority.sql", import.meta.url), "utf8");
+const migration = await readFile(new URL("../../supabase/migrations/20260925082825_complete_fight_live_authority.sql", import.meta.url), "utf8");
 
 test("career statistics only count fights in which the fighter participated", () => {
   assert.match(migration, /where p_fighter_id in \(f\.fighter_red_id, f\.fighter_blue_id\)/);
