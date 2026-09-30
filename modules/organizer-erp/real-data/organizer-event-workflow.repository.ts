@@ -1034,7 +1034,7 @@ export class OrganizerEventWorkflowRepository {
 
       this.supabase
         .from('staff_assignments')
-        .select('staff_name,role')
+        .select('id,profile_id,staff_name,role,status')
         .eq('event_id', eventId)
         .order('assigned_at'),
 
@@ -1175,8 +1175,11 @@ export class OrganizerEventWorkflowRepository {
       })),
 
       team: (staffResult.data ?? []).map((item) => ({
+        assignmentId: item.id,
+        profileId: item.profile_id ?? '',
         name: item.staff_name,
         role: item.role,
+        status: item.status ?? 'invited',
       })),
 
       budget: String(budget?.forecast_amount ?? ''),

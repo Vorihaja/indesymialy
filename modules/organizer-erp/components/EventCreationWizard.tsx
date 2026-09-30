@@ -11,7 +11,13 @@ import type { CoorganizerCandidate, EventOfficialCandidate } from '../real-data/
 import { DisciplineSelect } from '@/modules/disciplines';
 
 type FightCardDraft = { segment: string; discipline: string; red: string; blue: string };
-type AssignmentDraft = { name: string; role: string };
+export type TeamAssignmentDraft = {
+  assignmentId?: string;
+  profileId?: string;
+  name: string;
+  role: string;
+  status?: string;
+};
 export type EventOfficialDraft = {
   assignmentId?: string;
   profileId: string;
@@ -29,7 +35,7 @@ export type EventWizardDraft = {
   coorganizers: EventCoorganizerDraft[];
   fightCards: FightCardDraft[];
   officials: EventOfficialDraft[];
-  team: AssignmentDraft[];
+  team: TeamAssignmentDraft[];
   budget: string;
   expenses: ExpenseDraft[];
   tickets: TicketTypeDraft[];
@@ -149,7 +155,7 @@ export function EventCreationWizard({ open, initialValue, coorganizerCandidates 
   const [coorganizers, setCoorganizers] = useState<EventCoorganizerDraft[]>(seed.coorganizers.map(item => ({ ...item })));
   const [fightCards, setFightCards] = useState<FightCardDraft[]>(seed.fightCards.map((item) => ({ ...item })));
   const [officials, setOfficials] = useState<EventOfficialDraft[]>(seed.officials.map((item) => ({ ...item })));
-  const [team, setTeam] = useState<AssignmentDraft[]>(seed.team.map((item) => ({ ...item })));
+  const [team, setTeam] = useState<TeamAssignmentDraft[]>(seed.team.map((item) => ({ ...item })));
   const [budget, setBudget] = useState(seed.budget);
   const [expenses, setExpenses] = useState<ExpenseDraft[]>(seed.expenses.map((item) => ({ ...item })));
   const [tickets, setTickets] = useState<TicketTypeDraft[]>(seed.tickets.map((item) => ({ ...item, channels: [...item.channels] })));
@@ -165,7 +171,7 @@ export function EventCreationWizard({ open, initialValue, coorganizerCandidates 
   const invite = (mention: string) => setToast({ message: `Invitation envoyée par message à ${mention}.`, tone: 'info' });
   const updateFight = (index: number, patch: Partial<FightCardDraft>) => setFightCards((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item));
   const updateOfficial = (index: number, patch: Partial<EventOfficialDraft>) => setOfficials((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item));
-  const updateTeam = (index: number, patch: Partial<AssignmentDraft>) => setTeam((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item));
+  const updateTeam = (index: number, patch: Partial<TeamAssignmentDraft>) => setTeam((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item));
 
   const eventRow = (mode: 'Brouillon' | 'Préparation') => {
     const eventDate = event.date ? new Date(event.date).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : 'À définir';
@@ -284,6 +290,6 @@ function OfficialAssignmentStep({ items, searchCandidates, onChange, onAdd, onRe
   return <section className='grid gap-2'><header className='flex items-center justify-between gap-3'><div><h3 className='text-[11px] font-semibold'>Officiels assignés</h3><p className='mt-1 text-[8px] text-zinc-600'>Sélectionnez un compte Officiel Indesy, puis sa fonction sportive pour cet événement.</p></div><button type='button' onClick={onAdd} className={organizerButtonClass}><Plus size={13} />Ajouter une personne</button></header>{items.map((item, index) => <article key={item.assignmentId ?? index} className='grid gap-3 border border-[#303238] bg-[#111214] p-3 sm:grid-cols-[1fr_220px_auto]'><OfficialAutocompleteField item={item} searchCandidates={searchCandidates} onChange={(patch) => onChange(index, patch)} /><label className='grid gap-1'><span className={labelClass}>Fonction</span><select value={item.role} onChange={(input) => onChange(index, { role: input.target.value })} className={inputClass}>{!officialFunctions.some((role) => role.value === item.role) && <option value={item.role}>Fonction historique · {item.role}</option>}{officialFunctions.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}</select></label><button type='button' disabled={items.length <= 1} onClick={() => onRemove(index)} className='mt-4 grid h-9 w-9 place-items-center border border-[#343840] text-zinc-600 hover:text-[#ff4058] disabled:opacity-30' aria-label='Retirer cet officiel'><Trash2 size={13} /></button></article>)}</section>;
 }
 
-function AssignmentStep({ title, description, items, roles, profileRole, onChange, onAdd, onRemove, onInvite }: { title: string; description: string; items: AssignmentDraft[]; roles: string[]; profileRole: 'arbitre' | 'fan'; onChange: (index: number, patch: Partial<AssignmentDraft>) => void; onAdd: () => void; onRemove: (index: number) => void; onInvite: (mention: string) => void }) {
-  return <section className='grid gap-2'><header className='flex items-center justify-between gap-3'><div><h3 className='text-[11px] font-semibold'>{title}</h3><p className='mt-1 text-[8px] text-zinc-600'>{description}</p></div><button type='button' onClick={onAdd} className={organizerButtonClass}><Plus size={13} />Ajouter une personne</button></header>{items.map((item, index) => <article key={index} className='grid gap-3 border border-[#303238] bg-[#111214] p-3 sm:grid-cols-[1fr_220px_auto]'><MentionField label='Personne' value={item.name} role={profileRole} onChange={(name) => onChange(index, { name })} onInvite={onInvite} /><label className='grid gap-1'><span className={labelClass}>Fonction</span><select value={item.role} onChange={(input) => onChange(index, { role: input.target.value })} className={inputClass}>{roles.map((role) => <option key={role}>{role}</option>)}</select></label><button type='button' disabled={items.length <= 1} onClick={() => onRemove(index)} className='mt-4 grid h-9 w-9 place-items-center border border-[#343840] text-zinc-600 hover:text-[#ff4058] disabled:opacity-30'><Trash2 size={13} /></button></article>)}</section>;
+function AssignmentStep({ title, description, items, roles, profileRole, onChange, onAdd, onRemove, onInvite }: { title: string; description: string; items: TeamAssignmentDraft[]; roles: string[]; profileRole: 'arbitre' | 'fan'; onChange: (index: number, patch: Partial<TeamAssignmentDraft>) => void; onAdd: () => void; onRemove: (index: number) => void; onInvite: (mention: string) => void }) {
+  return <section className='grid gap-2'><header className='flex items-center justify-between gap-3'><div><h3 className='text-[11px] font-semibold'>{title}</h3><p className='mt-1 text-[8px] text-zinc-600'>{description}</p></div><button type='button' onClick={onAdd} className={organizerButtonClass}><Plus size={13} />Ajouter une personne</button></header>{items.map((item, index) => <article key={item.assignmentId ?? index} className='grid gap-3 border border-[#303238] bg-[#111214] p-3 sm:grid-cols-[1fr_220px_auto]'><MentionField label='Personne' value={item.name} role={profileRole} onChange={(name) => onChange(index, { name, profileId: undefined })} onInvite={onInvite} /><label className='grid gap-1'><span className={labelClass}>Fonction</span><select value={item.role} onChange={(input) => onChange(index, { role: input.target.value })} className={inputClass}>{roles.map((role) => <option key={role}>{role}</option>)}</select></label><button type='button' disabled={items.length <= 1} onClick={() => onRemove(index)} className='mt-4 grid h-9 w-9 place-items-center border border-[#343840] text-zinc-600 hover:text-[#ff4058] disabled:opacity-30'><Trash2 size={13} /></button></article>)}</section>;
 }
