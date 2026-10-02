@@ -233,25 +233,33 @@ export class RealErpSupabaseRepository {
       if (key === "incidents") return this.eventOperations(query, context, "incident");
     }
     if (query.role === "organizer" && query.moduleId === "partners") {
-      if (/livrable/.test(key)) return this.organizerSponsorDeliverables(query, context);
-      if (/activation/.test(key)) return this.organizerSponsorActivations(query, context);
-      if (/visibilite/.test(key)) return this.organizerSponsorVisibility(query, context);
-      if (/package/.test(key)) return this.organizerSponsorPackages(query, context);
-      if (/contrat/.test(key)) return this.organizerSponsorContracts(query, context);
-      if (/partenaire/.test(key)) return this.organizerSponsorDirectory(query, context);
+      const partnerTab = normalize(key);
+      if (key === "deliverables" || /livrable/.test(partnerTab)) return this.organizerSponsorDeliverables(query, context);
+      if (key === "activations" || /activation/.test(partnerTab)) return this.organizerSponsorActivations(query, context);
+      if (key === "visibility" || /visibilite/.test(partnerTab)) return this.organizerSponsorVisibility(query, context);
+      if (key === "packages" || /package/.test(partnerTab)) return this.organizerSponsorPackages(query, context);
+      if (key === "contracts" || /contrat/.test(partnerTab)) return this.organizerSponsorContracts(query, context);
+      if (key === "partners" || /partenaire/.test(partnerTab)) return this.organizerSponsorDirectory(query, context);
       return this.organizerSponsorPipeline(query, context);
     }
     if (query.role === "organizer" && query.moduleId === "ticketing") {
-      if (/type|quota/.test(key)) return this.ticketTypes(query, context);
-      if (/invitation/.test(key)) return this.eventInvitations(query, context);
-      if (/controle d.acces/.test(key)) return this.eventAccessLogs(query, context);
-      if (/remboursement/.test(key)) return this.ticketRefunds(query, context);
+      const ticketingTab = normalize(key);
+      if (["ticket-types", "quotas"].includes(key) || /type|quota/.test(ticketingTab)) return this.ticketTypes(query, context);
+      if (key === "invitations" || /invitation/.test(ticketingTab)) return this.eventInvitations(query, context);
+      if (key === "access-control" || /controle d.acces/.test(ticketingTab)) return this.eventAccessLogs(query, context);
+      if (key === "refunds" || /remboursement/.test(ticketingTab)) return this.ticketRefunds(query, context);
       return this.ticketSales(query, context);
     }
     if (query.role === "organizer" && query.moduleId === "team") {
-      if (/accreditation/.test(key)) return this.eventAccreditations(query, context);
-      if (/affectation/.test(key)) return this.fightOfficialAssignments(query, context);
-      if (/arbitre|juge|officiel/.test(key)) return this.eventOfficials(query, context);
+      const teamTab = normalize(key);
+      if (key === "accreditations" || /accreditation/.test(teamTab)) return this.eventAccreditations(query, context);
+      if (key === "assignments" || /affectation/.test(teamTab)) return this.fightOfficialAssignments(query, context);
+      if (
+        ["referees", "judges", "officials"].includes(key) ||
+        /arbitre|juge|officiel/.test(teamTab)
+      ) {
+        return this.eventOfficials(query, context);
+      }
       return this.eventStaff(query, context);
     }
     if (query.role === "organizer" && query.moduleId === "personnel") return this.eventStaff(query, context);
@@ -615,8 +623,8 @@ export class RealErpSupabaseRepository {
         if (!eventId) throw new Error("Créez d’abord un événement.");
         if (!scope) throw new Error("Le domaine opérationnel est manquant.");
         const tab = normalize(scope.tab);
-        const domain = /logistique/.test(tab) ? "logistics"
-          : /securite/.test(tab) ? "security"
+        const domain = /logistique|logistics/.test(tab) ? "logistics"
+          : /securite|security/.test(tab) ? "security"
           : /medical/.test(tab) ? "medical"
           : /communication/.test(tab) ? "communication"
           : /document/.test(tab) ? "document"
@@ -2124,7 +2132,7 @@ export class RealErpSupabaseRepository {
   private async eventStaff(query: RealErpQuery, context: Context) {
     const eventId = await this.activeEventId(context);
     let staffRequest = eventId ? this.supabase.from("staff_assignments").select("*").eq("event_id", eventId) : null;
-    if (staffRequest && /benevole/.test(normalize(query.tab))) staffRequest = staffRequest.eq("role", "volunteer");
+    if (staffRequest && /benevole|volunteer/.test(normalize(query.tab))) staffRequest = staffRequest.eq("role", "volunteer");
     else if (staffRequest && query.moduleId === "team") staffRequest = staffRequest.neq("role", "volunteer");
     const [result, profilesResult] = await Promise.all([
       staffRequest ? staffRequest.order("staff_name") : Promise.resolve({ data: [], error: null }),
@@ -2153,8 +2161,8 @@ export class RealErpSupabaseRepository {
     const eventId = await this.activeEventId(context);
     let request = eventId ? this.supabase.from("event_official_assignments").select("*").eq("event_id", eventId) : null;
     const tab = normalize(query.tab);
-    if (request && /arbitre/.test(tab)) request = request.eq("role", "referee");
-    if (request && /juge/.test(tab)) request = request.eq("role", "judge");
+    if (request && /arbitre|referee/.test(tab)) request = request.eq("role", "referee");
+    if (request && /juge|judge/.test(tab)) request = request.eq("role", "judge");
     const [result, profilesResult, availabilityResult] = await Promise.all([
       request ? request.order("created_at", { ascending: false }) : Promise.resolve({ data: [], error: null }),
       this.officialProfiles(),
