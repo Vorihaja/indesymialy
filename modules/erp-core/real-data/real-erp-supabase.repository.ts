@@ -95,6 +95,30 @@ export class RealErpSupabaseRepository {
     };
   }
 
+  private async clubOrganizationId(context: Context): Promise<string | null> {
+    if (!context.organizationIds.length) return null;
+
+    const result = await this.supabase
+      .from("organizations")
+      .select("id")
+      .in("id", context.organizationIds)
+      .eq("type", "club")
+      .order("created_at", { ascending: true });
+
+    if (result.error) throw result.error;
+
+    const clubIds = (result.data ?? []).map((item) => item.id);
+
+    if (
+      context.activeOrganizationId &&
+      clubIds.includes(context.activeOrganizationId)
+    ) {
+      return context.activeOrganizationId;
+    }
+
+    return clubIds[0] ?? null;
+  }
+
   private async accessibleEventIds(context: Context): Promise<string[]> {
     if (!context.organizationIds.length) return [];
     const [owned, shared] = await Promise.all([
@@ -263,6 +287,15 @@ export class RealErpSupabaseRepository {
       return this.eventStaff(query, context);
     }
     if (query.role === "organizer" && query.moduleId === "personnel") return this.eventStaff(query, context);
+
+    if (query.role === "club" && query.moduleId === "members") {
+      if (key === "attendance") {
+        return this.clubAttendances(query, context);
+      }
+
+      return this.clubMembers(query, context);
+    }
+
     if (query.role === "organizer" && query.moduleId === "finance") {
       if (/facture/.test(key)) return this.eventInvoices(query, context);
       if (/paiement/.test(key)) return this.eventInvoicePayments(query, context);
@@ -392,7 +425,183 @@ export class RealErpSupabaseRepository {
         if (result.error) throw result.error;
         return result.data.id;
       }
+      case "club_members": {
+        const clubOrganizationId =
+          await this.clubOrganizationId(
+            context,
+          );
+
+        if (!clubOrganizationId) {
+          throw new Error(
+            "Aucun club actif n’est associé à ce compte.",
+          );
+        }
+
+        const firstName =
+          String(
+            values.first_name ??
+            "",
+          ).trim();
+
+        const lastName =
+          String(
+            values.last_name ??
+            "",
+          ).trim();
+
+        const result =
+          await this.supabase
+            .from("club_members")
+            .insert({
+              organization_id:
+                clubOrganizationId,
+              first_name:
+                firstName,
+              last_name:
+                lastName,
+              full_name:
+                [
+                  firstName,
+                  lastName,
+                ]
+                  .filter(Boolean)
+                  .join(" "),
+              email:
+                String(
+                  values.email ??
+                  "",
+                ).trim() ||
+                null,
+              phone:
+                String(
+                  values.phone ??
+                  "",
+                ).trim() ||
+                null,
+              role:
+                String(
+                  values.role ??
+                  "member",
+                ),
+              primary_discipline:
+                String(
+                  values.primary_discipline ??
+                  "",
+                ).trim() ||
+                null,
+              weight_category:
+                String(
+                  values.weight_category ??
+                  "",
+                ).trim() ||
+                null,
+              belt_level:
+                String(
+                  values.belt_level ??
+                  "",
+                ).trim() ||
+                null,
+              member_status:
+                String(
+                  values.member_status ??
+                  "active",
+                ),
+              join_date:
+                String(
+                  values.join_date ??
+                  "",
+                ) ||
+                null,
+              notes:
+                String(
+                  values.notes ??
+                  "",
+                ).trim() ||
+                null,
+            })
+            .select("id")
+            .single();
+
+        if (result.error) {
+          throw result.error;
+        }
+
+        return result.data.id;
+      }
+
+      case "attendances": {
+        const clubOrganizationId =
+          await this.clubOrganizationId(
+            context,
+          );
+
+        if (!clubOrganizationId) {
+          throw new Error(
+            "Aucun club actif n’est associé à ce compte.",
+          );
+        }
+
+        const result =
+          await this.supabase
+            .from("attendances")
+            .insert({
+              organization_id:
+                clubOrganizationId,
+              member_id:
+                String(
+                  values.member_id ??
+                  "",
+                ) ||
+                null,
+              session_date:
+                String(
+                  values.session_date ??
+                  new Date()
+                    .toISOString()
+                    .slice(
+                      0,
+                      10,
+                    ),
+                ),
+              session_time:
+                String(
+                  values.session_time ??
+                  "00:00",
+                ),
+              discipline:
+                String(
+                  values.discipline ??
+                  "",
+                ).trim() ||
+                null,
+              status:
+                String(
+                  values.status ??
+                  "present",
+                ),
+              check_method:
+                String(
+                  values.check_method ??
+                  "manual",
+                ),
+              notes:
+                String(
+                  values.notes ??
+                  "",
+                ).trim() ||
+                null,
+            })
+            .select("id")
+            .single();
+
+        if (result.error) {
+          throw result.error;
+        }
+
+        return result.data.id;
+      }
       case "training_sessions": {
+
         if (!organizationId) throw new Error("Aucune organisation n’est associée à ce compte.");
         const result = await this.supabase.from("training_sessions").insert({
           title: String(values.title ?? "").trim(),
@@ -883,6 +1092,152 @@ export class RealErpSupabaseRepository {
       case "fighter_transactions":
         ({ error } = await this.supabase.from("fighter_transactions").update({ label: String(values.label ?? "").trim(), category: String(values.category ?? "").trim() || null, transaction_type: String(values.transaction_type ?? "expense"), amount: Number(values.amount ?? 0), transaction_date: String(values.transaction_date ?? "") }).eq("id", id));
         break;
+      case "club_members": {
+        const firstName =
+          String(
+            values.first_name ??
+            "",
+          ).trim();
+
+        const lastName =
+          String(
+            values.last_name ??
+            "",
+          ).trim();
+
+        ({
+          error,
+        } =
+          await this.supabase
+            .from("club_members")
+            .update({
+              first_name:
+                firstName,
+              last_name:
+                lastName,
+              full_name:
+                [
+                  firstName,
+                  lastName,
+                ]
+                  .filter(Boolean)
+                  .join(" "),
+              email:
+                String(
+                  values.email ??
+                  "",
+                ).trim() ||
+                null,
+              phone:
+                String(
+                  values.phone ??
+                  "",
+                ).trim() ||
+                null,
+              role:
+                String(
+                  values.role ??
+                  "member",
+                ),
+              primary_discipline:
+                String(
+                  values.primary_discipline ??
+                  "",
+                ).trim() ||
+                null,
+              weight_category:
+                String(
+                  values.weight_category ??
+                  "",
+                ).trim() ||
+                null,
+              belt_level:
+                String(
+                  values.belt_level ??
+                  "",
+                ).trim() ||
+                null,
+              member_status:
+                String(
+                  values.member_status ??
+                  "active",
+                ),
+              join_date:
+                String(
+                  values.join_date ??
+                  "",
+                ) ||
+                null,
+              notes:
+                String(
+                  values.notes ??
+                  "",
+                ).trim() ||
+                null,
+              updated_at:
+                new Date()
+                  .toISOString(),
+            })
+            .eq(
+              "id",
+              id,
+            ));
+
+        break;
+      }
+
+      case "attendances":
+        ({
+          error,
+        } =
+          await this.supabase
+            .from("attendances")
+            .update({
+              member_id:
+                String(
+                  values.member_id ??
+                  "",
+                ) ||
+                null,
+              session_date:
+                String(
+                  values.session_date ??
+                  "",
+                ),
+              session_time:
+                String(
+                  values.session_time ??
+                  "",
+                ),
+              discipline:
+                String(
+                  values.discipline ??
+                  "",
+                ).trim() ||
+                null,
+              status:
+                String(
+                  values.status ??
+                  "present",
+                ),
+              check_method:
+                String(
+                  values.check_method ??
+                  "manual",
+                ),
+              notes:
+                String(
+                  values.notes ??
+                  "",
+                ).trim() ||
+                null,
+            })
+            .eq(
+              "id",
+              id,
+            ));
+
+        break;
       case "training_sessions":
         ({ error } = await this.supabase.from("training_sessions").update({ title: String(values.title ?? "").trim(), discipline: String(values.discipline ?? "").trim() || null, coach_name: String(values.coach_name ?? "").trim() || null, day_of_week: Number(values.day_of_week ?? 1), start_time: String(values.start_time ?? "") || null, end_time: String(values.end_time ?? "") || null, capacity: values.capacity === null || values.capacity === "" ? null : Number(values.capacity) }).eq("id", id));
         break;
@@ -1226,6 +1581,8 @@ export class RealErpSupabaseRepository {
       case "events": ({ error } = await this.supabase.from("events").delete().eq("id", id)); break;
       case "organization_transactions": ({ error } = await this.supabase.from("transactions").delete().eq("id", id)); break;
       case "fighter_transactions": ({ error } = await this.supabase.from("fighter_transactions").delete().eq("id", id)); break;
+      case "club_members": ({ error } = await this.supabase.from("club_members").delete().eq("id", id)); break;
+      case "attendances": ({ error } = await this.supabase.from("attendances").delete().eq("id", id)); break;
       case "training_sessions": ({ error } = await this.supabase.from("training_sessions").delete().eq("id", id)); break;
       case "products": ({ error } = await this.supabase.from("products").delete().eq("id", id)); break;
       case "contracts": ({ error } = await this.supabase.from("contracts").delete().eq("id", id)); break;
@@ -1339,7 +1696,490 @@ export class RealErpSupabaseRepository {
     ]);
   }
 
+  private async clubMembers(
+    query: RealErpQuery,
+    context: Context,
+  ) {
+    const organizationId =
+      await this.clubOrganizationId(context);
+
+    if (!organizationId) {
+      return buildData(
+        query,
+        ["Membre", "Rôle", "Discipline", "Statut", "Adhésion"],
+        [],
+        [],
+        [
+          {
+            label: "Membres",
+            value: "0",
+            detail: "Aucun club actif",
+            tone: "amber",
+          },
+        ],
+      );
+    }
+
+    const result =
+      await this.supabase
+        .from("club_members")
+        .select("*")
+        .eq("organization_id", organizationId)
+        .order("full_name", {
+          ascending: true,
+        });
+
+    if (result.error) {
+      throw result.error;
+    }
+
+    let rows =
+      asRows(result.data);
+
+    if (query.tab === "fighters") {
+      rows =
+        rows.filter(
+          (row) =>
+            row.role === "fighter" ||
+            Boolean(row.fighter_id),
+        );
+    }
+
+    if (query.tab === "coaches") {
+      rows =
+        rows.filter(
+          (row) =>
+            row.role === "coach",
+        );
+    }
+
+    const fields:
+      RealErpData["fields"] = [
+        {
+          name: "first_name",
+          label: "Prénom",
+          type: "text",
+          required: true,
+        },
+        {
+          name: "last_name",
+          label: "Nom",
+          type: "text",
+          required: true,
+        },
+        {
+          name: "email",
+          label: "Email",
+          type: "text",
+        },
+        {
+          name: "phone",
+          label: "Téléphone",
+          type: "text",
+        },
+        {
+          name: "role",
+          label: "Rôle",
+          type: "select",
+          required: true,
+          options: [
+            {
+              label: "Membre",
+              value: "member",
+            },
+            {
+              label: "Combattant",
+              value: "fighter",
+            },
+            {
+              label: "Coach",
+              value: "coach",
+            },
+            {
+              label: "Responsable",
+              value: "manager",
+            },
+          ],
+        },
+        {
+          name: "primary_discipline",
+          label: "Discipline",
+          type: "text",
+        },
+        {
+          name: "weight_category",
+          label: "Catégorie de poids",
+          type: "text",
+        },
+        {
+          name: "belt_level",
+          label: "Grade / niveau",
+          type: "text",
+        },
+        {
+          name: "member_status",
+          label: "Statut",
+          type: "select",
+          required: true,
+          options: [
+            {
+              label: "Actif",
+              value: "active",
+            },
+            {
+              label: "En attente",
+              value: "pending",
+            },
+            {
+              label: "Suspendu",
+              value: "suspended",
+            },
+            {
+              label: "Inactif",
+              value: "inactive",
+            },
+          ],
+        },
+        {
+          name: "join_date",
+          label: "Date d’adhésion",
+          type: "date",
+        },
+        {
+          name: "notes",
+          label: "Notes",
+          type: "textarea",
+        },
+      ];
+
+    const memberName =
+      (row: Row) => {
+        const full =
+          text(row.full_name);
+
+        if (full !== "—") {
+          return full;
+        }
+
+        return [
+          text(row.first_name),
+          text(row.last_name),
+        ]
+          .filter(
+            (value) =>
+              value !== "—",
+          )
+          .join(" ") ||
+          "Membre";
+      };
+
+    const activeCount =
+      rows.filter(
+        (row) =>
+          text(row.member_status) ===
+          "active",
+      ).length;
+
+    const fighterCount =
+      rows.filter(
+        (row) =>
+          row.role === "fighter" ||
+          Boolean(row.fighter_id),
+      ).length;
+
+    return buildData(
+      query,
+      [
+        "Membre",
+        "Rôle",
+        "Discipline",
+        "Catégorie",
+        "Statut",
+        "Adhésion",
+      ],
+      rows.map(
+        (row) => [
+          memberName(row),
+          text(row.role),
+          text(row.primary_discipline),
+          text(row.weight_category),
+          text(row.member_status),
+          date(
+            row.join_date ??
+            row.joined_at,
+          ),
+        ],
+      ),
+      rows.map(
+        (row) =>
+          text(row.id),
+      ),
+      [
+        {
+          label: "Membres",
+          value: String(rows.length),
+          detail: "Périmètre du club",
+          tone: "blue",
+        },
+        {
+          label: "Actifs",
+          value: String(activeCount),
+          detail: "Adhésions actives",
+          tone: "green",
+        },
+        {
+          label: "Combattants",
+          value: String(fighterCount),
+          detail: "Membres combattants",
+          tone: "red",
+        },
+      ],
+      mutation(
+        "club_members",
+        rows,
+        fields,
+      ),
+    );
+  }
+
+  private async clubAttendances(
+    query: RealErpQuery,
+    context: Context,
+  ) {
+    const organizationId =
+      await this.clubOrganizationId(context);
+
+    if (!organizationId) {
+      return buildData(
+        query,
+        [
+          "Membre",
+          "Date",
+          "Heure",
+          "Discipline",
+          "Statut",
+        ],
+        [],
+        [],
+      );
+    }
+
+    const [
+      attendanceResult,
+      membersResult,
+    ] =
+      await Promise.all([
+        this.supabase
+          .from("attendances")
+          .select("*")
+          .eq(
+            "organization_id",
+            organizationId,
+          )
+          .order(
+            "session_date",
+            {
+              ascending: false,
+            },
+          ),
+        this.supabase
+          .from("club_members")
+          .select(
+            "id,full_name,first_name,last_name",
+          )
+          .eq(
+            "organization_id",
+            organizationId,
+          )
+          .order(
+            "full_name",
+            {
+              ascending: true,
+            },
+          ),
+      ]);
+
+    const error =
+      attendanceResult.error ??
+      membersResult.error;
+
+    if (error) {
+      throw error;
+    }
+
+    const rows =
+      asRows(
+        attendanceResult.data,
+      );
+
+    const memberNames =
+      new Map(
+        (
+          membersResult.data ??
+          []
+        ).map(
+          (member) => [
+            member.id,
+            member.full_name ??
+            [
+              member.first_name,
+              member.last_name,
+            ]
+              .filter(Boolean)
+              .join(" "),
+          ],
+        ),
+      );
+
+    const fields:
+      RealErpData["fields"] = [
+        {
+          name: "member_id",
+          label: "Membre",
+          type: "select",
+          required: true,
+          options:
+            (
+              membersResult.data ??
+              []
+            ).map(
+              (member) => ({
+                label:
+                  member.full_name ??
+                  [
+                    member.first_name,
+                    member.last_name,
+                  ]
+                    .filter(Boolean)
+                    .join(" "),
+                value:
+                  member.id,
+              }),
+            ),
+        },
+        {
+          name: "session_date",
+          label: "Date",
+          type: "date",
+          required: true,
+        },
+        {
+          name: "session_time",
+          label: "Heure",
+          type: "time",
+          required: true,
+        },
+        {
+          name: "discipline",
+          label: "Discipline",
+          type: "text",
+        },
+        {
+          name: "status",
+          label: "Statut",
+          type: "select",
+          options: [
+            {
+              label: "Présent",
+              value: "present",
+            },
+            {
+              label: "Absent",
+              value: "absent",
+            },
+            {
+              label: "Retard",
+              value: "late",
+            },
+            {
+              label: "Excusé",
+              value: "excused",
+            },
+          ],
+        },
+        {
+          name: "check_method",
+          label: "Mode de pointage",
+          type: "select",
+          options: [
+            {
+              label: "Manuel",
+              value: "manual",
+            },
+            {
+              label: "QR",
+              value: "qr",
+            },
+            {
+              label: "Import",
+              value: "import",
+            },
+          ],
+        },
+        {
+          name: "notes",
+          label: "Notes",
+          type: "textarea",
+        },
+      ];
+
+    const presentCount =
+      rows.filter(
+        (row) =>
+          text(row.status) ===
+          "present",
+      ).length;
+
+    return buildData(
+      query,
+      [
+        "Membre",
+        "Date",
+        "Heure",
+        "Discipline",
+        "Statut",
+        "Pointage",
+      ],
+      rows.map(
+        (row) => [
+          memberNames.get(
+            text(row.member_id),
+          ) ??
+          "Membre",
+          date(row.session_date),
+          text(row.session_time),
+          text(row.discipline),
+          text(row.status),
+          text(row.check_method),
+        ],
+      ),
+      rows.map(
+        (row) =>
+          text(row.id),
+      ),
+      [
+        {
+          label: "Pointages",
+          value: String(rows.length),
+          detail: "Historique réel",
+          tone: "blue",
+        },
+        {
+          label: "Présences",
+          value: String(presentCount),
+          detail: "Présences enregistrées",
+          tone: "green",
+        },
+      ],
+      mutation(
+        "attendances",
+        rows,
+        fields,
+      ),
+    );
+  }
   private async training(query: RealErpQuery, context: Context) {
+
     let request = this.supabase.from("training_sessions").select("*").order("day_of_week");
     if (context.organizationIds.length) request = request.in("organization_id", context.organizationIds);
     const result = await request;

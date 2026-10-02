@@ -17,7 +17,8 @@ export type RealErpEntity =
   | "sponsors" | "sponsor_pipeline" | "sponsor_packages"
   | "sponsor_contracts" | "sponsor_visibility" | "sponsor_activations"
   | "sponsor_deliverables" | "event_budget_lines"
-  | "event_invoices" | "event_invoice_payments";
+  | "event_invoices" | "event_invoice_payments"
+  | "club_members" | "attendances";
 
 export type RealErpField = {
   name: string;
