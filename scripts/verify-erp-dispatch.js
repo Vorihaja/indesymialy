@@ -95,7 +95,7 @@ const confirmedHandlerKeys = new Set([
   'seller-delivery', 'seller-promotions', 'seller-performance',
   'marketplace-public', 'admin-marketplace-moderation', 'super-admin-marketplace', 'seller-marketplace', 'seller-personnel', 'official-assignments',
   'official-availability', 'official-scorecards', 'fight-live',
-  'organizer-events', 'organizer-fight-center', 'organizer-ticketing', 'organizer-team', 'organizer-operations', 'organizer-partners', 'organizer-personnel', 'organizer-settings', 'club-members', 'fighter-performance', 'club-performance', 'federation-overview', 'league-overview', 'club-overview', 'coach-overview',
+  'organizer-events', 'organizer-fight-center', 'organizer-ticketing', 'organizer-team', 'organizer-operations', 'organizer-partners', 'organizer-personnel', 'organizer-settings', 'club-members', 'fighter-performance', 'club-performance', 'federation-overview', 'league-overview', 'club-overview', 'coach-overview', 'platform-overview', 'admin-overview', 'organizer-overview', 'sponsor-overview', 'official-overview', 'fan-overview',
   'fighter-overview',
   'role-live',
 ]);
@@ -136,6 +136,12 @@ const evidenceByHandler = {
   'league-overview': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'organizationOverview', 'RealErpDataUseCase', 'organizations / organization_members / events / training_sessions', 'league organization authority'],
   'club-overview': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'organizationOverview', 'RealErpDataUseCase', 'organizations / organization_members / events / training_sessions', 'club organization authority'],
   'coach-overview': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'organizationOverview', 'RealErpDataUseCase', 'organizations / organization_members / events / training_sessions', 'coach accessible organization authority'],
+  'platform-overview': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'platformOverview', 'RealErpDataUseCase', 'profiles / organizations / events / products', 'super-admin platform read authority'],
+  'admin-overview': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'platformOverview', 'RealErpDataUseCase', 'profiles / organizations / events / products', 'admin platform read authority'],
+  'organizer-overview': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'organizationOverview', 'RealErpDataUseCase', 'organizations / organization_members / events / training_sessions', 'organizer organization authority'],
+  'sponsor-overview': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'organizationOverview', 'RealErpDataUseCase', 'organizations / organization_members / events / training_sessions', 'sponsor organization authority'],
+  'official-overview': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'officialOverview', 'RealErpDataUseCase', 'event_official_assignments / fight_official_assignments / official_availability', 'official personal authority'],
+  'fan-overview': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'fanOverview', 'RealErpDataUseCase', 'profiles / event_invitations / events', 'fan personal/public authority'],
   'fighter-overview': ['modules/fighter-erp/components/FighterOverview.tsx', 'FighterOverview', 'fighter overview use case', 'fighter/profile authority', 'fighter personal authority'],
   'role-live': ['modules/fight-live/features/RoleLiveFeature.tsx', 'RoleLiveFeature', 'modules/fight-live/use-cases/manage-fight-live.use-case.ts', 'fight_public_projection / Fight Live RPCs', 'public projection or platform event authority'],
 };

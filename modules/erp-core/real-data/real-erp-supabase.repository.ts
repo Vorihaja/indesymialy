@@ -329,11 +329,48 @@ export class RealErpSupabaseRepository {
 
     if (
       query.moduleId === "overview" &&
-      ["federation", "league", "club", "coach"].includes(
+      [
+        "federation",
+        "league",
+        "club",
+        "coach",
+        "organizer",
+        "sponsor",
+      ].includes(
         query.role,
       )
     ) {
       return this.organizationOverview(
+        query,
+        context,
+      );
+    }
+    if (
+      query.moduleId === "overview" &&
+      ["super-admin", "admin"].includes(
+        query.role,
+      )
+    ) {
+      return this.platformOverview(
+        query,
+      );
+    }
+
+    if (
+      query.role === "official" &&
+      query.moduleId === "overview"
+    ) {
+      return this.officialOverview(
+        query,
+        context,
+      );
+    }
+
+    if (
+      query.role === "fan" &&
+      query.moduleId === "overview"
+    ) {
+      return this.fanOverview(
         query,
         context,
       );
@@ -2255,6 +2292,674 @@ export class RealErpSupabaseRepository {
     ], mutation(fighter ? "fighter_transactions" : "organization_transactions", rows, fields));
   }
 
+  private async platformOverview(
+    query: RealErpQuery,
+  ) {
+    const [
+      profilesResult,
+      organizationsResult,
+      eventsResult,
+      productsResult,
+    ] =
+      await Promise.all([
+        this.supabase
+          .from("profiles")
+          .select(
+            "id,status,is_verified",
+          ),
+
+        this.supabase
+          .from("organizations")
+          .select(
+            "id,status,is_verified",
+          ),
+
+        this.supabase
+          .from("events")
+          .select(
+            "id,status,starts_at",
+          ),
+
+        this.supabase
+          .from("products")
+          .select(
+            "id,stock",
+          ),
+      ]);
+
+    const error =
+      profilesResult.error ??
+      organizationsResult.error ??
+      eventsResult.error ??
+      productsResult.error;
+
+    if (error) {
+      throw error;
+    }
+
+    const profiles =
+      asRows(
+        profilesResult.data,
+      );
+
+    const organizations =
+      asRows(
+        organizationsResult.data,
+      );
+
+    const events =
+      asRows(
+        eventsResult.data,
+      );
+
+    const products =
+      asRows(
+        productsResult.data,
+      );
+
+    const activeProfiles =
+      profiles.filter(
+        (profile) =>
+          text(
+            profile.status,
+          ) === "active",
+      ).length;
+
+    const verifiedProfiles =
+      profiles.filter(
+        (profile) =>
+          Boolean(
+            profile.is_verified,
+          ),
+      ).length;
+
+    const verifiedOrganizations =
+      organizations.filter(
+        (organization) =>
+          Boolean(
+            organization.is_verified,
+          ),
+      ).length;
+
+    const upcomingEvents =
+      events.filter(
+        (event) => {
+          if (!event.starts_at) {
+            return false;
+          }
+
+          const value =
+            new Date(
+              String(
+                event.starts_at,
+              ),
+            );
+
+          return (
+            !Number.isNaN(
+              value.getTime(),
+            ) &&
+            value.getTime() >=
+              Date.now()
+          );
+        },
+      ).length;
+
+    const stock =
+      products.reduce(
+        (
+          sum,
+          product,
+        ) =>
+          sum +
+          Number(
+            product.stock ??
+            0,
+          ),
+        0,
+      );
+
+    return buildData(
+      query,
+      [
+        "Indicateur",
+        "Valeur",
+        "Détail",
+      ],
+      [
+        [
+          "Profils",
+          String(
+            profiles.length,
+          ),
+          `${activeProfiles} actifs`,
+        ],
+        [
+          "Profils vérifiés",
+          String(
+            verifiedProfiles,
+          ),
+          "Autorité profiles",
+        ],
+        [
+          "Organisations",
+          String(
+            organizations.length,
+          ),
+          `${verifiedOrganizations} vérifiées`,
+        ],
+        [
+          "Événements",
+          String(
+            events.length,
+          ),
+          `${upcomingEvents} à venir`,
+        ],
+        [
+          "Produits Marketplace",
+          String(
+            products.length,
+          ),
+          `${stock} unités en stock`,
+        ],
+      ],
+      [
+        "profiles",
+        "verified-profiles",
+        "organizations",
+        "events",
+        "products",
+      ],
+      [
+        {
+          label: "Utilisateurs",
+          value:
+            String(
+              profiles.length,
+            ),
+          detail: "Profils réels",
+          tone: "blue",
+        },
+        {
+          label: "Organisations",
+          value:
+            String(
+              organizations.length,
+            ),
+          detail: "Organisations réelles",
+          tone: "green",
+        },
+        {
+          label: "Événements",
+          value:
+            String(
+              events.length,
+            ),
+          detail: "Total enregistré",
+          tone: "red",
+        },
+        {
+          label: "À venir",
+          value:
+            String(
+              upcomingEvents,
+            ),
+          detail: "Événements futurs",
+          tone: "amber",
+        },
+      ],
+    );
+  }
+
+  private async officialOverview(
+    query: RealErpQuery,
+    context: Context,
+  ) {
+    const [
+      eventAssignmentsResult,
+      fightAssignmentsResult,
+      availabilityResult,
+      eventsResult,
+    ] =
+      await Promise.all([
+        this.supabase
+          .from(
+            "event_official_assignments",
+          )
+          .select(
+            "id,event_id,role,status,created_at",
+          )
+          .eq(
+            "profile_id",
+            context.userId,
+          ),
+
+        this.supabase
+          .from(
+            "fight_official_assignments",
+          )
+          .select(
+            "id,fight_id,role,status,assigned_at",
+          )
+          .eq(
+            "user_id",
+            context.userId,
+          ),
+
+        this.supabase
+          .from(
+            "official_availability",
+          )
+          .select(
+            "id,event_id,availability_status,available_from,available_until",
+          )
+          .eq(
+            "official_profile_id",
+            context.userId,
+          ),
+
+        this.supabase
+          .from("events")
+          .select(
+            "id,title,starts_at",
+          ),
+      ]);
+
+    const error =
+      eventAssignmentsResult.error ??
+      fightAssignmentsResult.error ??
+      availabilityResult.error ??
+      eventsResult.error;
+
+    if (error) {
+      throw error;
+    }
+
+    const eventAssignments =
+      asRows(
+        eventAssignmentsResult.data,
+      );
+
+    const fightAssignments =
+      asRows(
+        fightAssignmentsResult.data,
+      );
+
+    const availability =
+      asRows(
+        availabilityResult.data,
+      );
+
+    const eventNames =
+      new Map(
+        (
+          eventsResult.data ??
+          []
+        ).map(
+          (event) => [
+            event.id,
+            event.title,
+          ] as const,
+        ),
+      );
+
+    const confirmed =
+      [
+        ...eventAssignments,
+        ...fightAssignments,
+      ].filter(
+        (assignment) =>
+          [
+            "confirmed",
+            "accepted",
+          ].includes(
+            text(
+              assignment.status,
+            ),
+          ),
+      ).length;
+
+    const available =
+      availability.filter(
+        (item) =>
+          [
+            "available",
+            "confirmed",
+          ].includes(
+            text(
+              item.availability_status,
+            ),
+          ),
+      ).length;
+
+    const rows:
+      Row[] = [
+        ...eventAssignments.map(
+          (assignment) => ({
+            id:
+              assignment.id,
+            type:
+              "Événement",
+            reference:
+              eventNames.get(
+                text(
+                  assignment.event_id,
+                ),
+              ) ??
+              text(
+                assignment.event_id,
+              ),
+            role:
+              assignment.role,
+            status:
+              assignment.status,
+            activity_date:
+              assignment.created_at,
+          }),
+        ),
+
+        ...fightAssignments.map(
+          (assignment) => ({
+            id:
+              assignment.id,
+            type:
+              "Combat",
+            reference:
+              assignment.fight_id,
+            role:
+              assignment.role,
+            status:
+              assignment.status,
+            activity_date:
+              assignment.assigned_at,
+          }),
+        ),
+      ];
+
+    return buildData(
+      query,
+      [
+        "Type",
+        "Référence",
+        "Fonction",
+        "Statut",
+        "Date",
+      ],
+      rows.map(
+        (row) => [
+          text(
+            row.type,
+          ),
+          text(
+            row.reference,
+          ),
+          text(
+            row.role,
+          ),
+          text(
+            row.status,
+          ),
+          date(
+            row.activity_date,
+          ),
+        ],
+      ),
+      rows.map(
+        (row) =>
+          text(
+            row.id,
+          ),
+      ),
+      [
+        {
+          label: "Désignations",
+          value:
+            String(
+              rows.length,
+            ),
+          detail: "Événements et combats",
+          tone: "blue",
+        },
+        {
+          label: "Confirmées",
+          value:
+            String(
+              confirmed,
+            ),
+          detail: "Décisions réelles",
+          tone: "green",
+        },
+        {
+          label: "Disponibilités",
+          value:
+            String(
+              availability.length,
+            ),
+          detail: "Déclarations",
+          tone: "amber",
+        },
+        {
+          label: "Disponible",
+          value:
+            String(
+              available,
+            ),
+          detail: "Créneaux disponibles",
+          tone: "green",
+        },
+      ],
+    );
+  }
+
+  private async fanOverview(
+    query: RealErpQuery,
+    context: Context,
+  ) {
+    const [
+      profileResult,
+      invitationsResult,
+      eventsResult,
+    ] =
+      await Promise.all([
+        this.supabase
+          .from("profiles")
+          .select(
+            "id,full_name,is_verified,status",
+          )
+          .eq(
+            "id",
+            context.userId,
+          )
+          .maybeSingle(),
+
+        this.supabase
+          .from(
+            "event_invitations",
+          )
+          .select(
+            "id,event_id,invitation_type,role,status,sent_at",
+          )
+          .eq(
+            "invitee_profile_id",
+            context.userId,
+          )
+          .order(
+            "sent_at",
+            {
+              ascending: false,
+            },
+          ),
+
+        this.supabase
+          .from("events")
+          .select(
+            "id,title,status,starts_at,visibility",
+          )
+          .order(
+            "starts_at",
+            {
+              ascending: true,
+            },
+          ),
+      ]);
+
+    const error =
+      profileResult.error ??
+      invitationsResult.error ??
+      eventsResult.error;
+
+    if (error) {
+      throw error;
+    }
+
+    const profile =
+      profileResult.data;
+
+    const invitations =
+      asRows(
+        invitationsResult.data,
+      );
+
+    const events =
+      asRows(
+        eventsResult.data,
+      );
+
+    const eventNames =
+      new Map(
+        events.map(
+          (event) => [
+            text(
+              event.id,
+            ),
+            text(
+              event.title,
+            ),
+          ] as const,
+        ),
+      );
+
+    const pending =
+      invitations.filter(
+        (invitation) =>
+          [
+            "pending",
+            "sent",
+          ].includes(
+            text(
+              invitation.status,
+            ),
+          ),
+      ).length;
+
+    const upcoming =
+      events.filter(
+        (event) => {
+          if (!event.starts_at) {
+            return false;
+          }
+
+          const value =
+            new Date(
+              String(
+                event.starts_at,
+              ),
+            );
+
+          return (
+            !Number.isNaN(
+              value.getTime(),
+            ) &&
+            value.getTime() >=
+              Date.now() &&
+            text(
+              event.visibility,
+            ) !== "private"
+          );
+        },
+      ).length;
+
+    return buildData(
+      query,
+      [
+        "Événement",
+        "Type",
+        "Rôle",
+        "Statut",
+        "Date",
+      ],
+      invitations.map(
+        (invitation) => [
+          eventNames.get(
+            text(
+              invitation.event_id,
+            ),
+          ) ??
+          text(
+            invitation.event_id,
+          ),
+          text(
+            invitation.invitation_type,
+          ),
+          text(
+            invitation.role,
+          ),
+          text(
+            invitation.status,
+          ),
+          date(
+            invitation.sent_at,
+          ),
+        ],
+      ),
+      invitations.map(
+        (invitation) =>
+          text(
+            invitation.id,
+          ),
+      ),
+      [
+        {
+          label: "Profil",
+          value:
+            profile?.full_name ??
+            "Fan",
+          detail:
+            profile?.is_verified
+              ? "Profil vérifié"
+              : "Profil actif",
+          tone: "blue",
+        },
+        {
+          label: "Invitations",
+          value:
+            String(
+              invitations.length,
+            ),
+          detail: "Invitations reçues",
+          tone: "green",
+        },
+        {
+          label: "En attente",
+          value:
+            String(
+              pending,
+            ),
+          detail: "Réponses attendues",
+          tone: "amber",
+        },
+        {
+          label: "Événements à venir",
+          value:
+            String(
+              upcoming,
+            ),
+          detail: "Événements accessibles",
+          tone: "red",
+        },
+      ],
+    );
+  }
   private async organizationOverview(
     query: RealErpQuery,
     context: Context,
