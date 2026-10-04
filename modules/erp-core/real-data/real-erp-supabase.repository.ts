@@ -376,6 +376,25 @@ export class RealErpSupabaseRepository {
       );
     }
     if (
+      query.role === "organizer" &&
+      query.moduleId === "performance"
+    ) {
+      return this.organizerPerformance(
+        query,
+        context,
+      );
+    }
+
+    if (
+      query.role === "sponsor" &&
+      query.moduleId === "performance"
+    ) {
+      return this.sponsorPerformance(
+        query,
+        context,
+      );
+    }
+    if (
       query.role === "fighter" &&
       query.moduleId === "performance"
     ) {
@@ -2292,6 +2311,1270 @@ export class RealErpSupabaseRepository {
     ], mutation(fighter ? "fighter_transactions" : "organization_transactions", rows, fields));
   }
 
+  private async organizerPerformance(
+    query: RealErpQuery,
+    context: Context,
+  ) {
+    const eventId =
+      await this.activeEventId(
+        context,
+      );
+
+    if (!eventId) {
+      return buildData(
+        query,
+        [
+          "Indicateur",
+          "Valeur",
+        ],
+        [],
+        [],
+        [
+          {
+            label: "Événement",
+            value: "Aucun",
+            detail: "Aucun événement actif accessible",
+            tone: "amber",
+          },
+        ],
+      );
+    }
+
+    const [
+      eventResult,
+      fightsResult,
+      salesResult,
+      transactionsResult,
+      operationsResult,
+      reportsResult,
+    ] =
+      await Promise.all([
+        this.supabase
+          .from("events")
+          .select(
+            "id,title,status,starts_at,capacity,readiness_percent",
+          )
+          .eq(
+            "id",
+            eventId,
+          )
+          .maybeSingle(),
+
+        this.supabase
+          .from("fights")
+          .select(
+            "id,fight_order,weight_category,status,winner_id,method",
+          )
+          .eq(
+            "event_id",
+            eventId,
+          )
+          .order(
+            "fight_order",
+          ),
+
+        this.supabase
+          .from("ticket_sales")
+          .select(
+            "id,buyer_name,quantity,total_amount,payment_status,sold_at",
+          )
+          .eq(
+            "event_id",
+            eventId,
+          )
+          .order(
+            "sold_at",
+            {
+              ascending: false,
+            },
+          ),
+
+        this.supabase
+          .from("event_transactions")
+          .select(
+            "id,transaction_type,description,amount,currency_code,status,occurred_at",
+          )
+          .eq(
+            "event_id",
+            eventId,
+          )
+          .order(
+            "created_at",
+            {
+              ascending: false,
+            },
+          ),
+
+        this.supabase
+          .from("event_operation_records")
+          .select(
+            "id,domain,title,severity,status,due_at,created_at",
+          )
+          .eq(
+            "event_id",
+            eventId,
+          )
+          .order(
+            "created_at",
+            {
+              ascending: false,
+            },
+          ),
+
+        this.supabase
+          .from("event_reports")
+          .select(
+            "id,kind,title,status,generated_at,published_at",
+          )
+          .eq(
+            "event_id",
+            eventId,
+          )
+          .order(
+            "created_at",
+            {
+              ascending: false,
+            },
+          ),
+      ]);
+
+    const error =
+      eventResult.error ??
+      fightsResult.error ??
+      salesResult.error ??
+      transactionsResult.error ??
+      operationsResult.error ??
+      reportsResult.error;
+
+    if (error) {
+      throw error;
+    }
+
+    const event =
+      eventResult.data;
+
+    const fights =
+      asRows(
+        fightsResult.data,
+      );
+
+    const sales =
+      asRows(
+        salesResult.data,
+      );
+
+    const transactions =
+      asRows(
+        transactionsResult.data,
+      );
+
+    const operations =
+      asRows(
+        operationsResult.data,
+      );
+
+    const reports =
+      asRows(
+        reportsResult.data,
+      );
+
+    const ticketQuantity =
+      sales.reduce(
+        (sum, sale) =>
+          sum +
+          Number(
+            sale.quantity ??
+            0,
+          ),
+        0,
+      );
+
+    const ticketRevenue =
+      sales.reduce(
+        (sum, sale) =>
+          sum +
+          Number(
+            sale.total_amount ??
+            0,
+          ),
+        0,
+      );
+
+    const completedFights =
+      fights.filter(
+        (fight) =>
+          [
+            "completed",
+            "finished",
+          ].includes(
+            text(
+              fight.status,
+            ),
+          ),
+      ).length;
+
+    const closedOperations =
+      operations.filter(
+        (operation) =>
+          [
+            "resolved",
+            "completed",
+            "closed",
+          ].includes(
+            text(
+              operation.status,
+            ),
+          ),
+      ).length;
+
+    const kpis:
+      RealErpData["kpis"] = [
+        {
+          label: "Combats terminés",
+          value:
+            `${completedFights}/${fights.length}`,
+          detail: "Données Fight",
+          tone: "green",
+        },
+        {
+          label: "Billets vendus",
+          value:
+            String(
+              ticketQuantity,
+            ),
+          detail: "Quantité réelle",
+          tone: "blue",
+        },
+        {
+          label: "Recettes billetterie",
+          value:
+            money(
+              ticketRevenue,
+            ),
+          detail: "Ventes enregistrées",
+          tone: "green",
+        },
+        {
+          label: "Opérations clôturées",
+          value:
+            `${closedOperations}/${operations.length}`,
+          detail: "Suivi opérationnel",
+          tone: "amber",
+        },
+      ];
+
+    if (
+      query.tab === "results" ||
+      query.tab === "sport"
+    ) {
+      return buildData(
+        query,
+        [
+          "Ordre",
+          "Catégorie",
+          "Statut",
+          "Résultat",
+          "Méthode",
+        ],
+        fights.map(
+          (fight) => [
+            text(
+              fight.fight_order,
+            ),
+            text(
+              fight.weight_category,
+            ),
+            text(
+              fight.status,
+            ),
+            fight.winner_id
+              ? "Vainqueur enregistré"
+              : "—",
+            text(
+              fight.method,
+            ),
+          ],
+        ),
+        fights.map(
+          (fight) =>
+            text(
+              fight.id,
+            ),
+        ),
+        kpis,
+      );
+    }
+
+    if (
+      query.tab === "ticketing"
+    ) {
+      return buildData(
+        query,
+        [
+          "Acheteur",
+          "Quantité",
+          "Montant",
+          "Paiement",
+          "Date",
+        ],
+        sales.map(
+          (sale) => [
+            text(
+              sale.buyer_name,
+            ),
+            text(
+              sale.quantity,
+            ),
+            money(
+              sale.total_amount,
+            ),
+            text(
+              sale.payment_status,
+            ),
+            date(
+              sale.sold_at,
+            ),
+          ],
+        ),
+        sales.map(
+          (sale) =>
+            text(
+              sale.id,
+            ),
+        ),
+        kpis,
+      );
+    }
+
+    if (
+      query.tab === "finance"
+    ) {
+      return buildData(
+        query,
+        [
+          "Type",
+          "Description",
+          "Montant",
+          "Statut",
+          "Date",
+        ],
+        transactions.map(
+          (transaction) => [
+            text(
+              transaction.transaction_type,
+            ),
+            text(
+              transaction.description,
+            ),
+            `${Number(transaction.amount ?? 0).toLocaleString("fr-FR")} ${text(transaction.currency_code)}`,
+            text(
+              transaction.status,
+            ),
+            date(
+              transaction.occurred_at,
+            ),
+          ],
+        ),
+        transactions.map(
+          (transaction) =>
+            text(
+              transaction.id,
+            ),
+        ),
+        kpis,
+      );
+    }
+
+    if (
+      query.tab === "operations"
+    ) {
+      return buildData(
+        query,
+        [
+          "Domaine",
+          "Opération",
+          "Sévérité",
+          "Statut",
+          "Échéance",
+        ],
+        operations.map(
+          (operation) => [
+            text(
+              operation.domain,
+            ),
+            text(
+              operation.title,
+            ),
+            text(
+              operation.severity,
+            ),
+            text(
+              operation.status,
+            ),
+            date(
+              operation.due_at,
+            ),
+          ],
+        ),
+        operations.map(
+          (operation) =>
+            text(
+              operation.id,
+            ),
+        ),
+        kpis,
+      );
+    }
+
+    if (
+      query.tab === "audience"
+    ) {
+      const capacity =
+        Number(
+          event?.capacity ??
+          0,
+        );
+
+      const fillRate =
+        capacity > 0
+          ? Math.min(
+              100,
+              Math.round(
+                (
+                  ticketQuantity /
+                  capacity
+                ) *
+                  100,
+              ),
+            )
+          : null;
+
+      return buildData(
+        query,
+        [
+          "Indicateur",
+          "Valeur",
+          "Source",
+        ],
+        [
+          [
+            "Billets vendus",
+            String(
+              ticketQuantity,
+            ),
+            "ticket_sales",
+          ],
+          [
+            "Capacité",
+            capacity
+              ? String(
+                  capacity,
+                )
+              : "—",
+            "events",
+          ],
+          [
+            "Taux de remplissage",
+            fillRate === null
+              ? "—"
+              : `${fillRate} %`,
+            "Calcul billetterie / capacité",
+          ],
+        ],
+        [
+          "tickets",
+          "capacity",
+          "fill-rate",
+        ],
+        kpis,
+      );
+    }
+
+    if (
+      query.tab === "reports"
+    ) {
+      return buildData(
+        query,
+        [
+          "Rapport",
+          "Type",
+          "Statut",
+          "Généré",
+          "Publié",
+        ],
+        reports.map(
+          (report) => [
+            text(
+              report.title,
+            ),
+            text(
+              report.kind,
+            ),
+            text(
+              report.status,
+            ),
+            date(
+              report.generated_at,
+            ),
+            date(
+              report.published_at,
+            ),
+          ],
+        ),
+        reports.map(
+          (report) =>
+            text(
+              report.id,
+            ),
+        ),
+        kpis,
+      );
+    }
+
+    return buildData(
+      query,
+      [
+        "Événement",
+        "Statut",
+        "Date",
+        "Préparation",
+        "Combats",
+        "Billets",
+      ],
+      event
+        ? [
+            [
+              event.title,
+              text(
+                event.status,
+              ),
+              date(
+                event.starts_at,
+              ),
+              `${Number(event.readiness_percent ?? 0)} %`,
+              String(
+                fights.length,
+              ),
+              String(
+                ticketQuantity,
+              ),
+            ],
+          ]
+        : [],
+      event
+        ? [
+            event.id,
+          ]
+        : [],
+      kpis,
+    );
+  }
+
+  private async sponsorPerformance(
+    query: RealErpQuery,
+    context: Context,
+  ) {
+    if (!context.organizationIds.length) {
+      return buildData(
+        query,
+        [
+          "Indicateur",
+          "Valeur",
+        ],
+        [],
+        [],
+        [
+          {
+            label: "Sponsor",
+            value: "Aucun",
+            detail: "Aucune organisation sponsor accessible",
+            tone: "amber",
+          },
+        ],
+      );
+    }
+
+    const organizationsResult =
+      await this.supabase
+        .from("organizations")
+        .select(
+          "id,name,type",
+        )
+        .in(
+          "id",
+          context.organizationIds,
+        )
+        .eq(
+          "type",
+          "sponsor",
+        );
+
+    if (
+      organizationsResult.error
+    ) {
+      throw organizationsResult.error;
+    }
+
+    const sponsorOrganizations =
+      organizationsResult.data ??
+      [];
+
+    const sponsorId =
+      (
+        context.activeOrganizationId &&
+        sponsorOrganizations.some(
+          (organization) =>
+            organization.id ===
+            context.activeOrganizationId,
+        )
+      )
+        ? context.activeOrganizationId
+        : sponsorOrganizations[0]?.id ??
+          null;
+
+    if (!sponsorId) {
+      return buildData(
+        query,
+        [
+          "Indicateur",
+          "Valeur",
+        ],
+        [],
+        [],
+      );
+    }
+
+    const partnershipsResult =
+      await this.supabase
+        .from("event_sponsors")
+        .select(
+          "id,event_id,amount,contract_start,contract_end,roi_percentage,visibility_score,status,payment_status",
+        )
+        .eq(
+          "sponsor_id",
+          sponsorId,
+        )
+        .order(
+          "created_at",
+          {
+            ascending: false,
+          },
+        );
+
+    if (
+      partnershipsResult.error
+    ) {
+      throw partnershipsResult.error;
+    }
+
+    const partnerships =
+      asRows(
+        partnershipsResult.data,
+      );
+
+    const partnershipIds =
+      partnerships.map(
+        (partnership) =>
+          text(
+            partnership.id,
+          ),
+      );
+
+    const eventIds =
+      Array.from(
+        new Set(
+          partnerships.map(
+            (partnership) =>
+              text(
+                partnership.event_id,
+              ),
+          ),
+        ),
+      ).filter(
+        (id) =>
+          id !== "—",
+      );
+
+    const [
+      eventsResult,
+      visibilityResult,
+      activationsResult,
+      deliverablesResult,
+    ] =
+      await Promise.all([
+        eventIds.length
+          ? this.supabase
+              .from("events")
+              .select(
+                "id,title,starts_at,status",
+              )
+              .in(
+                "id",
+                eventIds,
+              )
+          : Promise.resolve({
+              data: [],
+              error: null,
+            }),
+
+        partnershipIds.length
+          ? this.supabase
+              .from(
+                "sponsor_visibility_items",
+              )
+              .select(
+                "id,event_sponsor_id,channel,placement,target_impressions,actual_impressions,target_reach,actual_reach,status",
+              )
+              .in(
+                "event_sponsor_id",
+                partnershipIds,
+              )
+          : Promise.resolve({
+              data: [],
+              error: null,
+            }),
+
+        partnershipIds.length
+          ? this.supabase
+              .from(
+                "sponsor_activations",
+              )
+              .select(
+                "id,event_sponsor_id,title,activation_type,target_contacts,actual_contacts,budget,status,starts_at,ends_at",
+              )
+              .in(
+                "event_sponsor_id",
+                partnershipIds,
+              )
+          : Promise.resolve({
+              data: [],
+              error: null,
+            }),
+
+        partnershipIds.length
+          ? this.supabase
+              .from(
+                "event_sponsor_deliverables",
+              )
+              .select(
+                "id,event_sponsor_id,title,status,due_at,delivered_at,estimated_value",
+              )
+              .in(
+                "event_sponsor_id",
+                partnershipIds,
+              )
+          : Promise.resolve({
+              data: [],
+              error: null,
+            }),
+      ]);
+
+    const error =
+      eventsResult.error ??
+      visibilityResult.error ??
+      activationsResult.error ??
+      deliverablesResult.error;
+
+    if (error) {
+      throw error;
+    }
+
+    const events =
+      asRows(
+        eventsResult.data,
+      );
+
+    const visibility =
+      asRows(
+        visibilityResult.data,
+      );
+
+    const activations =
+      asRows(
+        activationsResult.data,
+      );
+
+    const deliverables =
+      asRows(
+        deliverablesResult.data,
+      );
+
+    const eventNames =
+      new Map(
+        events.map(
+          (event) => [
+            text(
+              event.id,
+            ),
+            text(
+              event.title,
+            ),
+          ] as const,
+        ),
+      );
+
+    const partnershipEventNames =
+      new Map(
+        partnerships.map(
+          (partnership) => [
+            text(
+              partnership.id,
+            ),
+            eventNames.get(
+              text(
+                partnership.event_id,
+              ),
+            ) ??
+            "Événement",
+          ] as const,
+        ),
+      );
+
+    const invested =
+      partnerships.reduce(
+        (sum, partnership) =>
+          sum +
+          Number(
+            partnership.amount ??
+            0,
+          ),
+        0,
+      );
+
+    const totalImpressions =
+      visibility.reduce(
+        (sum, item) =>
+          sum +
+          Number(
+            item.actual_impressions ??
+            0,
+          ),
+        0,
+      );
+
+    const totalReach =
+      visibility.reduce(
+        (sum, item) =>
+          sum +
+          Number(
+            item.actual_reach ??
+            0,
+          ),
+        0,
+      );
+
+    const actualContacts =
+      activations.reduce(
+        (sum, activation) =>
+          sum +
+          Number(
+            activation.actual_contacts ??
+            0,
+          ),
+        0,
+      );
+
+    const roiValues =
+      partnerships
+        .map(
+          (partnership) =>
+            Number(
+              partnership.roi_percentage,
+            ),
+        )
+        .filter(
+          (value) =>
+            Number.isFinite(value),
+        );
+
+    const averageRoi =
+      roiValues.length
+        ? Math.round(
+            roiValues.reduce(
+              (
+                sum,
+                value,
+              ) =>
+                sum +
+                value,
+              0,
+            ) /
+              roiValues.length,
+          )
+        : 0;
+
+    const delivered =
+      deliverables.filter(
+        (deliverable) =>
+          [
+            "delivered",
+            "validated",
+            "completed",
+          ].includes(
+            text(
+              deliverable.status,
+            ),
+          ),
+      ).length;
+
+    const kpis:
+      RealErpData["kpis"] = [
+        {
+          label: "Partenariats",
+          value:
+            String(
+              partnerships.length,
+            ),
+          detail: "Événements sponsorisés",
+          tone: "blue",
+        },
+        {
+          label: "Investissement",
+          value:
+            money(
+              invested,
+            ),
+          detail: "Montants enregistrés",
+          tone: "amber",
+        },
+        {
+          label: "Impressions",
+          value:
+            totalImpressions.toLocaleString(
+              "fr-FR",
+            ),
+          detail: "Visibilité réelle",
+          tone: "green",
+        },
+        {
+          label: "ROI moyen",
+          value:
+            `${averageRoi} %`,
+          detail: "Partenariats renseignés",
+          tone: "green",
+        },
+      ];
+
+    if (
+      query.tab === "audience" ||
+      query.tab === "visibility"
+    ) {
+      return buildData(
+        query,
+        [
+          "Événement",
+          "Canal",
+          "Placement",
+          "Impressions",
+          "Portée",
+          "Statut",
+        ],
+        visibility.map(
+          (item) => [
+            partnershipEventNames.get(
+              text(
+                item.event_sponsor_id,
+              ),
+            ) ??
+            "Événement",
+            text(
+              item.channel,
+            ),
+            text(
+              item.placement,
+            ),
+            Number(
+              item.actual_impressions ??
+              0,
+            ).toLocaleString(
+              "fr-FR",
+            ),
+            Number(
+              item.actual_reach ??
+              0,
+            ).toLocaleString(
+              "fr-FR",
+            ),
+            text(
+              item.status,
+            ),
+          ],
+        ),
+        visibility.map(
+          (item) =>
+            text(
+              item.id,
+            ),
+        ),
+        kpis,
+      );
+    }
+
+    if (
+      query.tab === "engagement"
+    ) {
+      return buildData(
+        query,
+        [
+          "Événement",
+          "Activation",
+          "Type",
+          "Contacts cible",
+          "Contacts réels",
+          "Statut",
+        ],
+        activations.map(
+          (activation) => [
+            partnershipEventNames.get(
+              text(
+                activation.event_sponsor_id,
+              ),
+            ) ??
+            "Événement",
+            text(
+              activation.title,
+            ),
+            text(
+              activation.activation_type,
+            ),
+            text(
+              activation.target_contacts,
+            ),
+            text(
+              activation.actual_contacts,
+            ),
+            text(
+              activation.status,
+            ),
+          ],
+        ),
+        activations.map(
+          (activation) =>
+            text(
+              activation.id,
+            ),
+        ),
+        [
+          ...kpis,
+          {
+            label: "Contacts réalisés",
+            value:
+              actualContacts.toLocaleString(
+                "fr-FR",
+              ),
+            detail: "Activations enregistrées",
+            tone: "blue",
+          },
+        ],
+      );
+    }
+
+    if (
+      query.tab === "roi"
+    ) {
+      return buildData(
+        query,
+        [
+          "Événement",
+          "Montant",
+          "ROI",
+          "Visibilité",
+          "Paiement",
+          "Statut",
+        ],
+        partnerships.map(
+          (partnership) => [
+            eventNames.get(
+              text(
+                partnership.event_id,
+              ),
+            ) ??
+            "Événement",
+            money(
+              partnership.amount,
+            ),
+            `${Number(partnership.roi_percentage ?? 0)} %`,
+            String(
+              partnership.visibility_score ??
+              0,
+            ),
+            text(
+              partnership.payment_status,
+            ),
+            text(
+              partnership.status,
+            ),
+          ],
+        ),
+        partnerships.map(
+          (partnership) =>
+            text(
+              partnership.id,
+            ),
+        ),
+        kpis,
+      );
+    }
+
+    if (
+      query.tab === "reports"
+    ) {
+      return buildData(
+        query,
+        [
+          "Événement",
+          "ROI",
+          "Impressions",
+          "Portée",
+          "Livrables",
+        ],
+        partnerships.map(
+          (partnership) => {
+            const partnershipId =
+              text(
+                partnership.id,
+              );
+
+            const impressions =
+              visibility
+                .filter(
+                  (item) =>
+                    text(
+                      item.event_sponsor_id,
+                    ) ===
+                    partnershipId,
+                )
+                .reduce(
+                  (
+                    sum,
+                    item,
+                  ) =>
+                    sum +
+                    Number(
+                      item.actual_impressions ??
+                      0,
+                    ),
+                  0,
+                );
+
+            const reach =
+              visibility
+                .filter(
+                  (item) =>
+                    text(
+                      item.event_sponsor_id,
+                    ) ===
+                    partnershipId,
+                )
+                .reduce(
+                  (
+                    sum,
+                    item,
+                  ) =>
+                    sum +
+                    Number(
+                      item.actual_reach ??
+                      0,
+                    ),
+                  0,
+                );
+
+            const deliverableCount =
+              deliverables.filter(
+                (item) =>
+                  text(
+                    item.event_sponsor_id,
+                  ) ===
+                  partnershipId,
+              ).length;
+
+            return [
+              eventNames.get(
+                text(
+                  partnership.event_id,
+                ),
+              ) ??
+              "Événement",
+              `${Number(partnership.roi_percentage ?? 0)} %`,
+              impressions.toLocaleString(
+                "fr-FR",
+              ),
+              reach.toLocaleString(
+                "fr-FR",
+              ),
+              String(
+                deliverableCount,
+              ),
+            ];
+          },
+        ),
+        partnerships.map(
+          (partnership) =>
+            text(
+              partnership.id,
+            ),
+        ),
+        [
+          ...kpis,
+          {
+            label: "Portée",
+            value:
+              totalReach.toLocaleString(
+                "fr-FR",
+              ),
+            detail: "Portée consolidée",
+            tone: "blue",
+          },
+          {
+            label: "Livrables",
+            value:
+              `${delivered}/${deliverables.length}`,
+            detail: "Livrés ou validés",
+            tone: "green",
+          },
+        ],
+      );
+    }
+
+    return buildData(
+      query,
+      [
+        "Événement",
+        "Montant",
+        "ROI",
+        "Visibilité",
+        "Statut",
+      ],
+      partnerships.map(
+        (partnership) => [
+          eventNames.get(
+            text(
+              partnership.event_id,
+            ),
+          ) ??
+          "Événement",
+          money(
+            partnership.amount,
+          ),
+          `${Number(partnership.roi_percentage ?? 0)} %`,
+          String(
+            partnership.visibility_score ??
+            0,
+          ),
+          text(
+            partnership.status,
+          ),
+        ],
+      ),
+      partnerships.map(
+        (partnership) =>
+          text(
+            partnership.id,
+          ),
+      ),
+      kpis,
+    );
+  }
   private async platformOverview(
     query: RealErpQuery,
   ) {
