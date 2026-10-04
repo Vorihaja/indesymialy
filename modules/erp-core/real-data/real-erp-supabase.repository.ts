@@ -320,6 +320,15 @@ export class RealErpSupabaseRepository {
     }
 
     if (
+      query.role === "fighter" &&
+      query.moduleId === "profile"
+    ) {
+      return this.fighterProfile(
+        query,
+        context,
+      );
+    }
+    if (
       ["profile", "settings", "notifications"].includes(
         query.moduleId,
       )
@@ -4523,6 +4532,549 @@ export class RealErpSupabaseRepository {
       ],
       [
         organization.id,
+      ],
+      kpis,
+    );
+  }
+  private async fighterProfile(
+    query: RealErpQuery,
+    context: Context,
+  ) {
+    const [
+      profileResult,
+      fighterResult,
+      disciplineLinksResult,
+      membershipsResult,
+      documentsResult,
+    ] =
+      await Promise.all([
+        this.supabase
+          .from("profiles")
+          .select(
+            "id,full_name,username,email,phone,is_verified,status,created_at",
+          )
+          .eq(
+            "id",
+            context.userId,
+          )
+          .maybeSingle(),
+
+        context.fighterId
+          ? this.supabase
+              .from("fighters")
+              .select(
+                "id,profile_id,full_name,nickname,weight_class,current_weight_kg,height_cm,reach_cm,wins,losses,draws,elo_rating,status,status_professional,created_at",
+              )
+              .eq(
+                "id",
+                context.fighterId,
+              )
+              .maybeSingle()
+          : Promise.resolve({
+              data: null,
+              error: null,
+            }),
+
+        this.supabase
+          .from("user_disciplines")
+          .select(
+            "discipline_id",
+          )
+          .eq(
+            "user_id",
+            context.userId,
+          ),
+
+        this.supabase
+          .from("club_members")
+          .select(
+            "id,organization_id,role,primary_discipline,weight_category,member_status,join_date,joined_at,left_at",
+          )
+          .eq(
+            "profile_id",
+            context.userId,
+          ),
+
+        this.supabase
+          .from(
+            "profile_verification_documents",
+          )
+          .select(
+            "id,document_type,file_name,mime_type,size_bytes,status,expires_at,created_at",
+          )
+          .eq(
+            "profile_id",
+            context.userId,
+          )
+          .order(
+            "created_at",
+            {
+              ascending: false,
+            },
+          ),
+      ]);
+
+    const firstError =
+      profileResult.error ??
+      fighterResult.error ??
+      disciplineLinksResult.error ??
+      membershipsResult.error ??
+      documentsResult.error;
+
+    if (firstError) {
+      throw firstError;
+    }
+
+    const profile =
+      profileResult.data;
+
+    const fighter =
+      fighterResult.data;
+
+    const disciplineLinks =
+      disciplineLinksResult.data ??
+      [];
+
+    const memberships =
+      asRows(
+        membershipsResult.data,
+      );
+
+    const documents =
+      asRows(
+        documentsResult.data,
+      );
+
+    const disciplineIds =
+      disciplineLinks.map(
+        (item) =>
+          item.discipline_id,
+      );
+
+    const organizationIds =
+      Array.from(
+        new Set(
+          memberships.flatMap(
+            (membership) =>
+              membership.organization_id
+                ? [
+                    text(
+                      membership.organization_id,
+                    ),
+                  ]
+                : [],
+          ),
+        ),
+      );
+
+    const [
+      disciplinesResult,
+      organizationsResult,
+    ] =
+      await Promise.all([
+        disciplineIds.length
+          ? this.supabase
+              .from("disciplines")
+              .select(
+                "id,name,slug,is_active",
+              )
+              .in(
+                "id",
+                disciplineIds,
+              )
+              .order(
+                "name",
+              )
+          : Promise.resolve({
+              data: [],
+              error: null,
+            }),
+
+        organizationIds.length
+          ? this.supabase
+              .from("organizations")
+              .select(
+                "id,name,type,status,is_verified",
+              )
+              .in(
+                "id",
+                organizationIds,
+              )
+          : Promise.resolve({
+              data: [],
+              error: null,
+            }),
+      ]);
+
+    const secondError =
+      disciplinesResult.error ??
+      organizationsResult.error;
+
+    if (secondError) {
+      throw secondError;
+    }
+
+    const disciplines =
+      asRows(
+        disciplinesResult.data,
+      );
+
+    const organizations =
+      asRows(
+        organizationsResult.data,
+      );
+
+    const organizationNames =
+      new Map(
+        organizations.map(
+          (organization) => [
+            text(
+              organization.id,
+            ),
+            text(
+              organization.name,
+            ),
+          ] as const,
+        ),
+      );
+
+    const activeMemberships =
+      memberships.filter(
+        (membership) =>
+          [
+            "active",
+            "confirmed",
+          ].includes(
+            text(
+              membership.member_status,
+            ),
+          ),
+      );
+
+    const validDocuments =
+      documents.filter(
+        (document) => {
+          if (!document.expires_at) {
+            return true;
+          }
+
+          const expiry =
+            new Date(
+              String(
+                document.expires_at,
+              ),
+            );
+
+          return (
+            !Number.isNaN(
+              expiry.getTime(),
+            ) &&
+            expiry.getTime() >=
+              Date.now()
+          );
+        },
+      ).length;
+
+    const kpis:
+      RealErpData["kpis"] = [
+        {
+          label: "Profil",
+          value:
+            profile?.is_verified
+              ? "Vérifié"
+              : "Standard",
+          detail:
+            profile?.full_name ??
+            fighter?.full_name ??
+            "Combattant",
+          tone:
+            profile?.is_verified
+              ? "green"
+              : "blue",
+        },
+        {
+          label: "Disciplines",
+          value:
+            String(
+              disciplines.length,
+            ),
+          detail:
+            "Associées au profil",
+          tone: "blue",
+        },
+        {
+          label: "Clubs",
+          value:
+            String(
+              activeMemberships.length,
+            ),
+          detail:
+            "Adhésions actives",
+          tone: "green",
+        },
+        {
+          label: "Documents",
+          value:
+            String(
+              validDocuments,
+            ),
+          detail:
+            "Valides / sans expiration",
+          tone: "amber",
+        },
+      ];
+
+    if (
+      query.tab === "identity"
+    ) {
+      return buildData(
+        query,
+        [
+          "Nom",
+          "Identifiant",
+          "Email",
+          "Téléphone",
+          "Surnom",
+          "Statut sportif",
+        ],
+        profile
+          ? [
+              [
+                profile.full_name,
+                text(
+                  profile.username,
+                ),
+                text(
+                  profile.email,
+                ),
+                text(
+                  profile.phone,
+                ),
+                text(
+                  fighter?.nickname,
+                ),
+                text(
+                  fighter?.status_professional ??
+                  fighter?.status,
+                ),
+              ],
+            ]
+          : [],
+        profile
+          ? [
+              profile.id,
+            ]
+          : [],
+        kpis,
+      );
+    }
+
+    if (
+      query.tab ===
+      "disciplines"
+    ) {
+      return buildData(
+        query,
+        [
+          "Discipline",
+          "Identifiant",
+          "Statut",
+        ],
+        disciplines.map(
+          (discipline) => [
+            text(
+              discipline.name,
+            ),
+            text(
+              discipline.slug,
+            ),
+            discipline.is_active
+              ? "Active"
+              : "Inactive",
+          ],
+        ),
+        disciplines.map(
+          (discipline) =>
+            text(
+              discipline.id,
+            ),
+        ),
+        kpis,
+      );
+    }
+
+    if (
+      query.tab ===
+      "categories"
+    ) {
+      return buildData(
+        query,
+        [
+          "Catégorie",
+          "Poids actuel",
+          "Taille",
+          "Allonge",
+          "ELO",
+        ],
+        fighter
+          ? [
+              [
+                text(
+                  fighter.weight_class,
+                ),
+                fighter.current_weight_kg
+                  ? `${fighter.current_weight_kg} kg`
+                  : "—",
+                fighter.height_cm
+                  ? `${fighter.height_cm} cm`
+                  : "—",
+                fighter.reach_cm
+                  ? `${fighter.reach_cm} cm`
+                  : "—",
+                String(
+                  fighter.elo_rating ??
+                  0,
+                ),
+              ],
+            ]
+          : [],
+        fighter
+          ? [
+              fighter.id,
+            ]
+          : [],
+        kpis,
+      );
+    }
+
+    if (
+      query.tab === "clubs"
+    ) {
+      return buildData(
+        query,
+        [
+          "Club",
+          "Rôle",
+          "Discipline",
+          "Catégorie",
+          "Statut",
+          "Adhésion",
+        ],
+        memberships.map(
+          (membership) => [
+            organizationNames.get(
+              text(
+                membership.organization_id,
+              ),
+            ) ??
+            "Organisation",
+            text(
+              membership.role,
+            ),
+            text(
+              membership.primary_discipline,
+            ),
+            text(
+              membership.weight_category,
+            ),
+            text(
+              membership.member_status,
+            ),
+            date(
+              membership.join_date ??
+              membership.joined_at,
+            ),
+          ],
+        ),
+        memberships.map(
+          (membership) =>
+            text(
+              membership.id,
+            ),
+        ),
+        kpis,
+      );
+    }
+
+    if (
+      query.tab ===
+      "documents"
+    ) {
+      return buildData(
+        query,
+        [
+          "Document",
+          "Fichier",
+          "Format",
+          "Statut",
+          "Expiration",
+        ],
+        documents.map(
+          (document) => [
+            text(
+              document.document_type,
+            ),
+            text(
+              document.file_name,
+            ),
+            text(
+              document.mime_type,
+            ),
+            text(
+              document.status,
+            ),
+            date(
+              document.expires_at,
+            ),
+          ],
+        ),
+        documents.map(
+          (document) =>
+            text(
+              document.id,
+            ),
+        ),
+        kpis,
+      );
+    }
+
+    return buildData(
+      query,
+      [
+        "Indicateur",
+        "Valeur",
+      ],
+      [
+        [
+          "Identité",
+          profile?.full_name ??
+          fighter?.full_name ??
+          "—",
+        ],
+        [
+          "Disciplines",
+          String(
+            disciplines.length,
+          ),
+        ],
+        [
+          "Clubs",
+          String(
+            memberships.length,
+          ),
+        ],
+        [
+          "Documents",
+          String(
+            documents.length,
+          ),
+        ],
+      ],
+      [
+        "identity",
+        "disciplines",
+        "clubs",
+        "documents",
       ],
       kpis,
     );
