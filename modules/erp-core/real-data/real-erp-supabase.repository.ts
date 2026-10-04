@@ -385,6 +385,35 @@ export class RealErpSupabaseRepository {
       );
     }
     if (
+      query.role === "sponsor" &&
+      query.moduleId === "contracts"
+    ) {
+      return this.sponsorContracts(
+        query,
+        context,
+      );
+    }
+
+    if (
+      query.role === "sponsor" &&
+      query.moduleId === "activations"
+    ) {
+      return this.sponsorActivations(
+        query,
+        context,
+      );
+    }
+
+    if (
+      query.role === "sponsor" &&
+      query.moduleId === "deliverables"
+    ) {
+      return this.sponsorDeliverables(
+        query,
+        context,
+      );
+    }
+    if (
       query.role === "organizer" &&
       query.moduleId === "performance"
     ) {
@@ -2888,6 +2917,150 @@ export class RealErpSupabaseRepository {
     );
   }
 
+  private async sponsorIdsForContext(
+    context: Context,
+  ): Promise<string[]> {
+    if (!context.organizationIds.length) {
+      return [];
+    }
+
+    const result =
+      await this.supabase
+        .from("sponsors")
+        .select(
+          "id,organization_id",
+        )
+        .in(
+          "organization_id",
+          context.organizationIds,
+        );
+
+    if (result.error) {
+      throw result.error;
+    }
+
+    return (
+      result.data ??
+      []
+    ).map(
+      (sponsor) =>
+        sponsor.id,
+    );
+  }
+
+  private async sponsorPartnershipContext(
+    context: Context,
+  ) {
+    const sponsorIds =
+      await this.sponsorIdsForContext(
+        context,
+      );
+
+    if (!sponsorIds.length) {
+      return {
+        eventSponsorIds:
+          [] as string[],
+        eventNameBySponsorLinkId:
+          new Map<
+            string,
+            string
+          >(),
+      };
+    }
+
+    const partnershipsResult =
+      await this.supabase
+        .from("event_sponsors")
+        .select(
+          "id,event_id,sponsor_id",
+        )
+        .in(
+          "sponsor_id",
+          sponsorIds,
+        );
+
+    if (
+      partnershipsResult.error
+    ) {
+      throw partnershipsResult.error;
+    }
+
+    const partnerships =
+      partnershipsResult.data ??
+      [];
+
+    const eventIds =
+      Array.from(
+        new Set(
+          partnerships.flatMap(
+            (partnership) =>
+              partnership.event_id
+                ? [
+                    partnership.event_id,
+                  ]
+                : [],
+          ),
+        ),
+      );
+
+    const eventsResult =
+      eventIds.length
+        ? await this.supabase
+            .from("events")
+            .select(
+              "id,title",
+            )
+            .in(
+              "id",
+              eventIds,
+            )
+        : {
+            data: [],
+            error: null,
+          };
+
+    if (eventsResult.error) {
+      throw eventsResult.error;
+    }
+
+    const eventNames =
+      new Map(
+        (
+          eventsResult.data ??
+          []
+        ).map(
+          (event) => [
+            event.id,
+            event.title,
+          ] as const,
+        ),
+      );
+
+    return {
+      eventSponsorIds:
+        partnerships.map(
+          (partnership) =>
+            partnership.id,
+        ),
+
+      eventNameBySponsorLinkId:
+        new Map(
+          partnerships.map(
+            (partnership) => [
+              partnership.id,
+              partnership.event_id
+                ? (
+                    eventNames.get(
+                      partnership.event_id,
+                    ) ??
+                    "Événement"
+                  )
+                : "Événement",
+            ] as const,
+          ),
+        ),
+    };
+  }
   private async sponsorPerformance(
     query: RealErpQuery,
     context: Context,
@@ -2912,45 +3085,12 @@ export class RealErpSupabaseRepository {
       );
     }
 
-    const organizationsResult =
-      await this.supabase
-        .from("organizations")
-        .select(
-          "id,name,type",
-        )
-        .in(
-          "id",
-          context.organizationIds,
-        )
-        .eq(
-          "type",
-          "sponsor",
-        );
+    const sponsorIds =
+      await this.sponsorIdsForContext(
+        context,
+      );
 
-    if (
-      organizationsResult.error
-    ) {
-      throw organizationsResult.error;
-    }
-
-    const sponsorOrganizations =
-      organizationsResult.data ??
-      [];
-
-    const sponsorId =
-      (
-        context.activeOrganizationId &&
-        sponsorOrganizations.some(
-          (organization) =>
-            organization.id ===
-            context.activeOrganizationId,
-        )
-      )
-        ? context.activeOrganizationId
-        : sponsorOrganizations[0]?.id ??
-          null;
-
-    if (!sponsorId) {
+    if (!sponsorIds.length) {
       return buildData(
         query,
         [
@@ -2968,9 +3108,9 @@ export class RealErpSupabaseRepository {
         .select(
           "id,event_id,amount,contract_start,contract_end,roi_percentage,visibility_score,status,payment_status",
         )
-        .eq(
+        .in(
           "sponsor_id",
-          sponsorId,
+          sponsorIds,
         )
         .order(
           "created_at",
@@ -3591,6 +3731,730 @@ export class RealErpSupabaseRepository {
           ),
       ),
       kpis,
+    );
+  }
+  private async sponsorContracts(
+    query: RealErpQuery,
+    context: Context,
+  ) {
+    const scope =
+      await this.sponsorPartnershipContext(
+        context,
+      );
+
+    if (!scope.eventSponsorIds.length) {
+      return buildData(
+        query,
+        [
+          "Contrat",
+          "Événement",
+          "Montant",
+          "Statut",
+        ],
+        [],
+        [],
+      );
+    }
+
+    const result =
+      await this.supabase
+        .from("sponsor_contracts")
+        .select(
+          "id,event_sponsor_id,reference,title,amount,currency_code,starts_on,ends_on,status,payment_status,document_path,signed_at,terminated_reason,created_at",
+        )
+        .in(
+          "event_sponsor_id",
+          scope.eventSponsorIds,
+        )
+        .order(
+          "created_at",
+          {
+            ascending: false,
+          },
+        );
+
+    if (result.error) {
+      throw result.error;
+    }
+
+    const allRows =
+      asRows(
+        result.data,
+      );
+
+    const now =
+      Date.now();
+
+    const renewalLimit =
+      now +
+      (
+        90 *
+        24 *
+        60 *
+        60 *
+        1000
+      );
+
+    let rows =
+      allRows;
+
+    if (
+      query.tab === "active"
+    ) {
+      rows =
+        allRows.filter(
+          (row) =>
+            [
+              "active",
+              "signed",
+            ].includes(
+              text(
+                row.status,
+              ),
+            ),
+        );
+    }
+
+    if (
+      query.tab === "to-sign"
+    ) {
+      rows =
+        allRows.filter(
+          (row) =>
+            !row.signed_at &&
+            ![
+              "terminated",
+              "archived",
+              "expired",
+            ].includes(
+              text(
+                row.status,
+              ),
+            ),
+        );
+    }
+
+    if (
+      query.tab === "renewals"
+    ) {
+      rows =
+        allRows.filter(
+          (row) => {
+            if (!row.ends_on) {
+              return false;
+            }
+
+            const value =
+              new Date(
+                String(
+                  row.ends_on,
+                ),
+              ).getTime();
+
+            return (
+              !Number.isNaN(
+                value,
+              ) &&
+              value >= now &&
+              value <= renewalLimit &&
+              ![
+                "terminated",
+                "archived",
+              ].includes(
+                text(
+                  row.status,
+                ),
+              )
+            );
+          },
+        );
+    }
+
+    if (
+      query.tab === "archives"
+    ) {
+      rows =
+        allRows.filter(
+          (row) => {
+            const ended =
+              row.ends_on
+                ? (
+                    new Date(
+                      String(
+                        row.ends_on,
+                      ),
+                    ).getTime() <
+                    now
+                  )
+                : false;
+
+            return (
+              ended ||
+              [
+                "terminated",
+                "archived",
+                "expired",
+                "completed",
+              ].includes(
+                text(
+                  row.status,
+                ),
+              )
+            );
+          },
+        );
+    }
+
+    const activeCount =
+      allRows.filter(
+        (row) =>
+          [
+            "active",
+            "signed",
+          ].includes(
+            text(
+              row.status,
+            ),
+          ),
+      ).length;
+
+    const unsignedCount =
+      allRows.filter(
+        (row) =>
+          !row.signed_at,
+      ).length;
+
+    return buildData(
+      query,
+      [
+        "Référence",
+        "Contrat",
+        "Événement",
+        "Montant",
+        "Début",
+        "Fin",
+        "Paiement",
+        "Statut",
+      ],
+      rows.map(
+        (row) => [
+          text(
+            row.reference,
+          ),
+          text(
+            row.title,
+          ),
+          scope.eventNameBySponsorLinkId.get(
+            text(
+              row.event_sponsor_id,
+            ),
+          ) ??
+          "Événement",
+          `${Number(row.amount ?? 0).toLocaleString("fr-FR")} ${text(row.currency_code)}`,
+          date(
+            row.starts_on,
+          ),
+          date(
+            row.ends_on,
+          ),
+          text(
+            row.payment_status,
+          ),
+          text(
+            row.status,
+          ),
+        ],
+      ),
+      rows.map(
+        (row) =>
+          text(
+            row.id,
+          ),
+      ),
+      [
+        {
+          label: "Contrats",
+          value:
+            String(
+              allRows.length,
+            ),
+          detail:
+            "Contrats sponsor réels",
+          tone: "blue",
+        },
+        {
+          label: "Actifs",
+          value:
+            String(
+              activeCount,
+            ),
+          detail:
+            "Contrats actifs",
+          tone: "green",
+        },
+        {
+          label: "À signer",
+          value:
+            String(
+              unsignedCount,
+            ),
+          detail:
+            "Signature manquante",
+          tone: "amber",
+        },
+      ],
+    );
+  }
+
+  private async sponsorActivations(
+    query: RealErpQuery,
+    context: Context,
+  ) {
+    const scope =
+      await this.sponsorPartnershipContext(
+        context,
+      );
+
+    if (!scope.eventSponsorIds.length) {
+      return buildData(
+        query,
+        [
+          "Activation",
+          "Événement",
+          "Type",
+          "Statut",
+        ],
+        [],
+        [],
+      );
+    }
+
+    const result =
+      await this.supabase
+        .from(
+          "sponsor_activations",
+        )
+        .select(
+          "id,event_sponsor_id,title,activation_type,target_contacts,actual_contacts,budget,status,starts_at,ends_at,owner_profile_id,created_at",
+        )
+        .in(
+          "event_sponsor_id",
+          scope.eventSponsorIds,
+        )
+        .order(
+          "starts_at",
+          {
+            ascending: false,
+          },
+        );
+
+    if (result.error) {
+      throw result.error;
+    }
+
+    const allRows =
+      asRows(
+        result.data,
+      );
+
+    let rows =
+      allRows;
+
+    if (
+      query.tab === "digital"
+    ) {
+      rows =
+        allRows.filter(
+          (row) =>
+            /digital|online|social|web|content|stream/.test(
+              normalize(
+                text(
+                  row.activation_type,
+                ),
+              ),
+            ),
+        );
+    }
+
+    if (
+      query.tab === "field"
+    ) {
+      rows =
+        allRows.filter(
+          (row) =>
+            /booth|field|terrain|onsite|on-site|stand|sampling|arena/.test(
+              normalize(
+                text(
+                  row.activation_type,
+                ),
+              ),
+            ),
+        );
+    }
+
+    if (
+      query.tab ===
+      "hospitality"
+    ) {
+      rows =
+        allRows.filter(
+          (row) =>
+            /hospitality|vip|guest|lounge|reception/.test(
+              normalize(
+                text(
+                  row.activation_type,
+                ),
+              ),
+            ),
+        );
+    }
+
+    const completed =
+      allRows.filter(
+        (row) =>
+          [
+            "completed",
+            "validated",
+          ].includes(
+            text(
+              row.status,
+            ),
+          ),
+      ).length;
+
+    const contacts =
+      allRows.reduce(
+        (
+          sum,
+          row,
+        ) =>
+          sum +
+          Number(
+            row.actual_contacts ??
+            0,
+          ),
+        0,
+      );
+
+    return buildData(
+      query,
+      [
+        "Activation",
+        "Événement",
+        "Type",
+        "Début",
+        "Fin",
+        "Contacts",
+        "Budget",
+        "Statut",
+      ],
+      rows.map(
+        (row) => [
+          text(
+            row.title,
+          ),
+          scope.eventNameBySponsorLinkId.get(
+            text(
+              row.event_sponsor_id,
+            ),
+          ) ??
+          "Événement",
+          text(
+            row.activation_type,
+          ),
+          date(
+            row.starts_at,
+          ),
+          date(
+            row.ends_at,
+          ),
+          text(
+            row.actual_contacts,
+          ),
+          money(
+            row.budget,
+          ),
+          text(
+            row.status,
+          ),
+        ],
+      ),
+      rows.map(
+        (row) =>
+          text(
+            row.id,
+          ),
+      ),
+      [
+        {
+          label: "Activations",
+          value:
+            String(
+              allRows.length,
+            ),
+          detail:
+            "Activations réelles",
+          tone: "blue",
+        },
+        {
+          label: "Terminées",
+          value:
+            String(
+              completed,
+            ),
+          detail:
+            "Activations clôturées",
+          tone: "green",
+        },
+        {
+          label: "Contacts",
+          value:
+            contacts.toLocaleString(
+              "fr-FR",
+            ),
+          detail:
+            "Contacts réalisés",
+          tone: "amber",
+        },
+      ],
+    );
+  }
+
+  private async sponsorDeliverables(
+    query: RealErpQuery,
+    context: Context,
+  ) {
+    const scope =
+      await this.sponsorPartnershipContext(
+        context,
+      );
+
+    if (!scope.eventSponsorIds.length) {
+      return buildData(
+        query,
+        [
+          "Livrable",
+          "Événement",
+          "Statut",
+          "Échéance",
+        ],
+        [],
+        [],
+      );
+    }
+
+    const result =
+      await this.supabase
+        .from(
+          "event_sponsor_deliverables",
+        )
+        .select(
+          "id,event_sponsor_id,title,description,due_at,status,validated_at,delivered_at,evidence_path,estimated_value,created_at",
+        )
+        .in(
+          "event_sponsor_id",
+          scope.eventSponsorIds,
+        )
+        .order(
+          "created_at",
+          {
+            ascending: false,
+          },
+        );
+
+    if (result.error) {
+      throw result.error;
+    }
+
+    const allRows =
+      asRows(
+        result.data,
+      );
+
+    let rows =
+      allRows;
+
+    if (
+      query.tab === "to-produce"
+    ) {
+      rows =
+        allRows.filter(
+          (row) =>
+            !row.delivered_at &&
+            ![
+              "delivered",
+              "validated",
+              "completed",
+            ].includes(
+              text(
+                row.status,
+              ),
+            ),
+        );
+    }
+
+    if (
+      query.tab === "to-validate"
+    ) {
+      rows =
+        allRows.filter(
+          (row) =>
+            (
+              Boolean(
+                row.delivered_at,
+              ) &&
+              !row.validated_at
+            ) ||
+            [
+              "delivered",
+              "pending_validation",
+              "to_validate",
+            ].includes(
+              text(
+                row.status,
+              ),
+            ),
+        );
+    }
+
+    if (
+      query.tab === "delivered"
+    ) {
+      rows =
+        allRows.filter(
+          (row) =>
+            Boolean(
+              row.validated_at,
+            ) ||
+            [
+              "validated",
+              "completed",
+            ].includes(
+              text(
+                row.status,
+              ),
+            ),
+        );
+    }
+
+    if (
+      query.tab === "proofs"
+    ) {
+      rows =
+        allRows.filter(
+          (row) =>
+            Boolean(
+              String(
+                row.evidence_path ??
+                "",
+              ).trim(),
+            ),
+        );
+    }
+
+    const deliveredCount =
+      allRows.filter(
+        (row) =>
+          Boolean(
+            row.delivered_at,
+          ) ||
+          Boolean(
+            row.validated_at,
+          ),
+      ).length;
+
+    const proofCount =
+      allRows.filter(
+        (row) =>
+          Boolean(
+            String(
+              row.evidence_path ??
+              "",
+            ).trim(),
+          ),
+      ).length;
+
+    return buildData(
+      query,
+      [
+        "Livrable",
+        "Événement",
+        "Échéance",
+        "Valeur",
+        "Livré",
+        "Validé",
+        "Preuve",
+        "Statut",
+      ],
+      rows.map(
+        (row) => [
+          text(
+            row.title,
+          ),
+          scope.eventNameBySponsorLinkId.get(
+            text(
+              row.event_sponsor_id,
+            ),
+          ) ??
+          "Événement",
+          date(
+            row.due_at,
+          ),
+          money(
+            row.estimated_value,
+          ),
+          date(
+            row.delivered_at,
+          ),
+          date(
+            row.validated_at,
+          ),
+          row.evidence_path
+            ? "Disponible"
+            : "—",
+          text(
+            row.status,
+          ),
+        ],
+      ),
+      rows.map(
+        (row) =>
+          text(
+            row.id,
+          ),
+      ),
+      [
+        {
+          label: "Livrables",
+          value:
+            String(
+              allRows.length,
+            ),
+          detail:
+            "Engagements contractuels",
+          tone: "blue",
+        },
+        {
+          label: "Livrés",
+          value:
+            String(
+              deliveredCount,
+            ),
+          detail:
+            "Livraison enregistrée",
+          tone: "green",
+        },
+        {
+          label: "Preuves",
+          value:
+            String(
+              proofCount,
+            ),
+          detail:
+            "Preuves disponibles",
+          tone: "amber",
+        },
+      ],
     );
   }
   private async platformOverview(
