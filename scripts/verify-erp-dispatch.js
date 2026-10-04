@@ -95,7 +95,7 @@ const confirmedHandlerKeys = new Set([
   'seller-delivery', 'seller-promotions', 'seller-performance',
   'marketplace-public', 'admin-marketplace-moderation', 'super-admin-marketplace', 'seller-marketplace', 'seller-personnel', 'official-assignments',
   'official-availability', 'official-scorecards', 'fight-live',
-  'organizer-events', 'organizer-fight-center', 'organizer-ticketing', 'organizer-team', 'organizer-operations', 'organizer-partners', 'organizer-personnel', 'organizer-settings', 'club-members',
+  'organizer-events', 'organizer-fight-center', 'organizer-ticketing', 'organizer-team', 'organizer-operations', 'organizer-partners', 'organizer-personnel', 'organizer-settings', 'club-members', 'fighter-performance', 'club-performance',
   'fighter-overview',
   'role-live',
 ]);
@@ -130,6 +130,8 @@ const evidenceByHandler = {
   'organizer-personnel': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'eventStaff', 'RealErpDataUseCase', 'staff_assignments', 'organizer event authority'],
   'organizer-settings': ['modules/organizer-erp/components/OrganizerSettingsView.tsx', 'OrganizerSettingsView', 'modules/identity-core services', 'organization/profile authority', 'organizer organization authority'],
   'club-members': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'clubMembers / clubAttendances', 'RealErpDataUseCase', 'club_members / attendances', 'club organization authority'],
+  'fighter-performance': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'fighterPerformance', 'RealErpDataUseCase', 'fighters / fights', 'fighter personal authority'],
+  'club-performance': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'clubPerformance', 'RealErpDataUseCase', 'club_members / fighters / fights', 'club organization authority'],
   'fighter-overview': ['modules/fighter-erp/components/FighterOverview.tsx', 'FighterOverview', 'fighter overview use case', 'fighter/profile authority', 'fighter personal authority'],
   'role-live': ['modules/fight-live/features/RoleLiveFeature.tsx', 'RoleLiveFeature', 'modules/fight-live/use-cases/manage-fight-live.use-case.ts', 'fight_public_projection / Fight Live RPCs', 'public projection or platform event authority'],
 };

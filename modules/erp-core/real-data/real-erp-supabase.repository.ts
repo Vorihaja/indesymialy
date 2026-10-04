@@ -327,14 +327,27 @@ export class RealErpSupabaseRepository {
       return this.identity(query, context);
     }
 
-    if (query.moduleId === "performance") {
-      if (
-        query.role === "fighter" &&
-        /sport|combat/.test(normalize(query.tab))
-      ) {
-        return this.fights(query, context);
-      }
+    if (
+      query.role === "fighter" &&
+      query.moduleId === "performance"
+    ) {
+      return this.fighterPerformance(
+        query,
+        context,
+      );
+    }
 
+    if (
+      query.role === "club" &&
+      query.moduleId === "performance"
+    ) {
+      return this.clubPerformance(
+        query,
+        context,
+      );
+    }
+
+    if (query.moduleId === "performance") {
       return this.unsupported(query);
     }
 
@@ -2231,7 +2244,1139 @@ export class RealErpSupabaseRepository {
     ], mutation(fighter ? "fighter_transactions" : "organization_transactions", rows, fields));
   }
 
+  private async fighterPerformance(
+    query: RealErpQuery,
+    context: Context,
+  ) {
+    if (!context.fighterId) {
+      return buildData(
+        query,
+        [
+          "Indicateur",
+          "Valeur",
+          "Détail",
+        ],
+        [],
+        [],
+        [
+          {
+            label: "Profil combattant",
+            value: "Absent",
+            detail: "Aucun combattant lié au compte",
+            tone: "amber",
+          },
+        ],
+      );
+    }
+
+    const [
+      fighterResult,
+      fightsResult,
+      fightersResult,
+    ] =
+      await Promise.all([
+        this.supabase
+          .from("fighters")
+          .select("*")
+          .eq(
+            "id",
+            context.fighterId,
+          )
+          .maybeSingle(),
+
+        this.supabase
+          .from("fights")
+          .select("*")
+          .or(
+            `fighter_red_id.eq.${context.fighterId},fighter_blue_id.eq.${context.fighterId}`,
+          )
+          .order(
+            "fight_order",
+            {
+              ascending: true,
+            },
+          ),
+
+        this.supabase
+          .from("fighters")
+          .select(
+            "id,full_name",
+          ),
+      ]);
+
+    const error =
+      fighterResult.error ??
+      fightsResult.error ??
+      fightersResult.error;
+
+    if (error) {
+      throw error;
+    }
+
+    const fighter =
+      fighterResult.data;
+
+    if (!fighter) {
+      return buildData(
+        query,
+        [
+          "Indicateur",
+          "Valeur",
+          "Détail",
+        ],
+        [],
+        [],
+      );
+    }
+
+    const fights =
+      asRows(
+        fightsResult.data,
+      );
+
+    const fighterNames =
+      new Map(
+        (
+          fightersResult.data ??
+          []
+        ).map(
+          (item) => [
+            item.id,
+            item.full_name,
+          ] as const,
+        ),
+      );
+
+    const opponentName =
+      (fight: Row) => {
+        const redId =
+          text(
+            fight.fighter_red_id,
+          );
+
+        const blueId =
+          text(
+            fight.fighter_blue_id,
+          );
+
+        const opponentId =
+          redId === context.fighterId
+            ? blueId
+            : redId;
+
+        return (
+          fighterNames.get(
+            opponentId,
+          ) ??
+          "Adversaire à confirmer"
+        );
+      };
+
+    const fightResult =
+      (fight: Row) => {
+        const winnerId =
+          text(
+            fight.winner_id,
+          );
+
+        if (
+          winnerId ===
+          context.fighterId
+        ) {
+          return "Victoire";
+        }
+
+        if (
+          fight.winner_id
+        ) {
+          return "Défaite";
+        }
+
+        if (
+          ["completed", "finished"].includes(
+            text(
+              fight.status,
+            ),
+          )
+        ) {
+          return "Résultat non renseigné";
+        }
+
+        return "À venir";
+      };
+
+    const wins =
+      Number(
+        fighter.wins ??
+        0,
+      );
+
+    const losses =
+      Number(
+        fighter.losses ??
+        0,
+      );
+
+    const draws =
+      Number(
+        fighter.draws ??
+        0,
+      );
+
+    const record =
+      `${wins}-${losses}-${draws}`;
+
+    const completed =
+      fights.filter(
+        (fight) =>
+          [
+            "completed",
+            "finished",
+          ].includes(
+            text(
+              fight.status,
+            ),
+          ),
+      ).length;
+
+    const scheduled =
+      fights.filter(
+        (fight) =>
+          [
+            "scheduled",
+            "planned",
+          ].includes(
+            text(
+              fight.status,
+            ),
+          ),
+      ).length;
+
+    const kpis:
+      RealErpData["kpis"] = [
+        {
+          label: "Record",
+          value: record,
+          detail: "V-D-N officiel",
+          tone: "blue",
+        },
+        {
+          label: "Classement ELO",
+          value:
+            String(
+              fighter.elo_rating ??
+              0,
+            ),
+          detail: "Valeur enregistrée",
+          tone: "green",
+        },
+        {
+          label: "Combats accessibles",
+          value:
+            String(
+              fights.length,
+            ),
+          detail: "Historique réel",
+          tone: "red",
+        },
+        {
+          label: "Programmés",
+          value:
+            String(
+              scheduled,
+            ),
+          detail: "Combats à venir",
+          tone: "amber",
+        },
+      ];
+
+    if (
+      query.tab === "sport"
+    ) {
+      return buildData(
+        query,
+        [
+          "Combattant",
+          "Record",
+          "ELO",
+          "Catégorie",
+          "Statut",
+        ],
+        [
+          [
+            fighter.full_name,
+            record,
+            String(
+              fighter.elo_rating ??
+              0,
+            ),
+            text(
+              fighter.weight_class,
+            ),
+            text(
+              fighter.status_professional,
+            ),
+          ],
+        ],
+        [
+          fighter.id,
+        ],
+        kpis,
+      );
+    }
+
+    if (
+      query.tab === "condition"
+    ) {
+      return buildData(
+        query,
+        [
+          "Poids",
+          "Catégorie",
+          "Taille",
+          "Allonge",
+          "Dernier médical",
+          "Validité médicale",
+        ],
+        [
+          [
+            fighter.current_weight_kg
+              ? `${fighter.current_weight_kg} kg`
+              : "—",
+            text(
+              fighter.weight_class,
+            ),
+            fighter.height_cm
+              ? `${fighter.height_cm} cm`
+              : "—",
+            fighter.reach_cm
+              ? `${fighter.reach_cm} cm`
+              : "—",
+            date(
+              fighter.last_medical_check,
+            ),
+            date(
+              fighter.medical_clearance_expiry,
+            ),
+          ],
+        ],
+        [
+          fighter.id,
+        ],
+        kpis,
+      );
+    }
+
+    if (
+      query.tab === "fights" ||
+      query.tab === "reports" ||
+      query.tab === "progress"
+    ) {
+      return buildData(
+        query,
+        [
+          "Adversaire",
+          "Catégorie",
+          "Statut",
+          "Résultat",
+          "Méthode",
+        ],
+        fights.map(
+          (fight) => [
+            opponentName(
+              fight,
+            ),
+            text(
+              fight.weight_category,
+            ),
+            text(
+              fight.status,
+            ),
+            fightResult(
+              fight,
+            ),
+            text(
+              fight.method,
+            ),
+          ],
+        ),
+        fights.map(
+          (fight) =>
+            text(
+              fight.id,
+            ),
+        ),
+        kpis,
+      );
+    }
+
+    return buildData(
+      query,
+      [
+        "Combattant",
+        "Record",
+        "ELO",
+        "Combats",
+        "Terminés",
+        "Programmés",
+      ],
+      [
+        [
+          fighter.full_name,
+          record,
+          String(
+            fighter.elo_rating ??
+            0,
+          ),
+          String(
+            fights.length,
+          ),
+          String(
+            completed,
+          ),
+          String(
+            scheduled,
+          ),
+        ],
+      ],
+      [
+        fighter.id,
+      ],
+      kpis,
+    );
+  }
+
+  private async clubPerformance(
+    query: RealErpQuery,
+    context: Context,
+  ) {
+    const organizationId =
+      await this.clubOrganizationId(
+        context,
+      );
+
+    if (!organizationId) {
+      return buildData(
+        query,
+        [
+          "Indicateur",
+          "Valeur",
+        ],
+        [],
+        [],
+        [
+          {
+            label: "Club",
+            value: "Absent",
+            detail: "Aucun club actif",
+            tone: "amber",
+          },
+        ],
+      );
+    }
+
+    const membersResult =
+      await this.supabase
+        .from("club_members")
+        .select(
+          "id,full_name,first_name,last_name,fighter_id,primary_discipline,member_status",
+        )
+        .eq(
+          "organization_id",
+          organizationId,
+        );
+
+    if (
+      membersResult.error
+    ) {
+      throw membersResult.error;
+    }
+
+    const members =
+      asRows(
+        membersResult.data,
+      );
+
+    const fighterIds =
+      members.flatMap(
+        (member) =>
+          member.fighter_id
+            ? [
+                text(
+                  member.fighter_id,
+                ),
+              ]
+            : [],
+      );
+
+    let fighterRows:
+      Row[] = [];
+
+    let redFightRows:
+      Row[] = [];
+
+    let blueFightRows:
+      Row[] = [];
+
+    if (
+      fighterIds.length
+    ) {
+      const [
+        fightersResult,
+        redResult,
+        blueResult,
+      ] =
+        await Promise.all([
+          this.supabase
+            .from("fighters")
+            .select(
+              "id,full_name,wins,losses,draws,elo_rating,weight_class,status",
+            )
+            .in(
+              "id",
+              fighterIds,
+            ),
+
+          this.supabase
+            .from("fights")
+            .select("*")
+            .in(
+              "fighter_red_id",
+              fighterIds,
+            ),
+
+          this.supabase
+            .from("fights")
+            .select("*")
+            .in(
+              "fighter_blue_id",
+              fighterIds,
+            ),
+        ]);
+
+      const error =
+        fightersResult.error ??
+        redResult.error ??
+        blueResult.error;
+
+      if (error) {
+        throw error;
+      }
+
+      fighterRows =
+        asRows(
+          fightersResult.data,
+        );
+
+      redFightRows =
+        asRows(
+          redResult.data,
+        );
+
+      blueFightRows =
+        asRows(
+          blueResult.data,
+        );
+    }
+
+    const fightsById =
+      new Map<
+        string,
+        Row
+      >();
+
+    for (
+      const fight of [
+        ...redFightRows,
+        ...blueFightRows,
+      ]
+    ) {
+      fightsById.set(
+        text(
+          fight.id,
+        ),
+        fight,
+      );
+    }
+
+    const fights =
+      Array.from(
+        fightsById.values(),
+      );
+
+    const fightersById =
+      new Map(
+        fighterRows.map(
+          (fighter) => [
+            text(
+              fighter.id,
+            ),
+            fighter,
+          ] as const,
+        ),
+      );
+
+    const membersByFighterId =
+      new Map(
+        members.flatMap(
+          (member) =>
+            member.fighter_id
+              ? [
+                  [
+                    text(
+                      member.fighter_id,
+                    ),
+                    member,
+                  ] as const,
+                ]
+              : [],
+        ),
+      );
+
+    const nameForMember =
+      (member: Row) => {
+        const fullName =
+          text(
+            member.full_name,
+          );
+
+        if (
+          fullName !== "—"
+        ) {
+          return fullName;
+        }
+
+        return [
+          text(
+            member.first_name,
+          ),
+          text(
+            member.last_name,
+          ),
+        ]
+          .filter(
+            (value) =>
+              value !== "—",
+          )
+          .join(" ") ||
+          "Membre";
+      };
+
+    const clubFighterIds =
+      new Set(
+        fighterIds,
+      );
+
+    const clubFighterName =
+      (fighterId: string) => {
+        const member =
+          membersByFighterId.get(
+            fighterId,
+          );
+
+        if (member) {
+          return nameForMember(
+            member,
+          );
+        }
+
+        return (
+          text(
+            fightersById.get(
+              fighterId,
+            )?.full_name,
+          )
+        );
+      };
+
+    const fightClubFighter =
+      (fight: Row) => {
+        const red =
+          text(
+            fight.fighter_red_id,
+          );
+
+        if (
+          clubFighterIds.has(
+            red,
+          )
+        ) {
+          return red;
+        }
+
+        return text(
+          fight.fighter_blue_id,
+        );
+      };
+
+    const opponentId =
+      (
+        fight: Row,
+        clubFighterId: string,
+      ) => {
+        const red =
+          text(
+            fight.fighter_red_id,
+          );
+
+        return (
+          red === clubFighterId
+            ? text(
+                fight.fighter_blue_id,
+              )
+            : red
+        );
+      };
+
+    const allFighterIds =
+      Array.from(
+        new Set(
+          fights.flatMap(
+            (fight) => [
+              text(
+                fight.fighter_red_id,
+              ),
+              text(
+                fight.fighter_blue_id,
+              ),
+            ],
+          ),
+        ),
+      ).filter(
+        (id) =>
+          id !== "—",
+      );
+
+    let allFighterNames =
+      new Map<
+        string,
+        string
+      >();
+
+    if (
+      allFighterIds.length
+    ) {
+      const namesResult =
+        await this.supabase
+          .from("fighters")
+          .select(
+            "id,full_name",
+          )
+          .in(
+            "id",
+            allFighterIds,
+          );
+
+      if (
+        namesResult.error
+      ) {
+        throw namesResult.error;
+      }
+
+      allFighterNames =
+        new Map(
+          (
+            namesResult.data ??
+            []
+          ).map(
+            (fighter) => [
+              fighter.id,
+              fighter.full_name,
+            ] as const,
+          ),
+        );
+    }
+
+    const groupMap =
+      new Map<
+        string,
+        {
+          total: number;
+          active: number;
+          fighters: number;
+        }
+      >();
+
+    for (
+      const member of members
+    ) {
+      const discipline =
+        text(
+          member.primary_discipline,
+        ) === "—"
+          ? "Non renseignée"
+          : text(
+              member.primary_discipline,
+            );
+
+      const current =
+        groupMap.get(
+          discipline,
+        ) ?? {
+          total: 0,
+          active: 0,
+          fighters: 0,
+        };
+
+      current.total +=
+        1;
+
+      if (
+        text(
+          member.member_status,
+        ) === "active"
+      ) {
+        current.active +=
+          1;
+      }
+
+      if (
+        member.fighter_id
+      ) {
+        current.fighters +=
+          1;
+      }
+
+      groupMap.set(
+        discipline,
+        current,
+      );
+    }
+
+    const totalWins =
+      fighterRows.reduce(
+        (sum, fighter) =>
+          sum +
+          Number(
+            fighter.wins ??
+            0,
+          ),
+        0,
+      );
+
+    const totalLosses =
+      fighterRows.reduce(
+        (sum, fighter) =>
+          sum +
+          Number(
+            fighter.losses ??
+            0,
+          ),
+        0,
+      );
+
+    const kpis:
+      RealErpData["kpis"] = [
+        {
+          label: "Combattants",
+          value:
+            String(
+              fighterRows.length,
+            ),
+          detail: "Profils liés au club",
+          tone: "red",
+        },
+        {
+          label: "Combats accessibles",
+          value:
+            String(
+              fights.length,
+            ),
+          detail: "Historique réel",
+          tone: "blue",
+        },
+        {
+          label: "Victoires carrière",
+          value:
+            String(
+              totalWins,
+            ),
+          detail: "Somme des records",
+          tone: "green",
+        },
+        {
+          label: "Défaites carrière",
+          value:
+            String(
+              totalLosses,
+            ),
+          detail: "Somme des records",
+          tone: "amber",
+        },
+      ];
+
+    if (
+      query.tab === "fighters"
+    ) {
+      return buildData(
+        query,
+        [
+          "Combattant",
+          "Discipline",
+          "Catégorie",
+          "Record",
+          "ELO",
+          "Statut",
+        ],
+        fighterRows.map(
+          (fighter) => {
+            const member =
+              membersByFighterId.get(
+                text(
+                  fighter.id,
+                ),
+              );
+
+            return [
+              member
+                ? nameForMember(
+                    member,
+                  )
+                : text(
+                    fighter.full_name,
+                  ),
+              member
+                ? text(
+                    member.primary_discipline,
+                  )
+                : "—",
+              text(
+                fighter.weight_class,
+              ),
+              `${Number(fighter.wins ?? 0)}-${Number(fighter.losses ?? 0)}-${Number(fighter.draws ?? 0)}`,
+              String(
+                fighter.elo_rating ??
+                0,
+              ),
+              text(
+                fighter.status,
+              ),
+            ];
+          },
+        ),
+        fighterRows.map(
+          (fighter) =>
+            text(
+              fighter.id,
+            ),
+        ),
+        kpis,
+      );
+    }
+
+    if (
+      query.tab === "groups"
+    ) {
+      const groups =
+        Array.from(
+          groupMap.entries(),
+        );
+
+      return buildData(
+        query,
+        [
+          "Groupe / discipline",
+          "Membres",
+          "Actifs",
+          "Combattants",
+        ],
+        groups.map(
+          (
+            [
+              discipline,
+              stats,
+            ],
+          ) => [
+            discipline,
+            String(
+              stats.total,
+            ),
+            String(
+              stats.active,
+            ),
+            String(
+              stats.fighters,
+            ),
+          ],
+        ),
+        groups.map(
+          (
+            [
+              discipline,
+            ],
+            index,
+          ) =>
+            `${index}-${discipline}`,
+        ),
+        kpis,
+      );
+    }
+
+    if (
+      query.tab ===
+        "competitions"
+    ) {
+      return buildData(
+        query,
+        [
+          "Combattant",
+          "Adversaire",
+          "Catégorie",
+          "Statut",
+          "Résultat",
+        ],
+        fights.map(
+          (fight) => {
+            const fighterId =
+              fightClubFighter(
+                fight,
+              );
+
+            const rivalId =
+              opponentId(
+                fight,
+                fighterId,
+              );
+
+            let result =
+              "À venir";
+
+            if (
+              fight.winner_id
+            ) {
+              result =
+                text(
+                  fight.winner_id,
+                ) === fighterId
+                  ? "Victoire"
+                  : "Défaite";
+            }
+
+            return [
+              clubFighterName(
+                fighterId,
+              ),
+              allFighterNames.get(
+                rivalId,
+              ) ??
+              "Adversaire à confirmer",
+              text(
+                fight.weight_category,
+              ),
+              text(
+                fight.status,
+              ),
+              result,
+            ];
+          },
+        ),
+        fights.map(
+          (fight) =>
+            text(
+              fight.id,
+            ),
+        ),
+        kpis,
+      );
+    }
+
+    if (
+      query.tab === "reports"
+    ) {
+      return buildData(
+        query,
+        [
+          "Combattant",
+          "Record carrière",
+          "ELO",
+          "Combats accessibles",
+        ],
+        fighterRows.map(
+          (fighter) => {
+            const fighterId =
+              text(
+                fighter.id,
+              );
+
+            const accessibleFightCount =
+              fights.filter(
+                (fight) =>
+                  text(
+                    fight.fighter_red_id,
+                  ) === fighterId ||
+                  text(
+                    fight.fighter_blue_id,
+                  ) === fighterId,
+              ).length;
+
+            return [
+              clubFighterName(
+                fighterId,
+              ),
+              `${Number(fighter.wins ?? 0)}-${Number(fighter.losses ?? 0)}-${Number(fighter.draws ?? 0)}`,
+              String(
+                fighter.elo_rating ??
+                0,
+              ),
+              String(
+                accessibleFightCount,
+              ),
+            ];
+          },
+        ),
+        fighterRows.map(
+          (fighter) =>
+            text(
+              fighter.id,
+            ),
+        ),
+        kpis,
+      );
+    }
+
+    return buildData(
+      query,
+      [
+        "Indicateur",
+        "Valeur",
+      ],
+      [
+        [
+          "Combattants liés",
+          String(
+            fighterRows.length,
+          ),
+        ],
+        [
+          "Combats accessibles",
+          String(
+            fights.length,
+          ),
+        ],
+        [
+          "Disciplines représentées",
+          String(
+            groupMap.size,
+          ),
+        ],
+        [
+          "Membres du club",
+          String(
+            members.length,
+          ),
+        ],
+      ],
+      [
+        "fighters",
+        "fights",
+        "disciplines",
+        "members",
+      ],
+      kpis,
+    );
+  }
   private async sponsors(query: RealErpQuery) {
+
     const result = await this.supabase.from("sponsor_offers").select("*").order("created_at", { ascending: false });
     if (result.error) throw result.error;
     const rows = asRows(result.data);
