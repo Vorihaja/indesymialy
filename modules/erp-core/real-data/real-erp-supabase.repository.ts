@@ -396,6 +396,15 @@ export class RealErpSupabaseRepository {
     }
     if (
       query.role === "fighter" &&
+      query.moduleId === "competitions"
+    ) {
+      return this.fighterCompetitions(
+        query,
+        context,
+      );
+    }
+    if (
+      query.role === "fighter" &&
       query.moduleId === "performance"
     ) {
       return this.fighterPerformance(
@@ -4514,6 +4523,708 @@ export class RealErpSupabaseRepository {
       ],
       [
         organization.id,
+      ],
+      kpis,
+    );
+  }
+  private async fighterCompetitions(
+    query: RealErpQuery,
+    context: Context,
+  ) {
+    const [
+      invitationsResult,
+      registrationsResult,
+      fightsResult,
+    ] =
+      await Promise.all([
+        this.supabase
+          .from(
+            "event_invitations",
+          )
+          .select(
+            "id,event_id,invitation_type,role,status,sent_at,responded_at",
+          )
+          .eq(
+            "invitee_profile_id",
+            context.userId,
+          )
+          .order(
+            "sent_at",
+            {
+              ascending: false,
+            },
+          ),
+
+        this.supabase
+          .from(
+            "event_registrations",
+          )
+          .select(
+            "id,event_id,competition_category_id,weight_kg,license_number,payment_status,status,eligibility_status,submitted_at",
+          )
+          .eq(
+            "applicant_profile_id",
+            context.userId,
+          )
+          .order(
+            "submitted_at",
+            {
+              ascending: false,
+            },
+          ),
+
+        context.fighterId
+          ? this.supabase
+              .from("fights")
+              .select(
+                "id,event_id,fight_order,fighter_red_id,fighter_blue_id,weight_category,scheduled_rounds,status,winner_id,method",
+              )
+              .or(
+                `fighter_red_id.eq.${context.fighterId},fighter_blue_id.eq.${context.fighterId}`,
+              )
+              .order(
+                "fight_order",
+                {
+                  ascending: true,
+                },
+              )
+          : Promise.resolve({
+              data: [],
+              error: null,
+            }),
+      ]);
+
+    const firstError =
+      invitationsResult.error ??
+      registrationsResult.error ??
+      fightsResult.error;
+
+    if (firstError) {
+      throw firstError;
+    }
+
+    const invitations =
+      asRows(
+        invitationsResult.data,
+      );
+
+    const registrations =
+      asRows(
+        registrationsResult.data,
+      );
+
+    const fights =
+      asRows(
+        fightsResult.data,
+      );
+
+    const eventIds =
+      Array.from(
+        new Set(
+          [
+            ...invitations.map(
+              (item) =>
+                text(
+                  item.event_id,
+                ),
+            ),
+            ...registrations.map(
+              (item) =>
+                text(
+                  item.event_id,
+                ),
+            ),
+            ...fights.map(
+              (item) =>
+                text(
+                  item.event_id,
+                ),
+            ),
+          ].filter(
+            (id) =>
+              id !== "—",
+          ),
+        ),
+      );
+
+    const fighterIds =
+      Array.from(
+        new Set(
+          fights.flatMap(
+            (fight) => [
+              text(
+                fight.fighter_red_id,
+              ),
+              text(
+                fight.fighter_blue_id,
+              ),
+            ],
+          ).filter(
+            (id) =>
+              id !== "—",
+          ),
+        ),
+      );
+
+    const [
+      eventsResult,
+      fightersResult,
+    ] =
+      await Promise.all([
+        eventIds.length
+          ? this.supabase
+              .from("events")
+              .select(
+                "id,title,venue,status,starts_at,ends_at,visibility",
+              )
+              .in(
+                "id",
+                eventIds,
+              )
+              .order(
+                "starts_at",
+                {
+                  ascending: true,
+                },
+              )
+          : Promise.resolve({
+              data: [],
+              error: null,
+            }),
+
+        fighterIds.length
+          ? this.supabase
+              .from("fighters")
+              .select(
+                "id,full_name",
+              )
+              .in(
+                "id",
+                fighterIds,
+              )
+          : Promise.resolve({
+              data: [],
+              error: null,
+            }),
+      ]);
+
+    const secondError =
+      eventsResult.error ??
+      fightersResult.error;
+
+    if (secondError) {
+      throw secondError;
+    }
+
+    const events =
+      asRows(
+        eventsResult.data,
+      );
+
+    const fighterNames =
+      new Map(
+        (
+          fightersResult.data ??
+          []
+        ).map(
+          (fighter) => [
+            fighter.id,
+            fighter.full_name,
+          ] as const,
+        ),
+      );
+
+    const eventNames =
+      new Map(
+        events.map(
+          (event) => [
+            text(
+              event.id,
+            ),
+            text(
+              event.title,
+            ),
+          ] as const,
+        ),
+      );
+
+    const fighterId =
+      context.fighterId;
+
+    const opponentId =
+      (fight: Row) => {
+        if (!fighterId) {
+          return null;
+        }
+
+        const red =
+          text(
+            fight.fighter_red_id,
+          );
+
+        const blue =
+          text(
+            fight.fighter_blue_id,
+          );
+
+        if (
+          red === fighterId
+        ) {
+          return blue;
+        }
+
+        if (
+          blue === fighterId
+        ) {
+          return red;
+        }
+
+        return null;
+      };
+
+    const resultLabel =
+      (fight: Row) => {
+        if (!fighterId) {
+          return "—";
+        }
+
+        const winner =
+          text(
+            fight.winner_id,
+          );
+
+        if (
+          winner === fighterId
+        ) {
+          return "Victoire";
+        }
+
+        if (
+          fight.winner_id
+        ) {
+          return "Défaite";
+        }
+
+        if (
+          [
+            "completed",
+            "finished",
+          ].includes(
+            text(
+              fight.status,
+            ),
+          )
+        ) {
+          return "Résultat non renseigné";
+        }
+
+        return "À venir";
+      };
+
+    const pendingInvitations =
+      invitations.filter(
+        (invitation) =>
+          [
+            "pending",
+            "sent",
+          ].includes(
+            text(
+              invitation.status,
+            ),
+          ),
+      ).length;
+
+    const activeRegistrations =
+      registrations.filter(
+        (registration) =>
+          ![
+            "rejected",
+            "withdrawn",
+            "cancelled",
+          ].includes(
+            text(
+              registration.status,
+            ),
+          ),
+      ).length;
+
+    const completedFights =
+      fights.filter(
+        (fight) =>
+          [
+            "completed",
+            "finished",
+          ].includes(
+            text(
+              fight.status,
+            ),
+          ),
+      ).length;
+
+    const upcomingEvents =
+      events.filter(
+        (event) => {
+          if (!event.starts_at) {
+            return false;
+          }
+
+          const startsAt =
+            new Date(
+              String(
+                event.starts_at,
+              ),
+            );
+
+          return (
+            !Number.isNaN(
+              startsAt.getTime(),
+            ) &&
+            startsAt.getTime() >=
+              Date.now()
+          );
+        },
+      ).length;
+
+    const kpis:
+      RealErpData["kpis"] = [
+        {
+          label: "Invitations",
+          value:
+            String(
+              invitations.length,
+            ),
+          detail:
+            `${pendingInvitations} en attente`,
+          tone: "blue",
+        },
+        {
+          label: "Inscriptions",
+          value:
+            String(
+              registrations.length,
+            ),
+          detail:
+            `${activeRegistrations} actives`,
+          tone: "green",
+        },
+        {
+          label: "Combats",
+          value:
+            String(
+              fights.length,
+            ),
+          detail:
+            `${completedFights} terminés`,
+          tone: "red",
+        },
+        {
+          label: "À venir",
+          value:
+            String(
+              upcomingEvents,
+            ),
+          detail:
+            "Événements liés",
+          tone: "amber",
+        },
+      ];
+
+    if (
+      query.tab ===
+      "invitations"
+    ) {
+      return buildData(
+        query,
+        [
+          "Événement",
+          "Type",
+          "Rôle",
+          "Statut",
+          "Envoyée",
+        ],
+        invitations.map(
+          (invitation) => [
+            eventNames.get(
+              text(
+                invitation.event_id,
+              ),
+            ) ??
+            "Événement",
+            text(
+              invitation.invitation_type,
+            ),
+            text(
+              invitation.role,
+            ),
+            text(
+              invitation.status,
+            ),
+            date(
+              invitation.sent_at,
+            ),
+          ],
+        ),
+        invitations.map(
+          (invitation) =>
+            text(
+              invitation.id,
+            ),
+        ),
+        kpis,
+      );
+    }
+
+    if (
+      query.tab ===
+      "registrations"
+    ) {
+      return buildData(
+        query,
+        [
+          "Événement",
+          "Statut",
+          "Éligibilité",
+          "Paiement",
+          "Poids",
+          "Soumise",
+        ],
+        registrations.map(
+          (registration) => [
+            eventNames.get(
+              text(
+                registration.event_id,
+              ),
+            ) ??
+            "Événement",
+            text(
+              registration.status,
+            ),
+            text(
+              registration.eligibility_status,
+            ),
+            text(
+              registration.payment_status,
+            ),
+            registration.weight_kg
+              ? `${registration.weight_kg} kg`
+              : "—",
+            date(
+              registration.submitted_at,
+            ),
+          ],
+        ),
+        registrations.map(
+          (registration) =>
+            text(
+              registration.id,
+            ),
+        ),
+        kpis,
+      );
+    }
+
+    if (
+      query.tab === "fights"
+    ) {
+      return buildData(
+        query,
+        [
+          "Événement",
+          "Adversaire",
+          "Catégorie",
+          "Rounds",
+          "Statut",
+        ],
+        fights.map(
+          (fight) => {
+            const rivalId =
+              opponentId(
+                fight,
+              );
+
+            return [
+              eventNames.get(
+                text(
+                  fight.event_id,
+                ),
+              ) ??
+              "Événement",
+              rivalId
+                ? fighterNames.get(
+                    rivalId,
+                  ) ??
+                  "Adversaire à confirmer"
+                : "Adversaire à confirmer",
+              text(
+                fight.weight_category,
+              ),
+              text(
+                fight.scheduled_rounds,
+              ),
+              text(
+                fight.status,
+              ),
+            ];
+          },
+        ),
+        fights.map(
+          (fight) =>
+            text(
+              fight.id,
+            ),
+        ),
+        kpis,
+      );
+    }
+
+    if (
+      query.tab === "results"
+    ) {
+      const results =
+        fights.filter(
+          (fight) =>
+            [
+              "completed",
+              "finished",
+            ].includes(
+              text(
+                fight.status,
+              ),
+            ) ||
+            Boolean(
+              fight.winner_id,
+            ),
+        );
+
+      return buildData(
+        query,
+        [
+          "Événement",
+          "Adversaire",
+          "Résultat",
+          "Méthode",
+          "Catégorie",
+        ],
+        results.map(
+          (fight) => {
+            const rivalId =
+              opponentId(
+                fight,
+              );
+
+            return [
+              eventNames.get(
+                text(
+                  fight.event_id,
+                ),
+              ) ??
+              "Événement",
+              rivalId
+                ? fighterNames.get(
+                    rivalId,
+                  ) ??
+                  "Adversaire"
+                : "Adversaire",
+              resultLabel(
+                fight,
+              ),
+              text(
+                fight.method,
+              ),
+              text(
+                fight.weight_category,
+              ),
+            ];
+          },
+        ),
+        results.map(
+          (fight) =>
+            text(
+              fight.id,
+            ),
+        ),
+        kpis,
+      );
+    }
+
+    if (
+      query.tab === "calendar"
+    ) {
+      return buildData(
+        query,
+        [
+          "Événement",
+          "Lieu",
+          "Début",
+          "Fin",
+          "Statut",
+        ],
+        events.map(
+          (event) => [
+            text(
+              event.title,
+            ),
+            text(
+              event.venue,
+            ),
+            date(
+              event.starts_at,
+            ),
+            date(
+              event.ends_at,
+            ),
+            text(
+              event.status,
+            ),
+          ],
+        ),
+        events.map(
+          (event) =>
+            text(
+              event.id,
+            ),
+        ),
+        kpis,
+      );
+    }
+
+    return buildData(
+      query,
+      [
+        "Indicateur",
+        "Valeur",
+      ],
+      [
+        [
+          "Invitations",
+          String(
+            invitations.length,
+          ),
+        ],
+        [
+          "Inscriptions",
+          String(
+            registrations.length,
+          ),
+        ],
+        [
+          "Combats",
+          String(
+            fights.length,
+          ),
+        ],
+        [
+          "Événements",
+          String(
+            events.length,
+          ),
+        ],
+      ],
+      [
+        "invitations",
+        "registrations",
+        "fights",
+        "events",
       ],
       kpis,
     );
