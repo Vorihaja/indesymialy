@@ -414,6 +414,16 @@ export class RealErpSupabaseRepository {
       );
     }
     if (
+      ["super-admin", "admin"].includes(
+        query.role,
+      ) &&
+      query.moduleId === "organizations"
+    ) {
+      return this.platformOrganizations(
+        query,
+      );
+    }
+    if (
       query.role === "organizer" &&
       query.moduleId === "performance"
     ) {
@@ -4455,6 +4465,298 @@ export class RealErpSupabaseRepository {
           tone: "amber",
         },
       ],
+    );
+  }
+  private async platformOrganizations(
+    query: RealErpQuery,
+  ) {
+    const result =
+      await this.supabase
+        .from("organizations")
+        .select(
+          "id,name,type,discipline,status,is_verified,email,phone,website,created_at,updated_at",
+        )
+        .order(
+          "name",
+        );
+
+    if (result.error) {
+      throw result.error;
+    }
+
+    const allRows =
+      asRows(
+        result.data,
+      );
+
+    const typeOf =
+      (row: Row) =>
+        normalize(
+          text(
+            row.type,
+          ),
+        );
+
+    let rows =
+      allRows;
+
+    if (
+      query.tab === "federations"
+    ) {
+      rows =
+        allRows.filter(
+          (row) =>
+            typeOf(row) ===
+            "federation",
+        );
+    }
+
+    if (
+      query.tab === "leagues"
+    ) {
+      rows =
+        allRows.filter(
+          (row) =>
+            [
+              "league",
+              "ligue",
+            ].includes(
+              typeOf(row),
+            ),
+        );
+    }
+
+    if (
+      query.tab === "clubs"
+    ) {
+      rows =
+        allRows.filter(
+          (row) =>
+            typeOf(row) ===
+            "club",
+        );
+    }
+
+    if (
+      query.tab === "partners"
+    ) {
+      rows =
+        allRows.filter(
+          (row) =>
+            ![
+              "federation",
+              "league",
+              "ligue",
+              "club",
+            ].includes(
+              typeOf(row),
+            ),
+        );
+    }
+
+    const verified =
+      allRows.filter(
+        (row) =>
+          Boolean(
+            row.is_verified,
+          ),
+      ).length;
+
+    const active =
+      allRows.filter(
+        (row) =>
+          ![
+            "inactive",
+            "suspended",
+            "archived",
+            "disabled",
+          ].includes(
+            normalize(
+              text(
+                row.status,
+              ),
+            ),
+          ),
+      ).length;
+
+    const federationCount =
+      allRows.filter(
+        (row) =>
+          typeOf(row) ===
+          "federation",
+      ).length;
+
+    const leagueCount =
+      allRows.filter(
+        (row) =>
+          [
+            "league",
+            "ligue",
+          ].includes(
+            typeOf(row),
+          ),
+      ).length;
+
+    const clubCount =
+      allRows.filter(
+        (row) =>
+          typeOf(row) ===
+          "club",
+      ).length;
+
+    const partnerCount =
+      allRows.filter(
+        (row) =>
+          ![
+            "federation",
+            "league",
+            "ligue",
+            "club",
+          ].includes(
+            typeOf(row),
+          ),
+      ).length;
+
+    const kpis:
+      RealErpData["kpis"] = [
+        {
+          label: "Organisations",
+          value:
+            String(
+              allRows.length,
+            ),
+          detail:
+            "Autorité organizations",
+          tone: "blue",
+        },
+        {
+          label: "Vérifiées",
+          value:
+            String(
+              verified,
+            ),
+          detail:
+            "Organisations vérifiées",
+          tone: "green",
+        },
+        {
+          label: "Actives",
+          value:
+            String(
+              active,
+            ),
+          detail:
+            "Statut opérationnel",
+          tone: "green",
+        },
+        {
+          label: "Clubs",
+          value:
+            String(
+              clubCount,
+            ),
+          detail:
+            "Organisations sportives",
+          tone: "red",
+        },
+      ];
+
+    if (
+      query.tab === "all" ||
+      query.tab === "federations" ||
+      query.tab === "leagues" ||
+      query.tab === "clubs" ||
+      query.tab === "partners"
+    ) {
+      return buildData(
+        query,
+        [
+          "Organisation",
+          "Type",
+          "Discipline",
+          "Statut",
+          "Vérification",
+          "Email",
+          "Téléphone",
+          "Création",
+        ],
+        rows.map(
+          (row) => [
+            text(
+              row.name,
+            ),
+            text(
+              row.type,
+            ),
+            text(
+              row.discipline,
+            ),
+            text(
+              row.status,
+            ),
+            row.is_verified
+              ? "Vérifiée"
+              : "Non vérifiée",
+            text(
+              row.email,
+            ),
+            text(
+              row.phone,
+            ),
+            date(
+              row.created_at,
+            ),
+          ],
+        ),
+        rows.map(
+          (row) =>
+            text(
+              row.id,
+            ),
+        ),
+        kpis,
+      );
+    }
+
+    return buildData(
+      query,
+      [
+        "Catégorie",
+        "Nombre",
+      ],
+      [
+        [
+          "Fédérations",
+          String(
+            federationCount,
+          ),
+        ],
+        [
+          "Ligues",
+          String(
+            leagueCount,
+          ),
+        ],
+        [
+          "Clubs",
+          String(
+            clubCount,
+          ),
+        ],
+        [
+          "Partenaires",
+          String(
+            partnerCount,
+          ),
+        ],
+      ],
+      [
+        "federations",
+        "leagues",
+        "clubs",
+        "partners",
+      ],
+      kpis,
     );
   }
   private async platformOverview(
