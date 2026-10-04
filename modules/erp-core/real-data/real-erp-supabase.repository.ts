@@ -329,6 +329,30 @@ export class RealErpSupabaseRepository {
       );
     }
     if (
+      query.moduleId === "settings" &&
+      [
+        "super-admin",
+        "admin",
+        "federation",
+        "league",
+        "club",
+        "coach",
+        "fighter",
+        "official",
+        "organizer",
+        "sponsor",
+        "seller",
+        "fan",
+      ].includes(
+        query.role,
+      )
+    ) {
+      return this.accountSettings(
+        query,
+        context,
+      );
+    }
+    if (
       ["profile", "settings", "notifications"].includes(
         query.moduleId,
       )
@@ -9135,6 +9159,638 @@ export class RealErpSupabaseRepository {
     ], mutation("workspace_records", rows, fields));
   }
 
+  private async accountSettings(
+    query: RealErpQuery,
+    context: Context,
+  ) {
+    const [
+      profileResult,
+      accountPreferencesResult,
+      notificationPreferencesResult,
+      verificationRequestsResult,
+      verificationDocumentsResult,
+    ] =
+      await Promise.all([
+        this.supabase
+          .from("profiles")
+          .select(
+            "id,full_name,username,email,phone,is_verified,status,created_at",
+          )
+          .eq(
+            "id",
+            context.userId,
+          )
+          .maybeSingle(),
+
+        this.supabase
+          .from(
+            "account_preferences",
+          )
+          .select(
+            "profile_id,theme,language,profile_visibility,discoverable,email_enabled,push_enabled,data_export_requested_at,deletion_requested_at,updated_at",
+          )
+          .eq(
+            "profile_id",
+            context.userId,
+          )
+          .maybeSingle(),
+
+        this.supabase
+          .from(
+            "notification_preferences",
+          )
+          .select(
+            "profile_id,in_app_enabled,email_enabled,push_enabled,enabled_categories,frequency,muted_until,quiet_hours_start,quiet_hours_end,updated_at",
+          )
+          .eq(
+            "profile_id",
+            context.userId,
+          )
+          .maybeSingle(),
+
+        this.supabase
+          .from(
+            "profile_verification_requests",
+          )
+          .select(
+            "id,subject_type,organization_id,legal_name,status,submitted_at,reviewed_at,review_note,created_at",
+          )
+          .eq(
+            "profile_id",
+            context.userId,
+          )
+          .order(
+            "created_at",
+            {
+              ascending: false,
+            },
+          ),
+
+        this.supabase
+          .from(
+            "profile_verification_documents",
+          )
+          .select(
+            "id,request_id,document_type,file_name,status,expires_at,review_note,created_at",
+          )
+          .eq(
+            "profile_id",
+            context.userId,
+          )
+          .order(
+            "created_at",
+            {
+              ascending: false,
+            },
+          ),
+      ]);
+
+    const error =
+      profileResult.error ??
+      accountPreferencesResult.error ??
+      notificationPreferencesResult.error ??
+      verificationRequestsResult.error ??
+      verificationDocumentsResult.error;
+
+    if (error) {
+      throw error;
+    }
+
+    const profile =
+      profileResult.data;
+
+    const accountPreferences =
+      accountPreferencesResult.data;
+
+    const notificationPreferences =
+      notificationPreferencesResult.data;
+
+    const verificationRequests =
+      asRows(
+        verificationRequestsResult.data,
+      );
+
+    const verificationDocuments =
+      asRows(
+        verificationDocumentsResult.data,
+      );
+
+    const booleanLabel =
+      (
+        value:
+          boolean |
+          null |
+          undefined,
+      ) =>
+        value === true
+          ? "Activé"
+          : value === false
+            ? "Désactivé"
+            : "Non configuré";
+
+    const pendingVerificationRequests =
+      verificationRequests.filter(
+        (request) =>
+          [
+            "pending",
+            "submitted",
+            "in_review",
+          ].includes(
+            normalize(
+              text(
+                request.status,
+              ),
+            ),
+          ),
+      ).length;
+
+    const verifiedDocuments =
+      verificationDocuments.filter(
+        (document) =>
+          [
+            "approved",
+            "verified",
+            "valid",
+          ].includes(
+            normalize(
+              text(
+                document.status,
+              ),
+            ),
+          ),
+      ).length;
+
+    const enabledNotificationChannels =
+      [
+        notificationPreferences
+          ?.in_app_enabled,
+        notificationPreferences
+          ?.email_enabled,
+        notificationPreferences
+          ?.push_enabled,
+      ].filter(
+        (value) =>
+          value === true,
+      ).length;
+
+    const categories =
+      Array.isArray(
+        notificationPreferences
+          ?.enabled_categories,
+      )
+        ? notificationPreferences
+            .enabled_categories
+            .map(
+              (value) =>
+                String(
+                  value,
+                ),
+            )
+            .join(", ")
+        : "";
+
+    const kpis:
+      RealErpData["kpis"] = [
+        {
+          label: "Compte",
+          value:
+            profile?.status ??
+            "Actif",
+          detail:
+            profile?.full_name ??
+            "Profil personnel",
+          tone: "blue",
+        },
+        {
+          label: "Vérification",
+          value:
+            profile?.is_verified
+              ? "Vérifié"
+              : "Non vérifié",
+          detail:
+            `${pendingVerificationRequests} demande(s) en attente`,
+          tone:
+            profile?.is_verified
+              ? "green"
+              : "amber",
+        },
+        {
+          label: "Documents",
+          value:
+            `${verifiedDocuments}/${verificationDocuments.length}`,
+          detail:
+            "Documents validés",
+          tone: "green",
+        },
+        {
+          label: "Notifications",
+          value:
+            `${enabledNotificationChannels}/3`,
+          detail:
+            "Canaux activés",
+          tone: "blue",
+        },
+      ];
+
+    if (
+      query.tab === "account"
+    ) {
+      return buildData(
+        query,
+        [
+          "Nom",
+          "Identifiant",
+          "Email",
+          "Téléphone",
+          "Statut",
+          "Création",
+        ],
+        profile
+          ? [
+              [
+                profile.full_name,
+                profile.username,
+                profile.email,
+                text(
+                  profile.phone,
+                ),
+                text(
+                  profile.status,
+                ),
+                date(
+                  profile.created_at,
+                ),
+              ],
+            ]
+          : [],
+        profile
+          ? [
+              profile.id,
+            ]
+          : [],
+        kpis,
+      );
+    }
+
+    if (
+      query.tab ===
+      "profile-verification"
+    ) {
+      const rows:
+        Row[] = [
+          ...verificationRequests.map(
+            (request) => ({
+              id:
+                `request:${text(request.id)}`,
+              kind:
+                "Demande",
+              item:
+                text(
+                  request.legal_name,
+                ),
+              type:
+                text(
+                  request.subject_type,
+                ),
+              status:
+                text(
+                  request.status,
+                ),
+              detail:
+                text(
+                  request.review_note,
+                ),
+              activity_date:
+                request.submitted_at ??
+                request.created_at,
+            }),
+          ),
+
+          ...verificationDocuments.map(
+            (document) => ({
+              id:
+                `document:${text(document.id)}`,
+              kind:
+                "Document",
+              item:
+                text(
+                  document.file_name,
+                ),
+              type:
+                text(
+                  document.document_type,
+                ),
+              status:
+                text(
+                  document.status,
+                ),
+              detail:
+                document.expires_at
+                  ? `Expire le ${date(document.expires_at)}`
+                  : text(
+                      document.review_note,
+                    ),
+              activity_date:
+                document.created_at,
+            }),
+          ),
+        ];
+
+      return buildData(
+        query,
+        [
+          "Nature",
+          "Élément",
+          "Type",
+          "Statut",
+          "Détail",
+          "Date",
+        ],
+        rows.map(
+          (row) => [
+            text(
+              row.kind,
+            ),
+            text(
+              row.item,
+            ),
+            text(
+              row.type,
+            ),
+            text(
+              row.status,
+            ),
+            text(
+              row.detail,
+            ),
+            date(
+              row.activity_date,
+            ),
+          ],
+        ),
+        rows.map(
+          (row) =>
+            text(
+              row.id,
+            ),
+        ),
+        kpis,
+      );
+    }
+
+    if (
+      query.tab === "privacy"
+    ) {
+      return buildData(
+        query,
+        [
+          "Paramètre",
+          "Valeur",
+          "Autorité",
+        ],
+        [
+          [
+            "Visibilité du profil",
+            text(
+              accountPreferences
+                ?.profile_visibility,
+            ),
+            "account_preferences",
+          ],
+          [
+            "Découvrabilité",
+            booleanLabel(
+              accountPreferences
+                ?.discoverable,
+            ),
+            "account_preferences",
+          ],
+          [
+            "Export des données demandé",
+            accountPreferences
+              ?.data_export_requested_at
+              ? date(
+                  accountPreferences
+                    .data_export_requested_at,
+                )
+              : "Non",
+            "account_preferences",
+          ],
+          [
+            "Suppression du compte demandée",
+            accountPreferences
+              ?.deletion_requested_at
+              ? date(
+                  accountPreferences
+                    .deletion_requested_at,
+                )
+              : "Non",
+            "account_preferences",
+          ],
+        ],
+        [
+          "profile-visibility",
+          "discoverable",
+          "data-export",
+          "account-deletion",
+        ],
+        kpis,
+      );
+    }
+
+    if (
+      query.tab ===
+      "notifications"
+    ) {
+      const quietHours =
+        notificationPreferences
+          ?.quiet_hours_start ||
+        notificationPreferences
+          ?.quiet_hours_end
+          ? (
+              `${text(notificationPreferences?.quiet_hours_start)} – ${text(notificationPreferences?.quiet_hours_end)}`
+            )
+          : "Aucune";
+
+      return buildData(
+        query,
+        [
+          "Paramètre",
+          "Valeur",
+          "Autorité",
+        ],
+        [
+          [
+            "Notifications dans l’application",
+            booleanLabel(
+              notificationPreferences
+                ?.in_app_enabled,
+            ),
+            "notification_preferences",
+          ],
+          [
+            "Notifications email",
+            booleanLabel(
+              notificationPreferences
+                ?.email_enabled,
+            ),
+            "notification_preferences",
+          ],
+          [
+            "Notifications push",
+            booleanLabel(
+              notificationPreferences
+                ?.push_enabled,
+            ),
+            "notification_preferences",
+          ],
+          [
+            "Fréquence",
+            text(
+              notificationPreferences
+                ?.frequency,
+            ),
+            "notification_preferences",
+          ],
+          [
+            "Catégories actives",
+            categories ||
+            "Aucune",
+            "notification_preferences",
+          ],
+          [
+            "Heures silencieuses",
+            quietHours,
+            "notification_preferences",
+          ],
+          [
+            "Muet jusqu’au",
+            notificationPreferences
+              ?.muted_until
+              ? date(
+                  notificationPreferences
+                    .muted_until,
+                )
+              : "Non",
+            "notification_preferences",
+          ],
+        ],
+        [
+          "in-app",
+          "email",
+          "push",
+          "frequency",
+          "categories",
+          "quiet-hours",
+          "muted-until",
+        ],
+        kpis,
+      );
+    }
+
+    if (
+      query.tab ===
+      "preferences"
+    ) {
+      return buildData(
+        query,
+        [
+          "Préférence",
+          "Valeur",
+          "Autorité",
+        ],
+        [
+          [
+            "Thème",
+            text(
+              accountPreferences
+                ?.theme,
+            ),
+            "account_preferences",
+          ],
+          [
+            "Langue",
+            text(
+              accountPreferences
+                ?.language,
+            ),
+            "account_preferences",
+          ],
+          [
+            "Email",
+            booleanLabel(
+              accountPreferences
+                ?.email_enabled,
+            ),
+            "account_preferences",
+          ],
+          [
+            "Push",
+            booleanLabel(
+              accountPreferences
+                ?.push_enabled,
+            ),
+            "account_preferences",
+          ],
+        ],
+        [
+          "theme",
+          "language",
+          "email",
+          "push",
+        ],
+        kpis,
+      );
+    }
+
+    return buildData(
+      query,
+      [
+        "Section",
+        "État",
+      ],
+      [
+        [
+          "Compte",
+          profile
+            ? "Disponible"
+            : "Non configuré",
+        ],
+        [
+          "Vérification du profil",
+          profile?.is_verified
+            ? "Vérifié"
+            : "À vérifier",
+        ],
+        [
+          "Confidentialité",
+          accountPreferences
+            ? "Configurée"
+            : "Valeurs par défaut",
+        ],
+        [
+          "Notifications",
+          notificationPreferences
+            ? "Configurées"
+            : "Valeurs par défaut",
+        ],
+        [
+          "Préférences",
+          accountPreferences
+            ? "Configurées"
+            : "Valeurs par défaut",
+        ],
+      ],
+      [
+        "account",
+        "profile-verification",
+        "privacy",
+        "notifications",
+        "preferences",
+      ],
+      kpis,
+    );
+  }
   private async identity(query: RealErpQuery, context: Context) {
     const [profile, organizations] = await Promise.all([
       this.supabase.from("profiles").select("id,full_name,email,phone,city_id,is_verified").eq("id", context.userId).maybeSingle(),
