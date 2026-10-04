@@ -328,6 +328,17 @@ export class RealErpSupabaseRepository {
     }
 
     if (
+      query.moduleId === "overview" &&
+      ["federation", "league", "club", "coach"].includes(
+        query.role,
+      )
+    ) {
+      return this.organizationOverview(
+        query,
+        context,
+      );
+    }
+    if (
       query.role === "fighter" &&
       query.moduleId === "performance"
     ) {
@@ -2244,6 +2255,281 @@ export class RealErpSupabaseRepository {
     ], mutation(fighter ? "fighter_transactions" : "organization_transactions", rows, fields));
   }
 
+  private async organizationOverview(
+    query: RealErpQuery,
+    context: Context,
+  ) {
+    const organizationId =
+      context.activeOrganizationId &&
+      context.organizationIds.includes(
+        context.activeOrganizationId,
+      )
+        ? context.activeOrganizationId
+        : context.organizationIds[0] ??
+          null;
+
+    if (!organizationId) {
+      return buildData(
+        query,
+        [
+          "Organisation",
+          "Type",
+          "Statut",
+        ],
+        [],
+        [],
+        [
+          {
+            label: "Organisation",
+            value: "Aucune",
+            detail: "Aucun périmètre actif",
+            tone: "amber",
+          },
+        ],
+      );
+    }
+
+    const [
+      organizationResult,
+      membersResult,
+      ownedEventsResult,
+      coorganizedResult,
+      trainingResult,
+    ] =
+      await Promise.all([
+        this.supabase
+          .from("organizations")
+          .select(
+            "id,name,type,status,is_verified",
+          )
+          .eq(
+            "id",
+            organizationId,
+          )
+          .maybeSingle(),
+
+        this.supabase
+          .from("organization_members")
+          .select(
+            "id,role,status,joined_at",
+          )
+          .eq(
+            "organization_id",
+            organizationId,
+          ),
+
+        this.supabase
+          .from("events")
+          .select(
+            "id,title,status,starts_at",
+          )
+          .eq(
+            "organizer_id",
+            organizationId,
+          )
+          .order(
+            "starts_at",
+            {
+              ascending: false,
+            },
+          ),
+
+        this.supabase
+          .from("event_coorganizers")
+          .select(
+            "event_id,status",
+          )
+          .eq(
+            "organization_id",
+            organizationId,
+          )
+          .eq(
+            "status",
+            "accepted",
+          ),
+
+        this.supabase
+          .from("training_sessions")
+          .select(
+            "id,title,day_of_week,start_time,end_time",
+          )
+          .eq(
+            "organization_id",
+            organizationId,
+          ),
+      ]);
+
+    const error =
+      organizationResult.error ??
+      membersResult.error ??
+      ownedEventsResult.error ??
+      coorganizedResult.error ??
+      trainingResult.error;
+
+    if (error) {
+      throw error;
+    }
+
+    const organization =
+      organizationResult.data;
+
+    if (!organization) {
+      return buildData(
+        query,
+        [
+          "Organisation",
+          "Type",
+          "Statut",
+        ],
+        [],
+        [],
+      );
+    }
+
+    const members =
+      asRows(
+        membersResult.data,
+      );
+
+    const ownedEvents =
+      asRows(
+        ownedEventsResult.data,
+      );
+
+    const coorganizedEvents =
+      asRows(
+        coorganizedResult.data,
+      );
+
+    const sessions =
+      asRows(
+        trainingResult.data,
+      );
+
+    const activeMembers =
+      members.filter(
+        (member) =>
+          text(
+            member.status,
+          ) === "active",
+      ).length;
+
+    const upcomingEvents =
+      ownedEvents.filter(
+        (event) => {
+          if (!event.starts_at) {
+            return false;
+          }
+
+          const startsAt =
+            new Date(
+              String(
+                event.starts_at,
+              ),
+            );
+
+          return (
+            !Number.isNaN(
+              startsAt.getTime(),
+            ) &&
+            startsAt.getTime() >=
+              Date.now()
+          );
+        },
+      ).length;
+
+    const eventCount =
+      new Set([
+        ...ownedEvents.map(
+          (event) =>
+            text(
+              event.id,
+            ),
+        ),
+        ...coorganizedEvents.map(
+          (event) =>
+            text(
+              event.event_id,
+            ),
+        ),
+      ]).size;
+
+    const kpis:
+      RealErpData["kpis"] = [
+        {
+          label: "Membres",
+          value:
+            String(
+              members.length,
+            ),
+          detail: "Périmètre réel",
+          tone: "blue",
+        },
+        {
+          label: "Actifs",
+          value:
+            String(
+              activeMembers,
+            ),
+          detail: "Membres actifs",
+          tone: "green",
+        },
+        {
+          label: "Événements",
+          value:
+            String(
+              eventCount,
+            ),
+          detail: "Organisés ou coorganisés",
+          tone: "red",
+        },
+        {
+          label: "Séances",
+          value:
+            String(
+              sessions.length,
+            ),
+          detail: "Planning enregistré",
+          tone: "amber",
+        },
+      ];
+
+    return buildData(
+      query,
+      [
+        "Organisation",
+        "Type",
+        "Statut",
+        "Vérification",
+        "Membres",
+        "Événements à venir",
+      ],
+      [
+        [
+          organization.name,
+          text(
+            organization.type,
+          ),
+          text(
+            organization.status,
+          ),
+          organization.is_verified
+            ? "Vérifiée"
+            : "Non vérifiée",
+          String(
+            members.length,
+          ),
+          String(
+            upcomingEvents,
+          ),
+        ],
+      ],
+      [
+        organization.id,
+      ],
+      kpis,
+    );
+  }
   private async fighterPerformance(
     query: RealErpQuery,
     context: Context,
