@@ -1,150 +1,305 @@
-'use client';
+"use client";
 
-import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
-import { CalendarClock, Check, ChevronRight, Download, FilePlus2, MailPlus, Search, ShieldCheck, UserPlus, X } from 'lucide-react';
-import { createPersonnelMock } from '../mocks';
-import { personnelTabs } from '../config';
-import type { PersonnelAssignment, PersonnelDocument, PersonnelLeave, PersonnelMember, PersonnelTab } from '../types';
+import {
+  useMemo,
+  useState,
+} from "react";
 
-type DialogMode = 'member' | 'invite' | 'assignment' | 'leave' | 'document' | null;
-type Toast = { message: string; tone: 'success' | 'info' | 'danger' } | null;
+import {
+  useOrganizationPersonnel,
+} from "../hooks/useOrganizationPersonnel";
 
-const money = (value: number) => new Intl.NumberFormat('fr-FR').format(value) + ' Ar';
-const fieldClass = 'h-9 w-full border border-[#343840] bg-[#0d0e10] px-2.5 text-[10px] text-zinc-100 outline-none transition-colors focus:border-[#3983da]';
-const buttonClass = 'inline-flex h-8 items-center justify-center gap-1.5 border border-[#343840] bg-[#16181c] px-3 text-[9px] font-semibold text-zinc-200 transition-colors hover:border-[#4a505a] hover:bg-[#1b1e23]';
-const primaryClass = 'inline-flex h-8 items-center justify-center gap-1.5 border border-[#b91f30] bg-[#c82335] px-3 text-[9px] font-semibold text-white transition-colors hover:bg-[#db2b3e]';
+type PersonnelWorkspaceProps = {
+  canonicalRole?: string;
+  organizationName?: string;
+  roleLabel?: string;
+};
 
-function Status({ children }: { children: ReactNode }) {
-  const value = String(children);
-  const tone = /Actif|Valide|Acceptée|Approuvé|Terminée|Payé|Présent/.test(value) ? 'border-emerald-700/50 bg-emerald-950/40 text-emerald-300' : /Suspendu|Expirée|Refusé|Manquant|Absent/.test(value) ? 'border-red-800/50 bg-red-950/40 text-red-300' : /attente|Expire|Invité|congé|Planifiée/.test(value) ? 'border-amber-700/50 bg-amber-950/30 text-amber-300' : 'border-blue-700/50 bg-blue-950/30 text-blue-300';
-  return <span className={`inline-flex min-h-5 items-center border px-1.5 text-[8px] font-semibold ${tone}`}>{children}</span>;
+function formatDate(
+  value: string | null,
+) {
+  if (!value) {
+    return "—";
+  }
+
+  const parsed =
+    new Date(
+      value,
+    );
+
+  if (
+    Number.isNaN(
+      parsed.getTime(),
+    )
+  ) {
+    return value;
+  }
+
+  return parsed.toLocaleDateString(
+    "fr-FR",
+  );
 }
 
-function Panel({ title, label, action, children }: { title: string; label?: string; action?: ReactNode; children: ReactNode }) {
-  return <section className='min-w-0 border border-[#2d3036] bg-[#121316]'>
-    <header className='flex min-h-11 items-center justify-between gap-3 border-b border-[#2d3036] px-3'>
-      <div><span className='block text-[7px] font-bold uppercase tracking-[0.14em] text-zinc-600'>{label ?? 'Personnel'}</span><h3 className='mt-0.5 text-[11px] font-semibold text-zinc-100'>{title}</h3></div>{action}
-    </header>{children}
-  </section>;
-}
+export function PersonnelWorkspace({
+  canonicalRole,
+  organizationName,
+  roleLabel,
+}: PersonnelWorkspaceProps) {
+  const {
+    snapshot,
+    loading,
+    error,
+    refresh,
+  } =
+    useOrganizationPersonnel();
 
-function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
-  return <div className='fixed inset-0 z-[220] grid place-items-center bg-black/75 p-4' role='dialog' aria-modal='true' aria-label={title} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-    <div className='max-h-[calc(100dvh-32px)] w-full max-w-xl overflow-y-auto border border-[#3a3e46] bg-[#121316] shadow-2xl'>
-      <header className='flex h-11 items-center justify-between border-b border-[#30333a] px-3'><div><span className='block text-[7px] font-bold uppercase tracking-[0.14em] text-[#e23a4b]'>Gestion du personnel</span><strong className='text-[11px] text-white'>{title}</strong></div><button type='button' onClick={onClose} className='grid h-7 w-7 place-items-center border border-[#343840] text-zinc-400 hover:text-white'><X size={14} /></button></header>
-      {children}
-    </div>
-  </div>;
-}
+  const [
+    search,
+    setSearch,
+  ] =
+    useState(
+      "",
+    );
 
-function FormField({ label, children }: { label: string; children: ReactNode }) {
-  return <label className='grid gap-1'><span className='text-[8px] font-bold uppercase tracking-[0.08em] text-zinc-500'>{label}</span>{children}</label>;
-}
+  const effectiveRole =
+    canonicalRole ??
+    roleLabel ??
+    "organisation";
 
-export function PersonnelWorkspace({ organizationName, roleLabel }: { organizationName: string; roleLabel: string }) {
-  const initial = useMemo(() => createPersonnelMock(organizationName), [organizationName]);
-  const [activeTab, setActiveTab] = useState<PersonnelTab>('directory');
-  const [members, setMembers] = useState(initial.members);
-  const [invitations, setInvitations] = useState(initial.invitations);
-  const [assignments, setAssignments] = useState(initial.assignments);
-  const [leaves, setLeaves] = useState(initial.leaves);
-  const [documents, setDocuments] = useState(initial.documents);
-  const [attendance, setAttendance] = useState<Record<string, boolean>>(Object.fromEntries(initial.members.map((member, index) => [member.id, index < 4])));
-  const [payments, setPayments] = useState<Record<string, boolean>>({});
-  const [query, setQuery] = useState('');
-  const [department, setDepartment] = useState('Tous');
-  const [dialog, setDialog] = useState<DialogMode>(null);
-  const [selected, setSelected] = useState<PersonnelMember | null>(null);
-  const [toast, setToast] = useState<Toast>(null);
-  const [periodStart, setPeriodStart] = useState('2026-08-01');
-  const [periodEnd, setPeriodEnd] = useState('2026-08-31');
+  const effectiveOrganizationName =
+    snapshot?.organizationName ??
+    organizationName ??
+    "Personnel";
 
-  const notify = (message: string, tone: 'success' | 'info' | 'danger' = 'success') => { setToast({ message, tone }); window.setTimeout(() => setToast(null), 2600); };
-  const departments = ['Tous', ...Array.from(new Set(members.map((member) => member.department)))];
-  const visibleMembers = members.filter((member) => (department === 'Tous' || member.department === department) && `${member.name} ${member.handle} ${member.role}`.toLowerCase().includes(query.toLowerCase()));
-  const activeMembers = members.filter((member) => member.status === 'Actif').length;
-  const payrollTotal = members.reduce((sum, member) => sum + member.monthlyCompensation, 0);
-  const missingDocuments = documents.filter((document) => document.status !== 'Valide').length;
+  const filteredMembers =
+    useMemo(
+      () => {
+        const query =
+          search
+            .trim()
+            .toLocaleLowerCase(
+              "fr",
+            );
 
-  const submitMember = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); const form = new FormData(event.currentTarget); const name = String(form.get('name') || '');
-    const member: PersonnelMember = { id: `p-${Date.now()}`, name, handle: String(form.get('handle') || '@nouveau.membre'), email: String(form.get('email') || ''), phone: String(form.get('phone') || ''), role: String(form.get('role') || 'Collaborateur'), department: String(form.get('department') || 'Administration'), contract: String(form.get('contract') || 'CDD'), location: String(form.get('location') || 'Antananarivo'), status: 'Actif', joinedAt: String(form.get('joinedAt') || ''), availability: 'Disponible', monthlyCompensation: Number(form.get('compensation') || 0) };
-    setMembers((current) => [member, ...current]); setAttendance((current) => ({ ...current, [member.id]: false })); setDialog(null); notify(`${name} a été ajouté au personnel.`);
-  };
-  const submitInvite = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); const form = new FormData(event.currentTarget); const recipient = String(form.get('recipient') || '');
-    setInvitations((current) => [{ id: `i-${Date.now()}`, recipient, email: String(form.get('email') || ''), role: String(form.get('role') || 'Collaborateur'), sentAt: 'À l’instant', expiresAt: 'Dans 7 jours', status: 'En attente' }, ...current]); setDialog(null); notify(`Invitation envoyée à ${recipient} par message.`);
-  };
-  const submitAssignment = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); const form = new FormData(event.currentTarget); const assignment: PersonnelAssignment = { id: `a-${Date.now()}`, member: String(form.get('member')), mission: String(form.get('mission')), scope: String(form.get('scope')), startsAt: String(form.get('startsAt')), endsAt: String(form.get('endsAt')), status: 'Planifiée' };
-    setAssignments((current) => [assignment, ...current]); setDialog(null); notify('La mission a été planifiée.');
-  };
-  const submitLeave = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); const form = new FormData(event.currentTarget); const leave: PersonnelLeave = { id: `l-${Date.now()}`, member: String(form.get('member')), type: String(form.get('type')), period: `${form.get('startsAt')} → ${form.get('endsAt')}`, days: Number(form.get('days') || 1), status: 'À valider' };
-    setLeaves((current) => [leave, ...current]); setDialog(null); notify('La demande de congé a été enregistrée.');
-  };
-  const submitDocument = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); const form = new FormData(event.currentTarget); const document: PersonnelDocument = { id: `d-${Date.now()}`, member: String(form.get('member')), name: String(form.get('name')), category: String(form.get('category')), expiresAt: String(form.get('expiresAt')), status: 'Valide' };
-    setDocuments((current) => [document, ...current]); setDialog(null); notify('Le document a été ajouté au dossier.');
-  };
+        const members =
+          snapshot?.members ??
+          [];
 
-  return <div className='grid gap-3'>
-    <div className='flex flex-wrap items-center justify-between gap-2 border border-[#2d3036] bg-[#121316] px-3 py-2'>
-      <div><span className='text-[7px] font-bold uppercase tracking-[0.14em] text-zinc-600'>{roleLabel} · organisation active</span><h2 className='text-[12px] font-semibold text-white'>{organizationName} · Personnel</h2></div>
-      <div className='flex gap-2'><button type='button' className={buttonClass} onClick={() => setDialog('invite')}><MailPlus size={13} /> Inviter</button><button type='button' className={primaryClass} onClick={() => setDialog('member')}><UserPlus size={13} /> Ajouter un collaborateur</button></div>
-    </div>
+        if (!query) {
+          return members;
+        }
 
-    <div className='grid grid-cols-2 border-l border-t border-[#2d3036] sm:grid-cols-3 xl:grid-cols-6'>
-      {[
-        ['EFFECTIF', String(members.length), `${activeMembers} actifs`], ['PRÉSENTS', String(Object.values(attendance).filter(Boolean).length), `${members.length} attendus`], ['INVITATIONS', String(invitations.filter((item) => item.status === 'En attente').length), 'en attente'], ['CONGÉS', String(leaves.filter((item) => item.status === 'À valider').length), 'à valider'], ['DOCUMENTS', String(missingDocuments), 'à régulariser'], ['MASSE MENSUELLE', money(payrollTotal), 'prévisionnelle'],
-      ].map(([label, value, detail]) => <div key={label} className='min-h-[76px] border-b border-r border-[#2d3036] bg-[#141518] p-2.5'><span className='text-[7px] font-bold tracking-[0.12em] text-zinc-600'>{label}</span><strong className='mt-1 block truncate text-[18px] font-semibold text-zinc-100'>{value}</strong><span className='text-[8px] text-zinc-500'>{detail}</span></div>)}
-    </div>
+        return members.filter(
+          (member) =>
+            [
+              member.fullName,
+              member.email,
+              member.role,
+              member.status,
+            ]
+              .join(
+                " ",
+              )
+              .toLocaleLowerCase(
+                "fr",
+              )
+              .includes(
+                query,
+              ),
+        );
+      },
+      [
+        search,
+        snapshot?.members,
+      ],
+    );
 
-    <nav className='flex overflow-x-auto border border-[#2d3036] bg-[#111215]' aria-label='Sections du personnel'>{personnelTabs.map((tab) => <button key={tab.id} type='button' onClick={() => setActiveTab(tab.id)} className={`h-9 flex-none border-b-2 px-3 text-[9px] font-semibold ${activeTab === tab.id ? 'border-[#ff1638] bg-white/[0.025] text-white' : 'border-transparent text-zinc-500 hover:text-zinc-200'}`}>{tab.label}</button>)}</nav>
+  const activeCount =
+    snapshot?.members.filter(
+      (member) =>
+        member.status ===
+        "active",
+    ).length ??
+    0;
 
-    {activeTab === 'directory' && <Panel title='Annuaire du personnel' action={<div className='flex gap-2'><label className='flex h-8 items-center gap-2 border border-[#343840] bg-[#0d0e10] px-2'><Search size={12} className='text-zinc-600' /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder='Rechercher…' className='w-28 bg-transparent text-[9px] text-white outline-none' /></label><select value={department} onChange={(event) => setDepartment(event.target.value)} className={`${fieldClass} !h-8 !w-auto`}>{departments.map((item) => <option key={item}>{item}</option>)}</select></div>}>
-      <div className='overflow-x-auto'><table className='w-full min-w-[820px] border-collapse text-left'><thead className='sticky top-0 bg-[#181a1e] text-[7px] uppercase tracking-[0.1em] text-zinc-600'><tr>{['Collaborateur', 'Fonction', 'Service', 'Contrat', 'Disponibilité', 'Statut', ''].map((head) => <th key={head} className='h-8 border-b border-[#30333a] px-3 font-bold'>{head}</th>)}</tr></thead><tbody>{visibleMembers.map((member) => <tr key={member.id} className='border-b border-[#25282e] text-[9px] text-zinc-300 hover:bg-white/[0.025]'><td className='h-10 px-3'><button type='button' onClick={() => setSelected(member)} className='text-left'><strong className='block text-[9px] text-zinc-100 hover:text-[#5ca6f5]'>{member.name}</strong><span className='text-[8px] text-zinc-600'>{member.handle}</span></button></td><td className='px-3'>{member.role}</td><td className='px-3'>{member.department}</td><td className='px-3'>{member.contract}</td><td className='px-3'>{member.availability}</td><td className='px-3'><Status>{member.status}</Status></td><td className='px-3 text-right'><button type='button' onClick={() => setSelected(member)} className='text-zinc-500 hover:text-white'><ChevronRight size={14} /></button></td></tr>)}</tbody></table></div>
-    </Panel>}
+  if (loading) {
+    return (
+      <section
+        aria-busy="true"
+        className="rounded-2xl border border-zinc-800 p-6"
+      >
+        <p className="text-sm text-zinc-500">
+          Chargement des données Personnel…
+        </p>
+      </section>
+    );
+  }
 
-    {activeTab === 'invitations' && <Panel title='Invitations à rejoindre l’organisation' action={<button className={primaryClass} type='button' onClick={() => setDialog('invite')}><MailPlus size={12} /> Nouvelle invitation</button>}><DataTable heads={['Destinataire', 'E-mail', 'Rôle proposé', 'Envoi', 'Expiration', 'Statut', 'Actions']}>{invitations.map((item) => <tr key={item.id} className='border-b border-[#25282e] text-[9px] text-zinc-300'><td className='h-10 px-3 font-semibold text-[#6baaf0]'>{item.recipient}</td><td className='px-3'>{item.email}</td><td className='px-3'>{item.role}</td><td className='px-3'>{item.sentAt}</td><td className='px-3'>{item.expiresAt}</td><td className='px-3'><Status>{item.status}</Status></td><td className='px-3'><div className='flex gap-2'><button type='button' className='text-[8px] text-blue-400' onClick={() => notify(`Invitation renvoyée à ${item.recipient}.`, 'info')}>Renvoyer</button><button type='button' className='text-[8px] text-red-400' onClick={() => { setInvitations((current) => current.filter((invite) => invite.id !== item.id)); notify('Invitation annulée.', 'danger'); }}>Annuler</button></div></td></tr>)}</DataTable></Panel>}
+  return (
+    <section className="space-y-4">
+      <header className="rounded-2xl border border-zinc-800 p-5">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.18em] text-zinc-500">
+              Personnel · {effectiveRole}
+            </p>
 
-    {activeTab === 'roles' && <RolesPanel notify={notify} />}
+            <h2 className="mt-1 text-xl font-semibold">
+              {effectiveOrganizationName}
+            </h2>
 
-    {activeTab === 'assignments' && <Panel title='Missions et affectations' action={<button className={primaryClass} type='button' onClick={() => setDialog('assignment')}><CalendarClock size={12} /> Planifier une mission</button>}><DataTable heads={['Collaborateur', 'Mission', 'Périmètre', 'Début', 'Fin', 'Statut', 'Actions']}>{assignments.map((item) => <tr key={item.id} className='border-b border-[#25282e] text-[9px] text-zinc-300'><td className='h-10 px-3 font-semibold text-zinc-100'>{item.member}</td><td className='px-3'>{item.mission}</td><td className='px-3'>{item.scope}</td><td className='px-3'>{item.startsAt}</td><td className='px-3'>{item.endsAt}</td><td className='px-3'><Status>{item.status}</Status></td><td className='px-3'><button type='button' className='text-[8px] text-blue-400' onClick={() => { setAssignments((current) => current.map((entry) => entry.id === item.id ? { ...entry, status: entry.status === 'Terminée' ? 'Planifiée' : 'Terminée' } : entry)); notify('Statut de mission mis à jour.'); }}>Mettre à jour</button></td></tr>)}</DataTable></Panel>}
+            <p className="mt-1 text-sm text-zinc-500">
+              {"Membres réels de l'organisation active."}
+            </p>
+          </div>
 
-    {activeTab === 'attendance' && <Panel title='Présences du jour' label='12 août 2026' action={<span className='text-[8px] text-zinc-500'>Dernière synchronisation · à l’instant</span>}><DataTable heads={['Collaborateur', 'Service', 'Arrivée', 'Sortie', 'Temps', 'Statut', 'Pointage']}>{members.filter((member) => member.status !== 'Invité').map((member, index) => { const present = Boolean(attendance[member.id]); return <tr key={member.id} className='border-b border-[#25282e] text-[9px] text-zinc-300'><td className='h-10 px-3 font-semibold text-zinc-100'>{member.name}</td><td className='px-3'>{member.department}</td><td className='px-3'>{present ? `0${8 + index}:0${index}` : '—'}</td><td className='px-3'>—</td><td className='px-3'>{present ? `${4 + index} h 12` : '0 h 00'}</td><td className='px-3'><Status>{present ? 'Présent' : 'Absent'}</Status></td><td className='px-3'><button type='button' className={present ? buttonClass : primaryClass} onClick={() => { setAttendance((current) => ({ ...current, [member.id]: !present })); notify(`${member.name} : ${present ? 'sortie' : 'entrée'} enregistrée.`); }}>{present ? 'Pointer sortie' : 'Pointer entrée'}</button></td></tr>; })}</DataTable></Panel>}
+          <button
+            type="button"
+            onClick={() =>
+              void refresh()
+            }
+            className="rounded-xl border border-zinc-700 px-4 py-2 text-sm"
+          >
+            Actualiser
+          </button>
+        </div>
+      </header>
 
-    {activeTab === 'leave' && <Panel title='Demandes de congés et indisponibilités' action={<button className={primaryClass} type='button' onClick={() => setDialog('leave')}><CalendarClock size={12} /> Nouvelle demande</button>}><DataTable heads={['Collaborateur', 'Type', 'Période', 'Jours', 'Statut', 'Décision']}>{leaves.map((item) => <tr key={item.id} className='border-b border-[#25282e] text-[9px] text-zinc-300'><td className='h-10 px-3 font-semibold text-zinc-100'>{item.member}</td><td className='px-3'>{item.type}</td><td className='px-3'>{item.period}</td><td className='px-3'>{item.days}</td><td className='px-3'><Status>{item.status}</Status></td><td className='px-3'><div className='flex gap-2'><button type='button' className='text-[8px] text-emerald-400' onClick={() => setLeaves((current) => current.map((leave) => leave.id === item.id ? { ...leave, status: 'Approuvé' } : leave))}>Approuver</button><button type='button' className='text-[8px] text-red-400' onClick={() => setLeaves((current) => current.map((leave) => leave.id === item.id ? { ...leave, status: 'Refusé' } : leave))}>Refuser</button></div></td></tr>)}</DataTable></Panel>}
+      {error ? (
+        <div
+          role="alert"
+          className="rounded-xl border border-red-900/60 p-4 text-sm text-red-400"
+        >
+          {error}
+        </div>
+      ) : null}
 
-    {activeTab === 'documents' && <Panel title='Dossiers et conformité du personnel' action={<button className={primaryClass} type='button' onClick={() => setDialog('document')}><FilePlus2 size={12} /> Ajouter un document</button>}><DataTable heads={['Collaborateur', 'Document', 'Catégorie', 'Validité', 'Statut', 'Actions']}>{documents.map((item) => <tr key={item.id} className='border-b border-[#25282e] text-[9px] text-zinc-300'><td className='h-10 px-3 font-semibold text-zinc-100'>{item.member}</td><td className='px-3'>{item.name}</td><td className='px-3'>{item.category}</td><td className='px-3'>{item.expiresAt}</td><td className='px-3'><Status>{item.status}</Status></td><td className='px-3'><button type='button' className='inline-flex items-center gap-1 text-[8px] text-blue-400' onClick={() => notify(`${item.name} téléchargé.`, 'info')}><Download size={11} /> Télécharger</button></td></tr>)}</DataTable></Panel>}
+      {!snapshot?.organizationId ? (
+        <div className="rounded-2xl border border-zinc-800 p-6 text-sm text-zinc-500">
+          {"Aucune organisation accessible n'est actuellement sélectionnée."}
+        </div>
+      ) : null}
 
-    {activeTab === 'payroll' && <Panel title='Rémunérations et paiements' action={<div className='flex items-end gap-2'><FormField label='Du'><input type='date' value={periodStart} onChange={(event) => setPeriodStart(event.target.value)} className={`${fieldClass} !h-8`} /></FormField><FormField label='Au'><input type='date' value={periodEnd} onChange={(event) => setPeriodEnd(event.target.value)} className={`${fieldClass} !h-8`} /></FormField><button type='button' className={buttonClass} onClick={() => notify(`Période ${periodStart} → ${periodEnd} appliquée.`, 'info')}>Filtrer</button></div>}><DataTable heads={['Collaborateur', 'Contrat', 'Période', 'Brut', 'Retenues', 'Net à payer', 'Statut', 'Action']}>{members.filter((member) => member.status !== 'Invité').map((member, index) => { const paid = Boolean(payments[member.id]); const deductions = Math.round(member.monthlyCompensation * .08); return <tr key={member.id} className='border-b border-[#25282e] text-[9px] text-zinc-300'><td className='h-10 px-3 font-semibold text-zinc-100'>{member.name}</td><td className='px-3'>{member.contract}</td><td className='px-3'>Août 2026</td><td className='px-3'>{money(member.monthlyCompensation)}</td><td className='px-3'>{money(deductions)}</td><td className='px-3 font-semibold text-zinc-100'>{money(member.monthlyCompensation - deductions)}</td><td className='px-3'><Status>{paid ? 'Payé' : index < 2 ? 'Payé' : 'À payer'}</Status></td><td className='px-3'><button type='button' className='text-[8px] text-blue-400' onClick={() => { setPayments((current) => ({ ...current, [member.id]: true })); notify(`Paiement de ${member.name} marqué comme payé.`); }}>Marquer payé</button></td></tr>; })}</DataTable></Panel>}
+      {snapshot?.organizationId ? (
+        <>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl border border-zinc-800 p-4">
+              <p className="text-xs uppercase tracking-wide text-zinc-500">
+                Membres
+              </p>
 
-    {dialog === 'member' && <Modal title='Ajouter un collaborateur' onClose={() => setDialog(null)}><form onSubmit={submitMember} className='grid gap-3 p-4 sm:grid-cols-2'><FormField label='Nom complet'><input name='name' required className={fieldClass} /></FormField><FormField label='Mention / profil'><input name='handle' required placeholder='@nom.utilisateur' pattern='^@.*' className={fieldClass} /></FormField><FormField label='E-mail'><input name='email' type='email' required className={fieldClass} /></FormField><FormField label='Téléphone'><input name='phone' type='tel' className={fieldClass} /></FormField><FormField label='Fonction'><input name='role' required className={fieldClass} /></FormField><FormField label='Service'><select name='department' className={fieldClass}>{['Administration', 'Opérations', 'Sport', 'Finance', 'Communication', 'Logistique'].map((item) => <option key={item}>{item}</option>)}</select></FormField><FormField label='Contrat'><select name='contract' className={fieldClass}>{['CDI', 'CDD', 'Freelance', 'Vacation', 'Bénévolat'].map((item) => <option key={item}>{item}</option>)}</select></FormField><FormField label='Lieu'><input name='location' className={fieldClass} /></FormField><FormField label='Date d’entrée'><input name='joinedAt' type='date' required className={fieldClass} /></FormField><FormField label='Rémunération mensuelle'><input name='compensation' type='number' min='0' step='1000' className={fieldClass} /></FormField><div className='sm:col-span-2 flex justify-end gap-2 border-t border-[#30333a] pt-3'><button type='button' className={buttonClass} onClick={() => setDialog(null)}>Annuler</button><button className={primaryClass}>Ajouter au personnel</button></div></form></Modal>}
-    {dialog === 'invite' && <Modal title='Inviter une personne' onClose={() => setDialog(null)}><form onSubmit={submitInvite} className='grid gap-3 p-4'><div className='border-l-2 border-[#3983da] bg-blue-950/20 p-3 text-[9px] text-blue-200'>La personne recevra un message direct mentionnant son profil et pourra accepter ou refuser de rejoindre {organizationName}.</div><FormField label='Profil à mentionner'><input name='recipient' required placeholder='@nom.utilisateur' pattern='^@.*' className={fieldClass} /></FormField><div className='grid gap-3 sm:grid-cols-2'><FormField label='E-mail'><input name='email' type='email' required className={fieldClass} /></FormField><FormField label='Rôle proposé'><input name='role' required className={fieldClass} /></FormField></div><FormField label='Message'><textarea name='message' rows={4} defaultValue={`Bonjour, nous souhaitons vous inviter à rejoindre l’équipe de ${organizationName}.`} className='w-full resize-none border border-[#343840] bg-[#0d0e10] p-2.5 text-[10px] text-zinc-100 outline-none focus:border-[#3983da]' /></FormField><div className='flex justify-end gap-2 border-t border-[#30333a] pt-3'><button type='button' className={buttonClass} onClick={() => setDialog(null)}>Annuler</button><button className={primaryClass}><MailPlus size={12} /> Envoyer par message</button></div></form></Modal>}
-    {dialog === 'assignment' && <Modal title='Planifier une mission' onClose={() => setDialog(null)}><form onSubmit={submitAssignment} className='grid gap-3 p-4 sm:grid-cols-2'><FormField label='Collaborateur'><select name='member' className={fieldClass}>{members.map((member) => <option key={member.id}>{member.name}</option>)}</select></FormField><FormField label='Mission'><input name='mission' required className={fieldClass} /></FormField><FormField label='Périmètre'><input name='scope' required className={fieldClass} /></FormField><div /><FormField label='Début'><input name='startsAt' type='datetime-local' required className={fieldClass} /></FormField><FormField label='Fin'><input name='endsAt' type='datetime-local' required className={fieldClass} /></FormField><div className='sm:col-span-2 flex justify-end gap-2 border-t border-[#30333a] pt-3'><button type='button' className={buttonClass} onClick={() => setDialog(null)}>Annuler</button><button className={primaryClass}>Planifier</button></div></form></Modal>}
-    {dialog === 'leave' && <Modal title='Nouvelle demande de congé' onClose={() => setDialog(null)}><form onSubmit={submitLeave} className='grid gap-3 p-4 sm:grid-cols-2'><FormField label='Collaborateur'><select name='member' className={fieldClass}>{members.map((member) => <option key={member.id}>{member.name}</option>)}</select></FormField><FormField label='Type'><select name='type' className={fieldClass}>{['Congé annuel', 'Permission', 'Récupération', 'Indisponibilité'].map((item) => <option key={item}>{item}</option>)}</select></FormField><FormField label='Du'><input name='startsAt' type='date' required className={fieldClass} /></FormField><FormField label='Au'><input name='endsAt' type='date' required className={fieldClass} /></FormField><FormField label='Nombre de jours'><input name='days' type='number' min='1' required className={fieldClass} /></FormField><div className='sm:col-span-2 flex justify-end gap-2 border-t border-[#30333a] pt-3'><button type='button' className={buttonClass} onClick={() => setDialog(null)}>Annuler</button><button className={primaryClass}>Enregistrer</button></div></form></Modal>}
-    {dialog === 'document' && <Modal title='Ajouter un document' onClose={() => setDialog(null)}><form onSubmit={submitDocument} className='grid gap-3 p-4 sm:grid-cols-2'><FormField label='Collaborateur'><select name='member' className={fieldClass}>{members.map((member) => <option key={member.id}>{member.name}</option>)}</select></FormField><FormField label='Nom du document'><input name='name' required className={fieldClass} /></FormField><FormField label='Catégorie'><select name='category' className={fieldClass}>{['Contrat', 'Identité', 'Certification', 'Conformité', 'Médical'].map((item) => <option key={item}>{item}</option>)}</select></FormField><FormField label='Date d’expiration'><input name='expiresAt' type='date' required className={fieldClass} /></FormField><FormField label='Fichier'><input name='file' type='file' required className={`${fieldClass} py-1.5`} /></FormField><div className='sm:col-span-2 flex justify-end gap-2 border-t border-[#30333a] pt-3'><button type='button' className={buttonClass} onClick={() => setDialog(null)}>Annuler</button><button className={primaryClass}>Ajouter au dossier</button></div></form></Modal>}
+              <p className="mt-2 text-2xl font-semibold">
+                {snapshot.members.length}
+              </p>
+            </div>
 
-    {selected && <Modal title='Profil du collaborateur' onClose={() => setSelected(null)}><div className='grid gap-4 p-4'><div className='flex items-start justify-between border-b border-[#30333a] pb-3'><div><strong className='text-[15px] text-white'>{selected.name}</strong><button type='button' className='ml-2 text-[9px] text-blue-400'>{selected.handle}</button><p className='mt-1 text-[9px] text-zinc-500'>{selected.role} · {selected.department}</p></div><Status>{selected.status}</Status></div><div className='grid grid-cols-2 gap-px border border-[#30333a] bg-[#30333a]'>{[['E-mail', selected.email], ['Téléphone', selected.phone], ['Contrat', selected.contract], ['Lieu', selected.location], ['Entrée', selected.joinedAt], ['Rémunération', money(selected.monthlyCompensation)]].map(([label, value]) => <div key={label} className='bg-[#15171a] p-3'><span className='block text-[7px] uppercase text-zinc-600'>{label}</span><strong className='mt-1 block text-[9px] text-zinc-200'>{value}</strong></div>)}</div><div className='flex justify-end gap-2'><button type='button' className={buttonClass} onClick={() => notify(`Message ouvert avec ${selected.handle}.`, 'info')}>Envoyer un message</button><button type='button' className={primaryClass} onClick={() => { setMembers((current) => current.map((member) => member.id === selected.id ? { ...member, status: member.status === 'Suspendu' ? 'Actif' : 'Suspendu' } : member)); setSelected(null); notify('Statut du collaborateur mis à jour.'); }}>{selected.status === 'Suspendu' ? 'Réactiver' : 'Suspendre l’accès'}</button></div></div></Modal>}
+            <div className="rounded-2xl border border-zinc-800 p-4">
+              <p className="text-xs uppercase tracking-wide text-zinc-500">
+                Actifs
+              </p>
 
-    {toast && <div className={`fixed bottom-4 right-4 z-[230] border px-4 py-3 text-[9px] shadow-xl ${toast.tone === 'danger' ? 'border-red-700 bg-red-950 text-red-200' : toast.tone === 'info' ? 'border-blue-700 bg-blue-950 text-blue-200' : 'border-emerald-700 bg-emerald-950 text-emerald-200'}`}>{toast.message}</div>}
-  </div>;
-}
+              <p className="mt-2 text-2xl font-semibold">
+                {activeCount}
+              </p>
+            </div>
+          </div>
 
-function DataTable({ heads, children }: { heads: string[]; children: ReactNode }) {
-  return <div className='overflow-x-auto'><table className='w-full min-w-[780px] border-collapse text-left'><thead className='sticky top-0 bg-[#181a1e] text-[7px] uppercase tracking-[0.1em] text-zinc-600'><tr>{heads.map((head) => <th key={head} className='h-8 border-b border-[#30333a] px-3 font-bold'>{head}</th>)}</tr></thead><tbody>{children}</tbody></table></div>;
-}
+          <div className="rounded-2xl border border-zinc-800 p-4">
+            <label className="block">
+              <span className="sr-only">
+                Rechercher un membre
+              </span>
 
-function RolesPanel({ notify }: { notify: (message: string, tone?: 'success' | 'info' | 'danger') => void }) {
-  const roles = [
-    { name: 'Administrateur organisation', members: 2, scope: 'Tous les modules', level: 'Complet' },
-    { name: 'Responsable opérations', members: 4, scope: 'Opérations, événements, personnel', level: 'Gestion' },
-    { name: 'Responsable finance', members: 2, scope: 'Finances et rémunérations', level: 'Gestion' },
-    { name: 'Coordinateur sportif', members: 6, scope: 'Sport, affectations et planning', level: 'Gestion' },
-    { name: 'Collaborateur', members: 18, scope: 'Données assignées', level: 'Limité' },
-  ];
-  const [expanded, setExpanded] = useState<string | null>(null);
-  const [permissions, setPermissions] = useState<Record<string, boolean>>({ Lire: true, Créer: true, Modifier: true, Supprimer: false, Inviter: true, Payer: false });
-  return <Panel title='Rôles internes et droits d’accès' action={<button type='button' className={primaryClass} onClick={() => notify('Nouveau rôle interne préparé.') }><ShieldCheck size={12} /> Créer un rôle</button>}><div className='divide-y divide-[#292c31]'>{roles.map((role) => <div key={role.name}><button type='button' onClick={() => setExpanded(expanded === role.name ? null : role.name)} className='grid min-h-11 w-full grid-cols-[1.2fr_.4fr_1.5fr_.5fr_auto] items-center gap-3 px-3 text-left text-[9px] hover:bg-white/[0.025]'><strong className='text-zinc-100'>{role.name}</strong><span className='text-zinc-500'>{role.members} membres</span><span className='text-zinc-400'>{role.scope}</span><Status>{role.level}</Status><ChevronRight size={13} className={`text-zinc-600 transition-transform ${expanded === role.name ? 'rotate-90' : ''}`} /></button>{expanded === role.name && <div className='border-t border-[#292c31] bg-[#0e0f11] p-3'><span className='mb-2 block text-[8px] font-bold uppercase tracking-[0.1em] text-zinc-600'>Permissions du rôle</span><div className='flex flex-wrap gap-2'>{Object.entries(permissions).map(([permission, enabled]) => <button key={permission} type='button' onClick={() => setPermissions((current) => ({ ...current, [permission]: !enabled }))} className={`inline-flex h-7 items-center gap-1.5 border px-2 text-[8px] ${enabled ? 'border-blue-700 bg-blue-950/40 text-blue-300' : 'border-[#343840] text-zinc-600'}`}>{enabled && <Check size={10} />}{permission}</button>)}</div><div className='mt-3 flex justify-end'><button type='button' className={buttonClass} onClick={() => notify(`Droits du rôle « ${role.name} » enregistrés.`)}>Enregistrer les droits</button></div></div>}</div>)}</div></Panel>;
+              <input
+                value={search}
+                onChange={(event) =>
+                  setSearch(
+                    event.target.value,
+                  )
+                }
+                placeholder="Rechercher par nom, email, rôle ou statut"
+                className="w-full rounded-xl border border-zinc-700 bg-transparent px-4 py-2.5 text-sm outline-none"
+              />
+            </label>
+          </div>
+
+          <div className="overflow-hidden rounded-2xl border border-zinc-800">
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="border-b border-zinc-800">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-medium">
+                      Personne
+                    </th>
+
+                    <th className="px-4 py-3 text-left font-medium">
+                      Rôle
+                    </th>
+
+                    <th className="px-4 py-3 text-left font-medium">
+                      Statut
+                    </th>
+
+                    <th className="px-4 py-3 text-left font-medium">
+                      Depuis
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {filteredMembers.map(
+                    (member) => (
+                      <tr
+                        key={member.id}
+                        className="border-b border-zinc-900 last:border-0"
+                      >
+                        <td className="px-4 py-3">
+                          <div className="font-medium">
+                            {member.fullName}
+                          </div>
+
+                          <div className="text-xs text-zinc-500">
+                            {member.email || "—"}
+                          </div>
+                        </td>
+
+                        <td className="px-4 py-3">
+                          {member.role || "—"}
+                        </td>
+
+                        <td className="px-4 py-3">
+                          {member.status || "—"}
+                        </td>
+
+                        <td className="px-4 py-3 text-zinc-500">
+                          {formatDate(
+                            member.joinedAt,
+                          )}
+                        </td>
+                      </tr>
+                    ),
+                  )}
+
+                  {filteredMembers.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-4 py-10 text-center text-zinc-500"
+                      >
+                        Aucun membre correspondant.
+                      </td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <p className="text-xs text-zinc-500">
+            {"Données réelles en lecture. Les mutations restent désactivées tant que leur autorité n'est pas certifiée."}
+          </p>
+        </>
+      ) : null}
+    </section>
+  );
 }

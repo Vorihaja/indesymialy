@@ -9,6 +9,7 @@ import { FinanceFeature } from "@/modules/finance-erp";
 import { isRoleLiveRole, RoleLiveFeature } from "@/modules/fight-live";
 import { getWorkspaceDefinition, getWorkspaceSectionLabel } from "../config";
 import type { WorkspaceRole, WorkspaceSection } from "../types";
+import { PersonnelWorkspace } from "@/modules/personnel-erp";
 
 export function WorkspaceSectionPage({
   role,
@@ -68,6 +69,14 @@ export function WorkspaceSectionPage({
     return role === "seller"
       ? <SellerAgendaFeature />
       : <ErpCalendarWorkspace role={role} />;
+  }
+
+  if (resolvedRegistryEntry.handlerKey === "organization-personnel") {
+    return (
+      <PersonnelWorkspace
+        canonicalRole={String(role)}
+      />
+    );
   }
 
   if (resolvedRegistryEntry.handlerKey === "finance-erp") {
