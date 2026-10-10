@@ -35,6 +35,10 @@ import {
 } from "../fight-center";
 
 import {
+  FightLiveListFeature,
+} from "@/modules/fight-live";
+
+import {
   useErpNavigationState,
 } from "@/modules/erp-navigation";
 
@@ -144,6 +148,17 @@ export function OrganizerErpPrototype({
           onTabChange={
             setActiveTab
           }
+        />
+      );
+    }
+
+    if (
+      activeModule.id ===
+      "control-room"
+    ) {
+      return (
+        <FightLiveListFeature
+          mode="organizer"
         />
       );
     }

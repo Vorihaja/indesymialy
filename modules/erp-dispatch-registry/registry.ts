@@ -72,8 +72,7 @@ const makeEntry = (
 
   if (
     implementationStatus !== "implemented" ||
-    !confirmedHandlerKeys.has(handlerKey) ||
-    (canonicalRole === "organizer" && moduleId === "control-room")
+    !confirmedHandlerKeys.has(handlerKey)
   ) {
     return {
       canonicalRole,
@@ -143,6 +142,17 @@ const makeEntry = (
       capabilities: { read: true, create: false, update: false, delete: false },
       capabilityMode: "permission-aware",
       capabilityPolicy: "Fighter workspace reads the assigned fight; control mutations are restricted to authorized officials or organizers.",
+    };
+  }
+
+  if (canonicalRole === "organizer" && moduleId === "control-room") {
+    entry = {
+      ...entry,
+      capabilities: { read: true, create: true, update: true, delete: false },
+      readScope: "event",
+      mutationScope: "event",
+      capabilityMode: "permission-aware",
+      capabilityPolicy: "Organizer Control Room uses Fight Live organizer-manager authority. Live mutations remain capability-scoped and database-authorized; deletion is never exposed.",
     };
   }
 
@@ -326,7 +336,7 @@ export const ERP_DISPATCH_REGISTRY: readonly ErpDispatchRegistryEntry[] = [
   makeEntry("organizer", "calendar", "implemented", "erp-calendar", "erp-calendar", "personal", { read: true, create: true, update: true, delete: true }),
   makeEntry("organizer", "settings", "implemented", "account-settings", "identity-core", "personal", { read: true }),
   makeEntry("organizer", "personnel", "implemented", "organizer-personnel", "event-team", "event", { read: true, create: true, update: true, delete: true }),
-  makeEntry("organizer", "control-room", "implemented", "fight-live", "fight-live", "event", { read: true, create: true, update: true, delete: true }),
+  makeEntry("organizer", "control-room", "implemented", "fight-live", "fight-live", "event", { read: true, create: true, update: true, delete: false }),
 
   makeEntry("official", "overview", "implemented", "official-overview", "real-erp-supabase", "personal", { read: true }),
   makeEntry("official", "assignments", "implemented", "official-assignments", "official-assignments", "event", { read: true, create: true, update: true, delete: true }),

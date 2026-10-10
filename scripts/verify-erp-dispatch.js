@@ -179,9 +179,9 @@ function semanticEntry(entry) {
       authority: 'not-implemented',
       scope: 'none',
       capabilities: ' read: false, create: false, update: false, delete: false ',
-      evidence: ['—', '—', '—', '—', '—'],
+      evidence: ['â€”', 'â€”', 'â€”', 'â€”', 'â€”'],
       verdict: 'missing',
-      reason: 'Aucun handler métier spécialisé complet prouvé; la route repose sur un handler générique, une présentation ou un fallback.',
+      reason: 'Aucun handler mÃ©tier spÃ©cialisÃ© complet prouvÃ©; la route repose sur un handler gÃ©nÃ©rique, une prÃ©sentation ou un fallback.',
     };
   }
 
@@ -190,7 +190,14 @@ function semanticEntry(entry) {
   const personalRoles = new Set(['fighter', 'coach', 'official', 'fan']);
 
   if (entry.role === 'organizer' && entry.moduleId === 'control-room') {
-    effective = { ...effective, status: 'unavailable', handlerKey: 'unavailable', authority: 'not-implemented', scope: 'none', capabilities: ' read: false, create: false, update: false, delete: false ' };
+    effective = {
+      ...effective,
+      capabilities: ' read: true, create: true, update: true, delete: false ',
+      readScope: 'event',
+      mutationScope: 'event',
+      capabilityMode: 'permission-aware',
+      capabilityPolicy: 'Organizer Control Room uses Fight Live organizer-manager authority. Live mutations remain capability-scoped and database-authorized; deletion is never exposed.',
+    };
   } else if (entry.moduleId === 'finance') {
     const scope = organizationRoles.has(entry.role) || !personalRoles.has(entry.role) ? 'organization' : 'personal';
     effective = { ...effective, scope, readScope: scope, mutationScope: scope, capabilityMode: 'permission-aware', capabilityPolicy: 'Owner is selected from authorized profile or organization contexts; RPC authorization remains authoritative.' };
@@ -227,9 +234,9 @@ function semanticEntry(entry) {
   return {
     ...effective,
     original,
-    evidence: evidenceByHandler[entry.handlerKey] ?? ['—', '—', '—', '—', '—'],
+    evidence: evidenceByHandler[entry.handlerKey] ?? ['â€”', 'â€”', 'â€”', 'â€”', 'â€”'],
     verdict: 'confirmed',
-    reason: 'Handler métier explicite avec chaîne use case/service/repository ou RPC et autorité de domaine identifiée.',
+    reason: 'Handler mÃ©tier explicite avec chaÃ®ne use case/service/repository ou RPC et autoritÃ© de domaine identifiÃ©e.',
   };
 }
 
