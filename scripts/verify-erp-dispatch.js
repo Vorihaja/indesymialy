@@ -99,9 +99,17 @@ const confirmedHandlerKeys = new Set([
     "admin-users", 'organizer-settings', 'club-members', 'fighter-performance', 'club-performance', 'federation-overview', 'league-overview', 'club-overview', 'coach-overview', 'platform-overview', 'admin-overview', 'organizer-overview', 'sponsor-overview', 'official-overview', 'fan-overview', 'organizer-performance', 'sponsor-performance', 'fighter-competitions', 'fighter-profile', 'sponsor-contracts', 'sponsor-activations', 'sponsor-deliverables', 'platform-organizations', 'account-settings',
   'fighter-overview',
   'role-live',
+    'sponsor-campaigns',
 ]);
 
 const evidenceByHandler = {
+  'sponsor-campaigns': [
+    'modules/erp-core/real-data/real-erp-supabase.repository.ts',
+    'sponsorCampaigns',
+    'RealErpDataUseCase',
+    'sponsors / event_sponsors / sponsor_activations / sponsor_visibility_items / event_sponsor_deliverables',
+    'sponsor organization read authority',
+  ],
   'finance-erp': ['modules/finance-erp/features/FinanceFeature.tsx', 'FinanceFeature', 'modules/finance-erp/use-case.ts + modules/finance-erp/service.ts', 'finance_erp RPCs / finance domain tables', 'role-scoped finance authority'],
   'erp-calendar': ['modules/erp-calendar/components/ErpCalendarWorkspace.tsx', 'ErpCalendarWorkspace', 'modules/erp-calendar/use-cases/erp-calendar.use-case.ts', 'modules/erp-calendar/repositories/erp-calendar-supabase.repository.ts', 'calendar domain authority'],
   'seller-agenda': ['modules/seller-agenda/components/SellerAgendaFeature.tsx', 'SellerAgendaFeature', 'modules/seller-agenda/use-cases/seller-agenda.use-case.ts', 'marketplace_seller_agenda_* RPCs / seller_agenda_items', 'seller organization authority'],

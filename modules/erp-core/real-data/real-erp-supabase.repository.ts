@@ -522,6 +522,16 @@ export class RealErpSupabaseRepository {
 
     if (
       query.role === "sponsor" &&
+      query.moduleId === "campaigns"
+    ) {
+      return this.sponsorCampaigns(
+        query,
+        context,
+      );
+    }
+
+    if (
+      query.role === "sponsor" &&
       [
         "portfolio",
         "opportunities",
@@ -8375,6 +8385,670 @@ export class RealErpSupabaseRepository {
       kpis,
     );
   }
+  private async sponsorCampaigns(
+    query: RealErpQuery,
+    context: Context,
+  ) {
+    const organizationIds =
+      context.activeOrganizationId
+        ? [context.activeOrganizationId]
+        : context.organizationIds;
+
+    const sponsorsResult =
+      organizationIds.length > 0
+        ? await this.supabase
+            .from("sponsors")
+            .select("id,name,organization_id")
+            .in(
+              "organization_id",
+              organizationIds,
+            )
+            .order("name")
+        : {
+            data: [],
+            error: null,
+          };
+
+    if (sponsorsResult.error) {
+      throw sponsorsResult.error;
+    }
+
+    const sponsorRows =
+      asRows(
+        sponsorsResult.data,
+      );
+
+    const sponsorIds =
+      sponsorRows
+        .map(
+          (row) =>
+            String(
+              row.id ?? "",
+            ),
+        )
+        .filter(Boolean);
+
+    const sponsorNames =
+      new Map(
+        sponsorRows.map(
+          (row) =>
+            [
+              String(
+                row.id ?? "",
+              ),
+              text(
+                row.name,
+              ),
+            ] as const,
+        ),
+      );
+
+    const agreementsResult =
+      sponsorIds.length > 0
+        ? await this.supabase
+            .from(
+              "event_sponsors",
+            )
+            .select(
+              "id,sponsor_id",
+            )
+            .in(
+              "sponsor_id",
+              sponsorIds,
+            )
+        : {
+            data: [],
+            error: null,
+          };
+
+    if (agreementsResult.error) {
+      throw agreementsResult.error;
+    }
+
+    const agreementRows =
+      asRows(
+        agreementsResult.data,
+      );
+
+    const agreementIds =
+      agreementRows
+        .map(
+          (row) =>
+            String(
+              row.id ?? "",
+            ),
+        )
+        .filter(Boolean);
+
+    const sponsorNameByAgreement =
+      new Map(
+        agreementRows.map(
+          (row) =>
+            [
+              String(
+                row.id ?? "",
+              ),
+              sponsorNames.get(
+                String(
+                  row.sponsor_id ??
+                    "",
+                ),
+              ) ??
+                "Sponsor",
+            ] as const,
+        ),
+      );
+
+    if (
+      query.tab === "content"
+    ) {
+      const result =
+        agreementIds.length > 0
+          ? await this.supabase
+              .from(
+                "sponsor_visibility_items",
+              )
+              .select("*")
+              .in(
+                "event_sponsor_id",
+                agreementIds,
+              )
+          : {
+              data: [],
+              error: null,
+            };
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      const rows =
+        asRows(
+          result.data,
+        );
+
+      const withEvidence =
+        rows.filter(
+          (row) =>
+            Boolean(
+              row.evidence_path,
+            ),
+        ).length;
+
+      const completed =
+        rows.filter(
+          (row) =>
+            text(
+              row.status,
+            ) ===
+            "completed",
+        ).length;
+
+      return buildData(
+        query,
+        [
+          "Sponsor",
+          "Canal",
+          "Emplacement",
+          "Période",
+          "Impressions",
+          "Portée",
+          "Statut",
+          "Preuve",
+        ],
+        rows.map(
+          (row) => [
+            sponsorNameByAgreement.get(
+              String(
+                row.event_sponsor_id ??
+                  "",
+              ),
+            ) ??
+              "Sponsor",
+            text(
+              row.channel,
+            ),
+            text(
+              row.placement,
+            ),
+            date(
+              row.starts_at,
+            ) +
+              " → " +
+              date(
+                row.ends_at,
+              ),
+            text(
+              row.actual_impressions,
+            ) +
+              " / " +
+              text(
+                row.target_impressions,
+              ),
+            text(
+              row.actual_reach,
+            ) +
+              " / " +
+              text(
+                row.target_reach,
+              ),
+            text(
+              row.status,
+            ),
+            text(
+              row.evidence_path,
+            ),
+          ],
+        ),
+        rows.map(
+          (row) =>
+            String(
+              row.id ?? "",
+            ),
+        ),
+        [
+          {
+            label: "Contenus",
+            value:
+              String(
+                rows.length,
+              ),
+            detail:
+              "Supports de visibilité",
+            tone: "blue",
+          },
+          {
+            label: "Terminés",
+            value:
+              String(
+                completed,
+              ),
+            detail:
+              "Diffusions achevées",
+            tone: "green",
+          },
+          {
+            label: "Avec preuve",
+            value:
+              String(
+                withEvidence,
+              ),
+            detail:
+              "Éléments documentés",
+            tone:
+              withEvidence > 0
+                ? "green"
+                : "amber",
+          },
+        ],
+      );
+    }
+
+    if (
+      query.tab ===
+      "validations"
+    ) {
+      const result =
+        agreementIds.length > 0
+          ? await this.supabase
+              .from(
+                "event_sponsor_deliverables",
+              )
+              .select("*")
+              .in(
+                "event_sponsor_id",
+                agreementIds,
+              )
+          : {
+              data: [],
+              error: null,
+            };
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      const rows =
+        asRows(
+          result.data,
+        );
+
+      const awaitingValidation =
+        rows.filter(
+          (row) =>
+            text(
+              row.status,
+            ) ===
+            "delivered",
+        ).length;
+
+      const validated =
+        rows.filter(
+          (row) =>
+            text(
+              row.status,
+            ) ===
+            "validated",
+        ).length;
+
+      return buildData(
+        query,
+        [
+          "Sponsor",
+          "Livrable",
+          "Échéance",
+          "Statut",
+          "Livré",
+          "Validé",
+          "Preuve",
+        ],
+        rows.map(
+          (row) => [
+            sponsorNameByAgreement.get(
+              String(
+                row.event_sponsor_id ??
+                  "",
+              ),
+            ) ??
+              "Sponsor",
+            text(
+              row.title,
+            ),
+            date(
+              row.due_at,
+            ),
+            text(
+              row.status,
+            ),
+            date(
+              row.delivered_at,
+            ),
+            date(
+              row.validated_at,
+            ),
+            text(
+              row.evidence_path,
+            ),
+          ],
+        ),
+        rows.map(
+          (row) =>
+            String(
+              row.id ?? "",
+            ),
+        ),
+        [
+          {
+            label: "Livrables",
+            value:
+              String(
+                rows.length,
+              ),
+            detail:
+              "Engagements de campagne",
+            tone: "blue",
+          },
+          {
+            label: "À valider",
+            value:
+              String(
+                awaitingValidation,
+              ),
+            detail:
+              "Livrés en attente",
+            tone:
+              awaitingValidation > 0
+                ? "amber"
+                : "green",
+          },
+          {
+            label: "Validés",
+            value:
+              String(
+                validated,
+              ),
+            detail:
+              "Conformité confirmée",
+            tone: "green",
+          },
+        ],
+      );
+    }
+
+    const activationsResult =
+      agreementIds.length > 0
+        ? await this.supabase
+            .from(
+              "sponsor_activations",
+            )
+            .select("*")
+            .in(
+              "event_sponsor_id",
+              agreementIds,
+            )
+        : {
+            data: [],
+            error: null,
+          };
+
+    if (
+      activationsResult.error
+    ) {
+      throw activationsResult.error;
+    }
+
+    const activationRows =
+      asRows(
+        activationsResult.data,
+      );
+
+    if (
+      query.tab ===
+      "planning"
+    ) {
+      const rows =
+        activationRows.filter(
+          (row) =>
+            ![
+              "completed",
+              "cancelled",
+            ].includes(
+              text(
+                row.status,
+              ),
+            ),
+        );
+
+      const scheduled =
+        rows.filter(
+          (row) =>
+            text(
+              row.status,
+            ) ===
+            "scheduled",
+        ).length;
+
+      const live =
+        rows.filter(
+          (row) =>
+            text(
+              row.status,
+            ) ===
+            "live",
+        ).length;
+
+      return buildData(
+        query,
+        [
+          "Sponsor",
+          "Activation",
+          "Type",
+          "Début",
+          "Fin",
+          "Lieu",
+          "Statut",
+        ],
+        rows.map(
+          (row) => [
+            sponsorNameByAgreement.get(
+              String(
+                row.event_sponsor_id ??
+                  "",
+              ),
+            ) ??
+              "Sponsor",
+            text(
+              row.title,
+            ),
+            text(
+              row.activation_type,
+            ),
+            date(
+              row.starts_at,
+            ),
+            date(
+              row.ends_at,
+            ),
+            text(
+              row.location,
+            ),
+            text(
+              row.status,
+            ),
+          ],
+        ),
+        rows.map(
+          (row) =>
+            String(
+              row.id ?? "",
+            ),
+        ),
+        [
+          {
+            label: "Planning",
+            value:
+              String(
+                rows.length,
+              ),
+            detail:
+              "Activations planifiées",
+            tone: "blue",
+          },
+          {
+            label: "Programmées",
+            value:
+              String(
+                scheduled,
+              ),
+            detail:
+              "À venir",
+            tone: "blue",
+          },
+          {
+            label: "En direct",
+            value:
+              String(
+                live,
+              ),
+            detail:
+              "Activations en cours",
+            tone:
+              live > 0
+                ? "green"
+                : "blue",
+          },
+        ],
+      );
+    }
+
+    const activeRows =
+      activationRows.filter(
+        (row) =>
+          [
+            "approved",
+            "scheduled",
+            "live",
+          ].includes(
+            text(
+              row.status,
+            ),
+          ),
+      );
+
+    const live =
+      activeRows.filter(
+        (row) =>
+          text(
+            row.status,
+          ) ===
+          "live",
+      ).length;
+
+    const scheduled =
+      activeRows.filter(
+        (row) =>
+          text(
+            row.status,
+          ) ===
+          "scheduled",
+      ).length;
+
+    return buildData(
+      query,
+      [
+        "Sponsor",
+        "Activation",
+        "Type",
+        "Période",
+        "Lieu",
+        "Contacts",
+        "Statut",
+        "Preuve",
+      ],
+      activeRows.map(
+        (row) => [
+          sponsorNameByAgreement.get(
+            String(
+              row.event_sponsor_id ??
+                "",
+            ),
+          ) ??
+            "Sponsor",
+          text(
+            row.title,
+          ),
+          text(
+            row.activation_type,
+          ),
+          date(
+            row.starts_at,
+          ) +
+            " → " +
+            date(
+              row.ends_at,
+            ),
+          text(
+            row.location,
+          ),
+          text(
+            row.actual_contacts,
+          ) +
+            " / " +
+            text(
+              row.target_contacts,
+            ),
+          text(
+            row.status,
+          ),
+          text(
+            row.evidence_path,
+          ),
+        ],
+      ),
+      activeRows.map(
+        (row) =>
+          String(
+            row.id ?? "",
+          ),
+      ),
+      [
+        {
+          label: "Actives",
+          value:
+            String(
+              activeRows.length,
+            ),
+          detail:
+            "Campagnes opérationnelles",
+          tone: "blue",
+        },
+        {
+          label: "En direct",
+          value:
+            String(
+              live,
+            ),
+          detail:
+            "Activations live",
+          tone:
+            live > 0
+              ? "green"
+              : "blue",
+        },
+        {
+          label: "Programmées",
+          value:
+            String(
+              scheduled,
+            ),
+          detail:
+            "Prochaines activations",
+          tone: "blue",
+        },
+      ],
+    );
+  }
+
   private async sponsors(query: RealErpQuery) {
 
     const result = await this.supabase.from("sponsor_offers").select("*").order("created_at", { ascending: false });

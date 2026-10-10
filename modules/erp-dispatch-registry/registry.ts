@@ -66,7 +66,9 @@ const makeEntry = (
     "role-live",
     "marketplace-public",
     "admin-marketplace-moderation",
-    "super-admin-marketplace",]);
+    "super-admin-marketplace",
+    "sponsor-campaigns",
+]);
 
   if (
     implementationStatus !== "implemented" ||
@@ -346,7 +348,7 @@ export const ERP_DISPATCH_REGISTRY: readonly ErpDispatchRegistryEntry[] = [
   makeEntry("sponsor", "portfolio", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
   makeEntry("sponsor", "opportunities", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
   makeEntry("sponsor", "contracts", "implemented", "sponsor-contracts", "sponsor-contracts", "organization", { read: true }),
-  makeEntry("sponsor", "campaigns", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
+  makeEntry("sponsor", "campaigns", "implemented", "sponsor-campaigns", "real-erp-supabase", "organization", { read: true }),
   makeEntry("sponsor", "deliverables", "implemented", "sponsor-deliverables", "sponsor-deliverables", "organization", { read: true }),
   makeEntry("sponsor", "activations", "implemented", "sponsor-activations", "sponsor-activations", "organization", { read: true }),
   makeEntry("sponsor", "finance", "implemented", "finance-erp", "finance-erp", "platform", { read: true, create: true, update: true, delete: true }),
