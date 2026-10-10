@@ -496,6 +496,13 @@ export class RealErpSupabaseRepository {
     }
 
     if (
+      query.role === "fan" &&
+      query.moduleId === "events"
+    ) {
+      return this.fanPublicEvents(query);
+    }
+
+    if (
       ["federation", "league"].includes(query.role) &&
       query.moduleId === "members"
     ) {
@@ -1845,6 +1852,102 @@ export class RealErpSupabaseRepository {
       { label: "Recettes", value: money(revenue), detail: "Ventes enregistrées", tone: "green" },
       { label: "Transactions", value: String(rows.length), detail: "Opérations de vente", tone: "blue" },
     ]);
+  }
+
+  private async fanPublicEvents(
+    query: RealErpQuery,
+  ) {
+    const events =
+      await this.supabase
+        .from("events")
+        .select(
+          "id,title,starts_at,venue,status,visibility,published_at,archived_at",
+        )
+        .eq(
+          "visibility",
+          "public",
+        )
+        .not(
+          "published_at",
+          "is",
+          null,
+        )
+        .is(
+          "archived_at",
+          null,
+        )
+        .order(
+          "starts_at",
+          {
+            ascending: true,
+          },
+        );
+
+    if (events.error) {
+      throw events.error;
+    }
+
+    const rows =
+      asRows(
+        events.data,
+      );
+
+    return buildData(
+      query,
+      [
+        "Événement",
+        "Statut",
+        "Début",
+        "Lieu",
+      ],
+      rows.map(
+        (row) => [
+          text(
+            row.title,
+          ) ||
+            "Événement",
+          text(
+            row.status,
+          ),
+          date(
+            row.starts_at,
+          ),
+          text(
+            row.venue,
+          ) ||
+            "Lieu à confirmer",
+        ],
+      ),
+      rows.map(
+        (row) =>
+          text(
+            row.id,
+          ),
+      ),
+      [
+        {
+          label: "Événements",
+          value: String(
+            rows.length,
+          ),
+          detail: "Événements publics publiés",
+          tone: "blue",
+        },
+        {
+          label: "Publiés",
+          value: String(
+            rows.filter(
+              (row) =>
+                Boolean(
+                  row.published_at,
+                ),
+            ).length,
+          ),
+          detail: "Visibles publiquement",
+          tone: "green",
+        },
+      ],
+    );
   }
 
   private async organizationMembers(
