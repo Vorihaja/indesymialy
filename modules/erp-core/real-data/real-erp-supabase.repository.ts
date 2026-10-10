@@ -495,6 +495,13 @@ export class RealErpSupabaseRepository {
       );
     }
 
+    if (
+      ["federation", "league"].includes(query.role) &&
+      query.moduleId === "members"
+    ) {
+      return this.organizationMembers(query, context);
+    }
+
     if (query.moduleId === "performance") {
       return this.unsupported(query);
     }
@@ -1838,6 +1845,169 @@ export class RealErpSupabaseRepository {
       { label: "Recettes", value: money(revenue), detail: "Ventes enregistrées", tone: "green" },
       { label: "Transactions", value: String(rows.length), detail: "Opérations de vente", tone: "blue" },
     ]);
+  }
+
+  private async organizationMembers(
+    query: RealErpQuery,
+    context: Context,
+  ) {
+    if (!context.organizationIds.length) {
+      return buildData(
+        query,
+        ["Membre", "Rôle", "Statut", "Depuis"],
+        [],
+        [],
+        [
+          {
+            label: "Membres",
+            value: "0",
+            detail: "Aucune organisation accessible",
+            tone: "amber",
+          },
+          {
+            label: "Actifs",
+            value: "0",
+            detail: "Comptes actifs",
+            tone: "green",
+          },
+        ],
+      );
+    }
+
+    const memberships =
+      await this.supabase
+        .from("organization_members")
+        .select(
+          "id,organization_id,profile_id,role,status,joined_at",
+        )
+        .in(
+          "organization_id",
+          context.organizationIds,
+        )
+        .order(
+          "joined_at",
+          {
+            ascending: false,
+          },
+        );
+
+    if (memberships.error) {
+      throw memberships.error;
+    }
+
+    const rows =
+      asRows(
+        memberships.data,
+      );
+
+    const profileIds =
+      Array.from(
+        new Set(
+          rows
+            .map(
+              (row) =>
+                text(
+                  row.profile_id,
+                ),
+            )
+            .filter(
+              Boolean,
+            ),
+        ),
+      );
+
+    const profileMap =
+      new Map<string, string>();
+
+    if (profileIds.length > 0) {
+      const profiles =
+        await this.supabase
+          .from("profiles")
+          .select(
+            "id,full_name",
+          )
+          .in(
+            "id",
+            profileIds,
+          );
+
+      if (profiles.error) {
+        throw profiles.error;
+      }
+
+      for (
+        const profile of profiles.data ?? []
+      ) {
+        profileMap.set(
+          text(
+            profile.id,
+          ),
+          text(
+            profile.full_name,
+          ) ||
+            "Profil",
+        );
+      }
+    }
+
+    return buildData(
+      query,
+      [
+        "Membre",
+        "Rôle",
+        "Statut",
+        "Depuis",
+      ],
+      rows.map(
+        (row) => [
+          profileMap.get(
+            text(
+              row.profile_id,
+            ),
+          ) ??
+            "Profil",
+          text(
+            row.role,
+          ),
+          text(
+            row.status,
+          ),
+          date(
+            row.joined_at,
+          ),
+        ],
+      ),
+      rows.map(
+        (row) =>
+          text(
+            row.id,
+          ),
+      ),
+      [
+        {
+          label: "Membres",
+          value: String(
+            rows.length,
+          ),
+          detail: "Membres accessibles",
+          tone: "blue",
+        },
+        {
+          label: "Actifs",
+          value: String(
+            rows.filter(
+              (row) =>
+                text(
+                  row.status,
+                ) ===
+                "active",
+            ).length,
+          ),
+          detail: "Comptes actifs",
+          tone: "green",
+        },
+      ],
+    );
   }
 
   private async people(query: RealErpQuery, context: Context) {

@@ -35,6 +35,7 @@ const makeEntry = (
     "organizer-partners",
     "organizer-personnel",
     "organization-personnel",
+    "organization-members",
     "organizer-settings",
     "club-members",
     "fighter-performance",
@@ -234,7 +235,7 @@ export const ERP_DISPATCH_REGISTRY: readonly ErpDispatchRegistryEntry[] = [
 
   makeEntry("federation", "overview", "implemented", "federation-overview", "real-erp-supabase", "organization", { read: true }),
   makeEntry("federation", "affiliations", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
-  makeEntry("federation", "members", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
+  makeEntry("federation", "members", "implemented", "organization-members", "real-erp-supabase", "organization", { read: true, create: false, update: false, delete: false }),
   makeEntry("federation", "competitions", "implemented", "generic-erp", "real-erp-supabase", "event", { read: true, create: true, update: true, delete: true }),
   makeEntry("federation", "sport", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
   makeEntry("federation", "licenses", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
@@ -249,7 +250,7 @@ export const ERP_DISPATCH_REGISTRY: readonly ErpDispatchRegistryEntry[] = [
 
   makeEntry("league", "overview", "implemented", "league-overview", "real-erp-supabase", "organization", { read: true }),
   makeEntry("league", "clubs", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
-  makeEntry("league", "members", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
+  makeEntry("league", "members", "implemented", "organization-members", "real-erp-supabase", "organization", { read: true, create: false, update: false, delete: false }),
   makeEntry("league", "competitions", "implemented", "generic-erp", "real-erp-supabase", "event", { read: true, create: true, update: true, delete: true }),
   makeEntry("league", "officials", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
   makeEntry("league", "development", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
