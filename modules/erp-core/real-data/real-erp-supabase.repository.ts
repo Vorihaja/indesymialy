@@ -468,6 +468,15 @@ export class RealErpSupabaseRepository {
     }
     if (
       query.role === "fighter" &&
+      query.moduleId === "career"
+    ) {
+      return this.fighterCareer(
+        query,
+        context,
+      );
+    }
+    if (
+      query.role === "fighter" &&
       query.moduleId === "competitions"
     ) {
       return this.fighterCompetitions(
@@ -1828,6 +1837,324 @@ export class RealErpSupabaseRepository {
     ], query.role === "organizer" ? mutation("events", rows, fields) : undefined);
   }
 
+  private async fighterCareer(
+    query: RealErpQuery,
+    context: Context,
+  ) {
+    const fighterId = context.fighterId;
+
+    if (!fighterId) {
+      throw new Error(
+        "Profil combattant introuvable.",
+      );
+    }
+
+    if (query.tab === "path") {
+      return this.fights(
+        query,
+        context,
+      );
+    }
+
+    if (query.tab === "record") {
+      const result = await this.supabase
+        .from("fighter_career_stats")
+        .select("*")
+        .eq(
+          "fighter_id",
+          fighterId,
+        )
+        .maybeSingle();
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      const row = result.data;
+
+      const rows = row
+        ? [[
+            text(row.total_fights),
+            text(row.wins),
+            text(row.losses),
+            text(row.draws),
+          ]]
+        : [];
+
+      return buildData(
+        query,
+        [
+          "Combats",
+          "Victoires",
+          "Défaites",
+          "Nuls",
+        ],
+        rows,
+        row ? [fighterId] : [],
+        [
+          {
+            label: "Combats",
+            value: text(
+              row?.total_fights ?? 0,
+            ),
+            detail: "Record officiel",
+            tone: "blue",
+          },
+          {
+            label: "Victoires",
+            value: text(
+              row?.wins ?? 0,
+            ),
+            detail: "Résultats enregistrés",
+            tone: "green",
+          },
+          {
+            label: "Défaites",
+            value: text(
+              row?.losses ?? 0,
+            ),
+            detail: "Résultats enregistrés",
+            tone: "red",
+          },
+        ],
+      );
+    }
+
+    if (query.tab === "rankings") {
+      const result = await this.supabase
+        .from("elo_history")
+        .select(
+          "id,fighter_id,fight_id,elo_before,elo_change,elo_after,recorded_at",
+        )
+        .eq(
+          "fighter_id",
+          fighterId,
+        )
+        .order(
+          "recorded_at",
+          {
+            ascending: false,
+          },
+        );
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      const rows = asRows(
+        result.data,
+      );
+
+      const currentElo =
+        rows.length > 0
+          ? text(
+              rows[0].elo_after,
+            )
+          : "—";
+
+      return buildData(
+        query,
+        [
+          "Date",
+          "ELO avant",
+          "Variation",
+          "ELO après",
+        ],
+        rows.map(
+          (row) => [
+            date(row.recorded_at),
+            text(row.elo_before),
+            text(row.elo_change),
+            text(row.elo_after),
+          ],
+        ),
+        rows.map(
+          (row) => text(row.id),
+        ),
+        [
+          {
+            label: "ELO actuel",
+            value: currentElo,
+            detail: "Dernière valeur enregistrée",
+            tone: "blue",
+          },
+          {
+            label: "Évolutions",
+            value: String(rows.length),
+            detail: "Historique ELO",
+            tone: "green",
+          },
+        ],
+      );
+    }
+
+    if (query.tab === "honors") {
+      const result = await this.supabase
+        .from("fighter_career_stats")
+        .select(
+          "fighter_id,wins,wins_by_ko,wins_by_submission,wins_by_decision",
+        )
+        .eq(
+          "fighter_id",
+          fighterId,
+        )
+        .maybeSingle();
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      const row = result.data;
+
+      const rows = row
+        ? [
+            [
+              "Victoires par KO",
+              text(
+                row.wins_by_ko,
+              ),
+            ],
+            [
+              "Victoires par soumission",
+              text(
+                row.wins_by_submission,
+              ),
+            ],
+            [
+              "Victoires par décision",
+              text(
+                row.wins_by_decision,
+              ),
+            ],
+          ]
+        : [];
+
+      return buildData(
+        query,
+        [
+          "Palmarès",
+          "Total",
+        ],
+        rows,
+        rows.map(
+          (_, index) =>
+            `${fighterId}-honor-${index + 1}`,
+        ),
+        [
+          {
+            label: "Victoires",
+            value: text(
+              row?.wins ?? 0,
+            ),
+            detail: "Total carrière",
+            tone: "green",
+          },
+          {
+            label: "KO",
+            value: text(
+              row?.wins_by_ko ?? 0,
+            ),
+            detail: "Victoires par KO",
+            tone: "red",
+          },
+          {
+            label: "Soumissions",
+            value: text(
+              row?.wins_by_submission ?? 0,
+            ),
+            detail: "Victoires par soumission",
+            tone: "blue",
+          },
+        ],
+      );
+    }
+
+    if (query.tab === "contracts") {
+      const result = await this.supabase
+        .from(
+          "fighter_career_contracts",
+        )
+        .select(
+          "id,fighter_id,reference,contract_type,status,start_date,end_date,counterparty,amount,currency,created_at",
+        )
+        .eq(
+          "fighter_id",
+          fighterId,
+        )
+        .order(
+          "start_date",
+          {
+            ascending: false,
+          },
+        );
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      const rows = asRows(
+        result.data,
+      );
+
+      return buildData(
+        query,
+        [
+          "Référence",
+          "Type",
+          "Contrepartie",
+          "Début",
+          "Fin",
+          "Montant",
+          "Statut",
+        ],
+        rows.map(
+          (row) => [
+            text(row.reference),
+            text(row.contract_type),
+            text(row.counterparty),
+            date(row.start_date),
+            date(row.end_date),
+            row.amount === null ||
+            row.amount === undefined
+              ? "—"
+              : row.currency
+                ? `${Number(row.amount).toLocaleString("fr-FR")} ${text(row.currency)}`
+                : Number(row.amount).toLocaleString("fr-FR"),
+            text(row.status),
+          ],
+        ),
+        rows.map(
+          (row) => text(row.id),
+        ),
+        [
+          {
+            label: "Contrats",
+            value: String(rows.length),
+            detail: "Contrats de carrière",
+            tone: "blue",
+          },
+          {
+            label: "Actifs",
+            value: String(
+              rows.filter(
+                (row) =>
+                  text(row.status)
+                    .toLowerCase() ===
+                  "active",
+              ).length,
+            ),
+            detail: "Statut actif",
+            tone: "green",
+          },
+        ],
+      );
+    }
+
+    return this.fights(
+      query,
+      context,
+    );
+  }
   private async fights(query: RealErpQuery, context: Context) {
     let request = this.supabase.from("fights").select("*").order("fight_order");
     if (query.role === "fighter" && context.fighterId) request = request.or(`fighter_red_id.eq.${context.fighterId},fighter_blue_id.eq.${context.fighterId}`);

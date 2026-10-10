@@ -96,7 +96,7 @@ const confirmedHandlerKeys = new Set([
   'marketplace-public', 'admin-marketplace-moderation', 'super-admin-marketplace', 'seller-marketplace', 'seller-personnel', 'official-assignments',
   'official-availability', 'official-scorecards', 'fight-live',
   'organizer-events', 'organizer-fight-center', 'organizer-ticketing', 'organizer-team', 'organizer-operations', 'organizer-partners', 'organizer-personnel', 'organization-personnel', 'organization-members', 'fan-events', 'admin-events',
-    "admin-users", 'organizer-settings', 'club-members', 'fighter-performance', 'club-performance', 'federation-overview', 'league-overview', 'club-overview', 'coach-overview', 'platform-overview', 'admin-overview', 'organizer-overview', 'sponsor-overview', 'official-overview', 'fan-overview', 'organizer-performance', 'sponsor-performance', 'fighter-competitions', 'fighter-profile', 'sponsor-contracts', 'sponsor-activations', 'sponsor-deliverables', 'platform-organizations', 'account-settings',
+    "admin-users", 'organizer-settings', 'club-members', 'fighter-performance', 'club-performance', 'federation-overview', 'league-overview', 'club-overview', 'coach-overview', 'platform-overview', 'admin-overview', 'organizer-overview', 'sponsor-overview', 'official-overview', 'fan-overview', 'organizer-performance', 'sponsor-performance', 'fighter-competitions', 'fighter-profile', 'fighter-career', 'sponsor-contracts', 'sponsor-activations', 'sponsor-deliverables', 'platform-organizations', 'account-settings',
   'fighter-overview',
   'role-live',
     'sponsor-campaigns',
@@ -160,6 +160,7 @@ const evidenceByHandler = {
   'sponsor-performance': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'sponsorPerformance', 'RealErpDataUseCase', 'event_sponsors / sponsor_visibility_items / sponsor_activations / event_sponsor_deliverables', 'sponsor organization authority'],
   'fighter-competitions': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'fighterCompetitions', 'RealErpDataUseCase', 'event_invitations / event_registrations / fights / fighters / events', 'fighter personal competition authority'],
   'fighter-profile': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'fighterProfile', 'RealErpDataUseCase', 'profiles / fighters / user_disciplines / disciplines / club_members / organizations / profile_verification_documents', 'fighter personal profile projection'],
+  'fighter-career': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'fighterCareer', 'RealErpDataUseCase', 'fights / fighter_career_stats / elo_history / fighter_career_contracts', 'fighter personal career authority'],
   'sponsor-contracts': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'sponsorContracts', 'RealErpDataUseCase', 'sponsors / event_sponsors / sponsor_contracts / events', 'sponsor organization read authority'],
   'sponsor-activations': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'sponsorActivations', 'RealErpDataUseCase', 'sponsors / event_sponsors / sponsor_activations / events', 'sponsor organization read authority'],
   'sponsor-deliverables': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'sponsorDeliverables', 'RealErpDataUseCase', 'sponsors / event_sponsors / event_sponsor_deliverables / events', 'sponsor organization read authority'],
@@ -179,9 +180,9 @@ function semanticEntry(entry) {
       authority: 'not-implemented',
       scope: 'none',
       capabilities: ' read: false, create: false, update: false, delete: false ',
-      evidence: ['â€”', 'â€”', 'â€”', 'â€”', 'â€”'],
+      evidence: ['ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â', 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â', 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â', 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â', 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â'],
       verdict: 'missing',
-      reason: 'Aucun handler mÃ©tier spÃ©cialisÃ© complet prouvÃ©; la route repose sur un handler gÃ©nÃ©rique, une prÃ©sentation ou un fallback.',
+      reason: 'Aucun handler mÃƒÆ’Ã‚Â©tier spÃƒÆ’Ã‚Â©cialisÃƒÆ’Ã‚Â© complet prouvÃƒÆ’Ã‚Â©; la route repose sur un handler gÃƒÆ’Ã‚Â©nÃƒÆ’Ã‚Â©rique, une prÃƒÆ’Ã‚Â©sentation ou un fallback.',
     };
   }
 
@@ -234,9 +235,9 @@ function semanticEntry(entry) {
   return {
     ...effective,
     original,
-    evidence: evidenceByHandler[entry.handlerKey] ?? ['â€”', 'â€”', 'â€”', 'â€”', 'â€”'],
+    evidence: evidenceByHandler[entry.handlerKey] ?? ['ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â', 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â', 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â', 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â', 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â'],
     verdict: 'confirmed',
-    reason: 'Handler mÃ©tier explicite avec chaÃ®ne use case/service/repository ou RPC et autoritÃ© de domaine identifiÃ©e.',
+    reason: 'Handler mÃƒÆ’Ã‚Â©tier explicite avec chaÃƒÆ’Ã‚Â®ne use case/service/repository ou RPC et autoritÃƒÆ’Ã‚Â© de domaine identifiÃƒÆ’Ã‚Â©e.',
   };
 }
 

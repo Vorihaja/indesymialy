@@ -5671,6 +5671,62 @@ export type Database = {
           },
         ]
       }
+      fighter_career_contracts: {
+        Row: {
+          amount: number | null
+          contract_type: string
+          counterparty: string | null
+          created_at: string
+          currency: string | null
+          details: Json | null
+          end_date: string | null
+          fighter_id: string
+          id: string
+          reference: string
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number | null
+          contract_type: string
+          counterparty?: string | null
+          created_at?: string
+          currency?: string | null
+          details?: Json | null
+          end_date?: string | null
+          fighter_id: string
+          id?: string
+          reference: string
+          start_date: string
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number | null
+          contract_type?: string
+          counterparty?: string | null
+          created_at?: string
+          currency?: string | null
+          details?: Json | null
+          end_date?: string | null
+          fighter_id?: string
+          id?: string
+          reference?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fighter_career_contracts_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fighters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fighter_career_stats: {
         Row: {
           draws: number | null
@@ -14956,7 +15012,7 @@ export type Database = {
         | "Sponsor"
         | "Vendeur"
         | "Club"
-        | "Fédération"
+        | "FÃ©dÃ©ration"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -15125,7 +15181,7 @@ export const Constants = {
         "Sponsor",
         "Vendeur",
         "Club",
-        "Fédération",
+        "FÃ©dÃ©ration",
       ],
     },
   },

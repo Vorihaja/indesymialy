@@ -57,6 +57,7 @@ const makeEntry = (
     "sponsor-performance",
     "fighter-competitions",
     "fighter-profile",
+    "fighter-career",
     "sponsor-contracts",
     "sponsor-activations",
     "sponsor-deliverables",
@@ -309,7 +310,7 @@ export const ERP_DISPATCH_REGISTRY: readonly ErpDispatchRegistryEntry[] = [
 
   makeEntry("fighter", "overview", "implemented", "fighter-overview", "real-erp-supabase", "personal", { read: true }),
   makeEntry("fighter", "profile", "implemented", "fighter-profile", "fighter-profile", "personal", { read: true }),
-  makeEntry("fighter", "career", "implemented", "generic-erp", "real-erp-supabase", "fighter", { read: true }),
+  makeEntry("fighter", "career", "implemented", "fighter-career", "fighter-career", "fighter", { read: true }),
   makeEntry("fighter", "training", "implemented", "generic-erp", "real-erp-supabase", "fighter", { read: true, create: true, update: true, delete: true }),
   makeEntry("fighter", "fight-preparation", "implemented", "generic-erp", "real-erp-supabase", "fighter", { read: true, create: true, update: true, delete: true }),
   makeEntry("fighter", "competitions", "implemented", "fighter-competitions", "fighter-competitions", "event", { read: true }),
