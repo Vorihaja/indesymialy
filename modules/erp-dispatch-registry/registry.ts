@@ -38,6 +38,7 @@ const makeEntry = (
     "organization-members",
     "fan-events",
     "admin-events",
+    "admin-users",
     "organizer-settings",
     "club-members",
     "fighter-performance",
@@ -222,7 +223,7 @@ export const ERP_DISPATCH_REGISTRY: readonly ErpDispatchRegistryEntry[] = [
   makeEntry("super-admin", "live", "implemented", "role-live", "fight-live", "platform", { read: true, update: true }),
 
   makeEntry("admin", "overview", "implemented", "admin-overview", "platform-erp", "platform", { read: true }),
-  makeEntry("admin", "users", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
+  makeEntry("admin", "users", "implemented", "admin-users", "admin-users", "platform", { read: true, create: false, update: false, delete: false }),
   makeEntry("admin", "organizations", "implemented", "platform-organizations", "platform-erp", "platform", { read: true }),
   makeEntry("admin", "moderation", "implemented", "generic-erp", "real-erp-supabase", "organization", { read: true, create: true, update: true, delete: true }),
   makeEntry("admin", "events", "implemented", "admin-events", "admin-organizations", "event", { read: true, create: false, update: false, delete: false }),

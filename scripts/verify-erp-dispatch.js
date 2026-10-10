@@ -95,7 +95,8 @@ const confirmedHandlerKeys = new Set([
   'seller-delivery', 'seller-promotions', 'seller-performance',
   'marketplace-public', 'admin-marketplace-moderation', 'super-admin-marketplace', 'seller-marketplace', 'seller-personnel', 'official-assignments',
   'official-availability', 'official-scorecards', 'fight-live',
-  'organizer-events', 'organizer-fight-center', 'organizer-ticketing', 'organizer-team', 'organizer-operations', 'organizer-partners', 'organizer-personnel', 'organization-personnel', 'organization-members', 'fan-events', 'admin-events', 'organizer-settings', 'club-members', 'fighter-performance', 'club-performance', 'federation-overview', 'league-overview', 'club-overview', 'coach-overview', 'platform-overview', 'admin-overview', 'organizer-overview', 'sponsor-overview', 'official-overview', 'fan-overview', 'organizer-performance', 'sponsor-performance', 'fighter-competitions', 'fighter-profile', 'sponsor-contracts', 'sponsor-activations', 'sponsor-deliverables', 'platform-organizations', 'account-settings',
+  'organizer-events', 'organizer-fight-center', 'organizer-ticketing', 'organizer-team', 'organizer-operations', 'organizer-partners', 'organizer-personnel', 'organization-personnel', 'organization-members', 'fan-events', 'admin-events',
+    "admin-users", 'organizer-settings', 'club-members', 'fighter-performance', 'club-performance', 'federation-overview', 'league-overview', 'club-overview', 'coach-overview', 'platform-overview', 'admin-overview', 'organizer-overview', 'sponsor-overview', 'official-overview', 'fan-overview', 'organizer-performance', 'sponsor-performance', 'fighter-competitions', 'fighter-profile', 'sponsor-contracts', 'sponsor-activations', 'sponsor-deliverables', 'platform-organizations', 'account-settings',
   'fighter-overview',
   'role-live',
 ]);
@@ -132,6 +133,7 @@ const evidenceByHandler = {
   'organization-members': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'organizationMembers', 'RealErpDataUseCase', 'organization_members / profiles', 'federation and league accessible organization membership authority'],
   'fan-events': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'fanPublicEvents', 'events_public_published_read', 'events visibility public / published_at / archived_at', 'fan read-only public events authority'],
   'admin-events': ['modules/admin-organizations/repositories/index.ts', 'listEvents', 'modules/admin-organizations/features/index.tsx', 'admin.events.view', 'read-only admin event authority; no mutation repository transport'],
+  'admin-users': ['modules/admin-users/repositories/index.ts', 'listUsers', 'modules/admin-users/features/index.tsx', 'admin.users.view', 'read-only admin event authority; no mutation repository transport'],
   'organizer-settings': ['modules/organizer-erp/components/OrganizerSettingsView.tsx', 'OrganizerSettingsView', 'modules/identity-core services', 'organization/profile authority', 'organizer organization authority'],
   'club-members': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'clubMembers / clubAttendances', 'RealErpDataUseCase', 'club_members / attendances', 'club organization authority'],
   'fighter-performance': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'fighterPerformance', 'RealErpDataUseCase', 'fighters / fights', 'fighter personal authority'],
