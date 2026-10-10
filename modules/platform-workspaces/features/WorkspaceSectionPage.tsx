@@ -1,3 +1,4 @@
+import { AdminOrganizationsFeature } from "@/modules/admin-organizations";
 import { ErpCalendarWorkspace } from "@/modules/erp-calendar";
 import {
   resolveCanonicalErpRole,
@@ -69,6 +70,15 @@ export function WorkspaceSectionPage({
     return role === "seller"
       ? <SellerAgendaFeature />
       : <ErpCalendarWorkspace role={role} />;
+  }
+
+  if (resolvedRegistryEntry.handlerKey === "admin-events") {
+    return (
+      <AdminOrganizationsFeature
+        domain="events"
+        access="admin"
+      />
+    );
   }
 
   if (resolvedRegistryEntry.handlerKey === "organization-personnel") {

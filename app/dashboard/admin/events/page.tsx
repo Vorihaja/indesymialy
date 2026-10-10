@@ -1,1 +1,10 @@
-import{EventPlatformFeature}from"@/modules/event-core/features/EventPlatformFeature";export default function Page(){return <EventPlatformFeature mode="admin" section="admin"/>;}
+import { AdminOrganizationsFeature } from "@/modules/admin-organizations";
+
+export default function Page() {
+  return (
+    <AdminOrganizationsFeature
+      domain="events"
+      access="admin"
+    />
+  );
+}

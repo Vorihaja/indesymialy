@@ -58,16 +58,16 @@ test(
 );
 
 test(
-  "admin events remains generic and is not activated by this change",
+  "admin activation preserves independent fan public events authority",
   () => {
     assert.match(
       registry,
-      /makeEntry\("admin",\s*"events",\s*"implemented",\s*"generic-erp",\s*"real-erp-supabase",\s*"event"/,
+      /makeEntry\("admin",\s*"events",\s*"implemented",\s*"admin-events",\s*"admin-organizations"/,
     );
 
-    assert.doesNotMatch(
+    assert.match(
       registry,
-      /makeEntry\("admin",\s*"events"[\s\S]{0,150}?"admin-events"/,
+      /makeEntry\("fan",\s*"events",\s*"implemented",\s*"fan-events",\s*"real-erp-supabase"/,
     );
   },
 );
