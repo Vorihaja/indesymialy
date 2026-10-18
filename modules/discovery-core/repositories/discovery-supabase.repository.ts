@@ -1,13 +1,18 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/infrastructure/supabase/database.types';
+import type { EventPlatformRepository } from '@/modules/event-core/repositories/event-platform.repository';
 import type { DiscoveryRepository } from './discovery.repository';
 import type { DirectoryEntry, DiscoveryFilters, DiscoveryResult, DiscoverySnapshot, PublicClub, PublicDiscipline, PublicFighter, PublicRegion, RankingEntry } from '../types';
+import { resolvePublicMediaEventId } from '../public-media-event-link.mjs';
 
 const cleanIdentifier = (value: string) => value.trim().replace(/^@+/, '');
 
 export class DiscoverySupabaseRepository implements DiscoveryRepository {
   private snapshotCache?: Promise<DiscoverySnapshot>;
-  constructor(private readonly supabase: SupabaseClient<Database>) {}
+  constructor(
+    private readonly supabase: SupabaseClient<Database>,
+    private readonly publicEvents: Pick<EventPlatformRepository, 'getSnapshot'>,
+  ) {}
 
   snapshot(): Promise<DiscoverySnapshot> {
     this.snapshotCache ??= this.loadSnapshot();
@@ -15,7 +20,7 @@ export class DiscoverySupabaseRepository implements DiscoveryRepository {
   }
 
   private async loadSnapshot(): Promise<DiscoverySnapshot> {
-    const [fightersResult, clubsResult, profilesResult, organizationsResult, disciplinesResult, linksResult, regionsResult, citiesResult, eloResult, mediaResult, mediaEventsResult, newsResult] = await Promise.all([
+    const [fightersResult, clubsResult, profilesResult, organizationsResult, disciplinesResult, linksResult, regionsResult, citiesResult, eloResult, mediaResult, publicEventsSnapshot, newsResult] = await Promise.all([
       this.supabase.from('fighters').select('id,profile_id,full_name,nickname,weight_class,status,status_professional,biography,wins,losses,draws,elo_rating').order('elo_rating', { ascending: false }).limit(100),
       this.supabase.from('clubs').select('id,profile_id,organization_id,name,description,logo_url,region_id,is_official_federated').limit(100),
       this.supabase.from('profiles').select('id,username,photo_url,is_verified,status,region_id,city_id').limit(250),
@@ -26,10 +31,10 @@ export class DiscoverySupabaseRepository implements DiscoveryRepository {
       this.supabase.from('cities').select('id,name,region_id').eq('is_active', true).order('name'),
       this.supabase.from('elo_history').select('fighter_id,elo_change,recorded_at').order('recorded_at', { ascending: false }).limit(500),
       this.supabase.from('club_media').select('id,title,description,file_url,thumbnail_url,media_type,tags,created_at,event_id,organization_id').eq('is_public', true).order('created_at', { ascending: false }).limit(60),
-      this.supabase.from('events').select('id,title').eq('visibility', 'public').not('published_at', 'is', null).is('archived_at', null).limit(100),
+      this.publicEvents.getSnapshot(),
       this.supabase.from('breaking_news').select('text').order('created_at', { ascending: false }).limit(10),
     ]);
-    const failed = [fightersResult, clubsResult, profilesResult, organizationsResult, disciplinesResult, linksResult, regionsResult, citiesResult, eloResult, mediaResult, mediaEventsResult, newsResult].find((result) => result.error);
+    const failed = [fightersResult, clubsResult, profilesResult, organizationsResult, disciplinesResult, linksResult, regionsResult, citiesResult, eloResult, mediaResult, newsResult].find((result) => result.error);
     if (failed?.error) throw failed.error;
 
     const profiles = new Map((profilesResult.data ?? []).map((row) => [row.id, row]));
@@ -54,8 +59,12 @@ export class DiscoverySupabaseRepository implements DiscoveryRepository {
     });
     const directory: DirectoryEntry[] = [...fighters.map((item) => ({ id: item.id, name: item.name, role: 'fighter' as const, discipline: item.disciplines[0] ?? '', region: item.region ?? '', city: item.city ?? '', status: item.status ?? '', verified: item.verified ?? false, weightCategory: item.weightCategory, club: item.club, availabilityPrepared: false, imageUrl: item.photoUrl, href: `/${item.identifier}` })), ...clubs.map((item) => ({ id: item.id, name: item.name, role: 'club' as const, discipline: item.disciplines[0] ?? '', region: item.region, city: item.city, status: 'public', verified: item.official, availabilityPrepared: false, imageUrl: item.logoUrl, href: `/${item.identifier}` }))];
     const rankings: RankingEntry[] = fighters.map((item) => ({ id: `fighter-${item.id}`, entityType: 'fighter', name: item.name, discipline: item.disciplines[0] ?? '', category: item.weightCategory, region: item.region ?? '', nationalRank: item.ranking, regionalRank: 0, elo: item.elo, progression: item.progression, hasProgressionHistory: item.hasProgressionHistory, wins: item.record.wins, losses: item.record.losses, draws: item.record.draws, recentActivity: '', href: `/${item.identifier}` }));
-    const mediaEventTitles = new Map((mediaEventsResult.data ?? []).map((row) => [row.id, row.title]));
-    const media = (mediaResult.data ?? []).map((row) => ({ id: row.id, kind: 'media' as const, title: row.title || 'Média', content: row.description || '', author: '', category: '', discipline: '', region: '', tags: row.tags ?? [], mentions: [], mediaType: row.media_type === 'video' ? 'video' as const : 'image' as const, mediaUrl: row.file_url, thumbnailUrl: row.thumbnail_url ?? undefined, status: 'published' as const, likes: 0, shares: 0, replies: 0, createdAt: row.created_at ?? '', updatedAt: row.created_at ?? '', eventId: row.event_id ?? undefined, eventTitle: row.event_id ? mediaEventTitles.get(row.event_id) : undefined, source: '' }));
+    const publicEventsById = new Map(publicEventsSnapshot.events.map((event) => [event.id, event]));
+    const publicEventIds = new Set(publicEventsById.keys());
+    const media = (mediaResult.data ?? []).map((row) => {
+      const eventId = resolvePublicMediaEventId(row.event_id, publicEventIds);
+      return { id: row.id, kind: 'media' as const, title: row.title || 'Média', content: row.description || '', author: '', category: '', discipline: '', region: '', tags: row.tags ?? [], mentions: [], mediaType: row.media_type === 'video' ? 'video' as const : 'image' as const, mediaUrl: row.file_url, thumbnailUrl: row.thumbnail_url ?? undefined, status: 'published' as const, likes: 0, shares: 0, replies: 0, createdAt: row.created_at ?? '', updatedAt: row.created_at ?? '', eventId, eventTitle: eventId ? publicEventsById.get(eventId)?.title : undefined, source: '' };
+    });
     const publicDisciplines: PublicDiscipline[] = (disciplinesResult.data ?? []).map((row) => ({ id: row.id, slug: row.slug, name: row.name, presentation: '', generalRules: [], categories: [...new Set(fighters.filter((item) => item.disciplines.includes(row.name)).map((item) => item.weightCategory).filter(Boolean))], fighterIds: fighters.filter((item) => item.disciplines.includes(row.name)).map((item) => item.id), clubIds: clubs.filter((item) => item.disciplines.includes(row.name)).map((item) => item.id), eventIds: [], rankingIds: rankings.filter((item) => item.discipline === row.name).map((item) => item.id), news: [], mediaIds: [], recentFightLiveIds: [] }));
     const publicRegions: PublicRegion[] = (regionsResult.data ?? []).map((row) => ({ id: row.id, name: row.name, cities: (citiesResult.data ?? []).filter((city) => city.region_id === row.id).map((city) => city.name), clubIds: clubs.filter((item) => item.region === row.name).map((item) => item.id), fighterIds: fighters.filter((item) => item.region === row.name).map((item) => item.id), eventIds: [], rankingIds: rankings.filter((item) => item.region === row.name).map((item) => item.id), news: [], statistics: { clubs: clubs.filter((item) => item.region === row.name).length, fighters: fighters.filter((item) => item.region === row.name).length, events: 0 } }));
     const search: DiscoveryResult[] = directory.map((item) => ({ id: item.id, kind: item.role === 'fighter' ? 'fighter' : item.role === 'club' ? 'club' : 'profile', title: item.name, description: [item.discipline, item.city].filter(Boolean).join(' · '), href: item.href, popularity: item.verified ? 1 : 0, tags: [item.discipline, item.region].filter(Boolean) }));
