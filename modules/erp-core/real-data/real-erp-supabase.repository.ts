@@ -321,6 +321,15 @@ export class RealErpSupabaseRepository {
 
     if (
       query.role === "fighter" &&
+      query.moduleId === "overview"
+    ) {
+      return this.fighterOverview(
+        query,
+        context,
+      );
+    }
+    if (
+      query.role === "fighter" &&
       query.moduleId === "profile"
     ) {
       return this.fighterProfile(
@@ -1835,6 +1844,229 @@ export class RealErpSupabaseRepository {
       { label: "Publiés / actifs", value: String(rows.filter((row) => ["published", "active", "live"].includes(text(row.status))).length), detail: "Visibles ou en cours", tone: "green" },
       { label: "Brouillons", value: String(rows.filter((row) => text(row.status) === "draft").length), detail: "À finaliser", tone: "amber" },
     ], query.role === "organizer" ? mutation("events", rows, fields) : undefined);
+  }
+
+  private async fighterOverview(
+    query: RealErpQuery,
+    context: Context,
+  ) {
+    const fighterId = context.fighterId;
+    const [
+      profileResult,
+      fighterResult,
+      careerResult,
+      eloResult,
+      fightsResult,
+    ] = await Promise.all([
+      this.supabase
+        .from("profiles")
+        .select("id,full_name,is_verified,status")
+        .eq("id", context.userId)
+        .maybeSingle(),
+      fighterId
+        ? this.supabase
+            .from("fighters")
+            .select("id,full_name,nickname,weight_class,wins,losses,draws,elo_rating,status,status_professional")
+            .eq("id", fighterId)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      fighterId
+        ? this.supabase
+            .from("fighter_career_stats")
+            .select("fighter_id,total_fights,wins,losses,draws")
+            .eq("fighter_id", fighterId)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      fighterId
+        ? this.supabase
+            .from("elo_history")
+            .select("id,elo_after,recorded_at")
+            .eq("fighter_id", fighterId)
+            .order("recorded_at", { ascending: false })
+            .limit(1)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      fighterId
+        ? this.supabase
+            .from("fights")
+            .select("id,event_id,fight_order,fighter_red_id,fighter_blue_id,weight_category,status,winner_id,method")
+            .or(`fighter_red_id.eq.${fighterId},fighter_blue_id.eq.${fighterId}`)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+
+    const firstError =
+      profileResult.error ??
+      fighterResult.error ??
+      careerResult.error ??
+      eloResult.error ??
+      fightsResult.error;
+
+    if (firstError) {
+      throw firstError;
+    }
+
+    const profile = profileResult.data;
+    const fighter = fighterResult.data;
+    const career = careerResult.data;
+    const fights = asRows(fightsResult.data);
+    const eventIds = Array.from(new Set(fights.flatMap((fight) =>
+      fight.event_id ? [text(fight.event_id)] : [],
+    )));
+    const opponentIds = Array.from(new Set(fights.flatMap((fight) => {
+      const redId = text(fight.fighter_red_id);
+      const blueId = text(fight.fighter_blue_id);
+      const opponentId = redId === fighterId ? blueId : redId;
+      return opponentId === "—" ? [] : [opponentId];
+    })));
+
+    const [eventsResult, opponentsResult] = await Promise.all([
+      eventIds.length
+        ? this.supabase
+            .from("events")
+            .select("id,title,venue,starts_at,status")
+            .in("id", eventIds)
+        : Promise.resolve({ data: [], error: null }),
+      opponentIds.length
+        ? this.supabase
+            .from("fighters")
+            .select("id,full_name,nickname")
+            .in("id", opponentIds)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+
+    const secondError = eventsResult.error ?? opponentsResult.error;
+    if (secondError) {
+      throw secondError;
+    }
+
+    const events = new Map(
+      asRows(eventsResult.data).map((event) => [text(event.id), event] as const),
+    );
+    const opponents = new Map(
+      asRows(opponentsResult.data).map((opponent) => [
+        text(opponent.id),
+        text(opponent.nickname || opponent.full_name),
+      ] as const),
+    );
+    const eventTime = (fight: Row) => {
+      const startsAt = events.get(text(fight.event_id))?.starts_at;
+      if (!startsAt) return 0;
+      const parsed = new Date(String(startsAt)).getTime();
+      return Number.isNaN(parsed) ? 0 : parsed;
+    };
+    const completedStatuses = new Set(["completed", "finished"]);
+    const cancelledStatuses = new Set(["cancelled", "canceled"]);
+    const now = Date.now();
+    const upcomingFights = fights
+      .filter((fight) =>
+        eventTime(fight) >= now &&
+        !completedStatuses.has(text(fight.status)) &&
+        !cancelledStatuses.has(text(fight.status)),
+      )
+      .sort((left, right) => eventTime(left) - eventTime(right));
+    const recentFights = fights
+      .filter((fight) =>
+        completedStatuses.has(text(fight.status)) || Boolean(fight.winner_id),
+      )
+      .sort((left, right) => eventTime(right) - eventTime(left));
+    const visibleFights = [...upcomingFights, ...recentFights]
+      .filter((fight, index, items) =>
+        items.findIndex((item) => text(item.id) === text(fight.id)) === index,
+      )
+      .slice(0, 8);
+    const opponentId = (fight: Row) => {
+      const redId = text(fight.fighter_red_id);
+      return redId === fighterId
+        ? text(fight.fighter_blue_id)
+        : redId;
+    };
+    const resultLabel = (fight: Row) => {
+      if (!completedStatuses.has(text(fight.status)) && !fight.winner_id) {
+        return "À venir";
+      }
+      if (!fight.winner_id) return "Résultat non renseigné";
+      return text(fight.winner_id) === fighterId ? "Victoire" : "Défaite";
+    };
+    const nextFight = upcomingFights[0];
+    const nextEvent = nextFight
+      ? events.get(text(nextFight.event_id))
+      : undefined;
+    const kpis: RealErpData["kpis"] = [];
+    const identity = profile?.full_name ?? fighter?.full_name;
+    if (identity) {
+      kpis.push({
+        label: "Combattant",
+        value: identity,
+        detail: fighter?.nickname ? `Surnom : ${fighter.nickname}` : "Profil sportif",
+        tone: "blue",
+      });
+    }
+    const fighterStatus = fighter?.status_professional ?? fighter?.status ?? profile?.status;
+    if (fighterStatus) {
+      kpis.push({
+        label: "Statut",
+        value: text(fighterStatus),
+        detail: profile?.is_verified ? "Profil vérifié" : "Profil non vérifié",
+        tone: profile?.is_verified ? "green" : "amber",
+      });
+    }
+    const wins = career?.wins ?? fighter?.wins;
+    const losses = career?.losses ?? fighter?.losses;
+    const draws = career?.draws ?? fighter?.draws;
+    if (
+      wins !== null && wins !== undefined &&
+      losses !== null && losses !== undefined &&
+      draws !== null && draws !== undefined
+    ) {
+      kpis.push({
+        label: "Record",
+        value: `${wins}-${losses}-${draws}`,
+        detail: `${career?.total_fights ?? Number(wins) + Number(losses) + Number(draws)} combat(s)`,
+        tone: "red",
+      });
+    }
+    const currentElo = eloResult.data?.elo_after ?? fighter?.elo_rating;
+    if (currentElo !== null && currentElo !== undefined) {
+      kpis.push({
+        label: "ELO",
+        value: text(currentElo),
+        detail: eloResult.data ? "Dernière valeur enregistrée" : "Classement du profil",
+        tone: "green",
+      });
+    }
+    if (nextFight && nextEvent) {
+      kpis.push({
+        label: "Prochain combat",
+        value: date(nextEvent.starts_at),
+        detail: `${text(nextEvent.title)} · ${opponents.get(opponentId(nextFight)) ?? "Adversaire à confirmer"}`,
+        tone: "amber",
+      });
+    }
+
+    const data = buildData(
+      query,
+      ["Événement", "Date", "Adversaire", "Catégorie", "Statut", "Résultat"],
+      visibleFights.map((fight) => {
+        const event = events.get(text(fight.event_id));
+        return [
+          text(event?.title),
+          date(event?.starts_at),
+          opponents.get(opponentId(fight)) ?? "Adversaire à confirmer",
+          text(fight.weight_category),
+          text(fight.status),
+          resultLabel(fight),
+        ];
+      }),
+      visibleFights.map((fight) => text(fight.id)),
+      kpis,
+    );
+
+    return {
+      ...data,
+      emptyMessage: fighterId
+        ? "Aucun combat récent ou à venir n’est disponible."
+        : "Aucun profil Fighter n’est associé à ce compte.",
+    };
   }
 
   private async fighterCareer(

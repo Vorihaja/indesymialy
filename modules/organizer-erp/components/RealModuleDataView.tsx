@@ -35,14 +35,7 @@ import {
 import { useOrganizerEventWorkflow } from "../real-data/useOrganizerEventWorkflow";
 import { CoorganizationView } from "./CoorganizationView";
 
-export function RealModuleDataView({
-  role,
-  moduleId,
-  moduleLabel,
-  tab,
-  autoOpenCreate = false,
-  initialEventId,
-}: {
+type RealModuleDataViewProps = {
   role: RealErpRole;
   moduleId: string;
   moduleLabel: string;
@@ -50,14 +43,15 @@ export function RealModuleDataView({
   onTabChange?: (tab: string) => void;
   autoOpenCreate?: boolean;
   initialEventId?: string;
-}) {
-  const query = {
+};
+
+export function RealModuleDataView(props: RealModuleDataViewProps) {
+  const {
     role,
     moduleId,
     moduleLabel,
     tab,
-  };
-
+  } = props;
   const resolvedRegistryEntry = resolveErpModuleEntry(
     resolveCanonicalErpRole(role) ?? role,
     moduleId,
@@ -89,9 +83,7 @@ export function RealModuleDataView({
     );
   }
 
-  const isUnavailable = resolvedRegistryEntry.implementationStatus === "unavailable";
-
-  if (isUnavailable) {
+  if (resolvedRegistryEntry.implementationStatus === "unavailable") {
     return (
       <section
         role="status"
@@ -114,6 +106,24 @@ export function RealModuleDataView({
       </section>
     );
   }
+
+  return <AvailableRealModuleDataView {...props} />;
+}
+
+function AvailableRealModuleDataView({
+  role,
+  moduleId,
+  moduleLabel,
+  tab,
+  autoOpenCreate = false,
+  initialEventId,
+}: RealModuleDataViewProps) {
+  const query = {
+    role,
+    moduleId,
+    moduleLabel,
+    tab,
+  };
 
   const {
     data,
@@ -143,6 +153,9 @@ export function RealModuleDataView({
         }),
       );
     }
+  // The workflow object is intentionally excluded because its method identities
+  // are recreated by the legacy hook on every render.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.entity, role]);
 
   useEffect(() => {
@@ -177,10 +190,15 @@ export function RealModuleDataView({
 
     if (autoOpenCreate) {
       automaticOpenHandled.current = true;
+      // This one-shot route intent deliberately initializes the existing wizard.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setWizardEventId(null);
       setWizardInitial(undefined);
       setWizardOpen(true);
     }
+  // The workflow object is intentionally excluded because its method identities
+  // are recreated by the legacy hook on every render.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     autoOpenCreate,
     data?.entity,
@@ -288,17 +306,17 @@ export function RealModuleDataView({
           />
 
           <p className="mt-3 text-[12px] font-semibold text-zinc-100">
-            Module en cours de d\u00e9veloppement
+            Module en cours de développement
           </p>
 
           <p className="mt-1 max-w-lg text-[11px] leading-5 text-zinc-500">
-            La section {moduleLabel} \u00b7 {tab} ne poss\u00e8de pas encore
-            de handler m\u00e9tier explicite. Aucune donn\u00e9e ne peut
-            \u00eatre cr\u00e9\u00e9e ou modifi\u00e9e depuis cet \u00e9cran.
+            La section {moduleLabel} · {tab} ne possède pas encore
+            de handler métier explicite. Aucune donnée ne peut
+            être créée ou modifiée depuis cet écran.
           </p>
 
           <p className="mt-3 text-[9px] font-bold uppercase tracking-[0.1em] text-amber-300">
-            R\u00e9f\u00e9rence : {role}/{moduleId}
+            Référence : {role}/{moduleId}
           </p>
         </div>
       </section>

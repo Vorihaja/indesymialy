@@ -166,7 +166,7 @@ const evidenceByHandler = {
   'sponsor-deliverables': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'sponsorDeliverables', 'RealErpDataUseCase', 'sponsors / event_sponsors / event_sponsor_deliverables / events', 'sponsor organization read authority'],
   'platform-organizations': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'platformOrganizations', 'RealErpDataUseCase', 'organizations', 'platform organization directory authority'],
   'account-settings': ['modules/erp-core/real-data/real-erp-supabase.repository.ts', 'accountSettings', 'RealErpDataUseCase', 'profiles / account_preferences / notification_preferences / profile_verification_requests / profile_verification_documents', 'authenticated personal account authority'],
-  'fighter-overview': ['modules/fighter-erp/components/FighterOverview.tsx', 'FighterOverview', 'fighter overview use case', 'fighter/profile authority', 'fighter personal authority'],
+  'fighter-overview': ['modules/fighter-erp/components/FighterOverview.tsx', 'FighterOverview / fighterOverview', 'RealErpDataUseCase', 'profiles / fighters / fighter_career_stats / elo_history / fights / events', 'fighter personal authority'],
   'role-live': ['modules/fight-live/features/RoleLiveFeature.tsx', 'RoleLiveFeature', 'modules/fight-live/use-cases/manage-fight-live.use-case.ts', 'fight_public_projection / Fight Live RPCs', 'public projection or platform event authority'],
 };
 

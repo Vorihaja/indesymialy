@@ -10,6 +10,7 @@ import { fighterModules } from "../config/navigation";
 import type { FighterModuleId } from "../types";
 import { FighterSidebar } from "../components/FighterSidebar";
 import { FighterTabs } from "../components/FighterTabs";
+import { FighterOverview } from "../components/FighterOverview";
 import { RealModuleDataView } from "@/modules/organizer-erp/components/RealModuleDataView";
 import { useErpNavigationState } from "@/modules/erp-navigation";
 import { ErpWorkspaceFrame } from "@/modules/erp-core";
@@ -88,6 +89,8 @@ export function FighterErpPrototype({
     >
       {renderRouteContent ? (
         routeContent
+      ) : activeModule.id === "overview" ? (
+        <FighterOverview />
       ) : activeModule.id === "calendar" ? (
         <ErpCalendarWorkspace role="fighter" />
       ) : activeModule.id === "finance" ? (
