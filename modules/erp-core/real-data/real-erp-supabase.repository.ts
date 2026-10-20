@@ -7976,20 +7976,17 @@ export class RealErpSupabaseRepository {
 
     const wins =
       Number(
-        fighter.wins ??
-        0,
+        fighter.wins,
       );
 
     const losses =
       Number(
-        fighter.losses ??
-        0,
+        fighter.losses,
       );
 
     const draws =
       Number(
-        fighter.draws ??
-        0,
+        fighter.draws,
       );
 
     const record =
@@ -8033,8 +8030,7 @@ export class RealErpSupabaseRepository {
           label: "Classement ELO",
           value:
             String(
-              fighter.elo_rating ??
-              0,
+              fighter.elo_rating,
             ),
           detail: "Valeur enregistrée",
           tone: "green",
@@ -8076,8 +8072,7 @@ export class RealErpSupabaseRepository {
             fighter.full_name,
             record,
             String(
-              fighter.elo_rating ??
-              0,
+              fighter.elo_rating,
             ),
             text(
               fighter.weight_class,
@@ -8137,9 +8132,7 @@ export class RealErpSupabaseRepository {
     }
 
     if (
-      query.tab === "fights" ||
-      query.tab === "reports" ||
-      query.tab === "progress"
+      query.tab === "fights"
     ) {
       return buildData(
         query,
@@ -8194,8 +8187,7 @@ export class RealErpSupabaseRepository {
           fighter.full_name,
           record,
           String(
-            fighter.elo_rating ??
-            0,
+            fighter.elo_rating,
           ),
           String(
             fights.length,

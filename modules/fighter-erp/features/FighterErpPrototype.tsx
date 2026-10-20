@@ -17,6 +17,7 @@ import { useErpNavigationState } from "@/modules/erp-navigation";
 import { ErpWorkspaceFrame } from "@/modules/erp-core";
 import { ErpCalendarWorkspace } from "@/modules/erp-calendar";
 import { FinanceFeature } from "@/modules/finance-erp/features/FinanceFeature";
+import { CatalogFeature } from "@/modules/marketplace";
 
 type FighterErpPrototypeProps = {
   initialModule?: FighterModuleId;
@@ -98,6 +99,8 @@ export function FighterErpPrototype({
         <FinanceFeature role="combattant" />
       ) : activeModule.id === "fight-room" ? (
         <FighterFightRoom />
+      ) : activeModule.id === "marketplace" ? (
+        <CatalogFeature />
       ) : (
         <RealModuleDataView
           role="fighter"

@@ -162,7 +162,7 @@ test("performance and marketplace real handlers remain preserved", () => {
     handler: "marketplace-public",
   });
   assert.match(repository, /query\.moduleId === "performance"[\s\S]*?this\.fighterPerformance\(/);
-  assert.match(repository, /marketplace\|produit\|stock\|inventaire\|commande\|livraison\|client/);
+  assert.match(prototype, /activeModule\.id === "marketplace"[\s\S]*?<CatalogFeature \/>/);
 });
 
 test("no visible Fighter module can resolve the generic unavailable component", () => {

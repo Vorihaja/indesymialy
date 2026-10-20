@@ -64,43 +64,49 @@ test("performance modules use stable module dispatch", () => {
 });
 
 test("fighter performance is derived from canonical fighter and fight data", () => {
+  const start = repository.indexOf("private async fighterPerformance(");
+  const end = repository.indexOf("private async clubPerformance(", start);
+  const fighterPerformance = repository.slice(start, end);
+
+  assert.ok(start >= 0 && end > start);
+
   assert.match(
-    repository,
+    fighterPerformance,
     /private async fighterPerformance/,
   );
 
   assert.match(
-    repository,
+    fighterPerformance,
     /\.from\("fighters"\)/,
   );
 
   assert.match(
-    repository,
+    fighterPerformance,
     /\.from\("fights"\)/,
   );
 
   assert.match(
-    repository,
+    fighterPerformance,
     /query\.tab === "sport"/,
   );
 
   assert.match(
-    repository,
+    fighterPerformance,
     /query\.tab === "condition"/,
   );
 
   assert.match(
-    repository,
+    fighterPerformance,
     /query\.tab === "fights"/,
   );
 
-  assert.match(
-    repository,
+  assert.doesNotMatch(
+    fighterPerformance,
     /query\.tab === "reports"/,
   );
 
-  assert.match(
-    repository,
+  assert.doesNotMatch(
+    fighterPerformance,
     /query\.tab === "progress"/,
   );
 });

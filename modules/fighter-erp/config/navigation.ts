@@ -9,7 +9,7 @@ export const fighterModules: FighterModule[] = [
   { id: 'career', label: 'Carrière', tabs: defineErpTabs([tab('path', 'Parcours'), tab('record', 'Record'), tab('rankings', 'Classements'), tab('honors', 'Palmarès'), tab('contracts', 'Contrats')]) },
   { id: 'competitions', label: 'Compétitions', tabs: defineErpTabs([tab('invitations', 'Invitations'), tab('registrations', 'Inscriptions'), tab('fights', 'Combats'), tab('results', 'Résultats'), tab('calendar', 'Calendrier')]) },
   { id: 'finance', label: 'Finances', tabs: [] },
-  { id: 'performance', label: 'Performance', tabs: defineErpTabs([tab('summary', 'Synthèse'), tab('sport', 'Sport'), tab('condition', 'Condition'), tab('fights', 'Combats'), tab('progress', 'Progression'), tab('reports', 'Rapports')]) },
+  { id: 'performance', label: 'Performance', tabs: defineErpTabs([tab('summary', 'Synthèse'), tab('sport', 'Sport'), tab('condition', 'Condition'), tab('fights', 'Combats')]) },
   { id: 'marketplace', label: 'Marketplace', tabs: [] },
   { id: 'calendar', label: 'Agenda', tabs: [] },
   { id: 'settings', label: 'Paramètres', tabs: defineErpTabs([tab('account', 'Compte'), tab('profile-verification', 'Vérification du profil'), tab('privacy', 'Confidentialité'), tab('notifications', 'Notifications'), tab('preferences', 'Préférences')]) },
