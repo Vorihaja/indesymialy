@@ -11,6 +11,7 @@ import type { FighterModuleId } from "../types";
 import { FighterSidebar } from "../components/FighterSidebar";
 import { FighterTabs } from "../components/FighterTabs";
 import { FighterOverview } from "../components/FighterOverview";
+import { FighterFightRoom } from "../components/FighterFightRoom";
 import { RealModuleDataView } from "@/modules/organizer-erp/components/RealModuleDataView";
 import { useErpNavigationState } from "@/modules/erp-navigation";
 import { ErpWorkspaceFrame } from "@/modules/erp-core";
@@ -95,6 +96,8 @@ export function FighterErpPrototype({
         <ErpCalendarWorkspace role="fighter" />
       ) : activeModule.id === "finance" ? (
         <FinanceFeature role="combattant" />
+      ) : activeModule.id === "fight-room" ? (
+        <FighterFightRoom />
       ) : (
         <RealModuleDataView
           role="fighter"

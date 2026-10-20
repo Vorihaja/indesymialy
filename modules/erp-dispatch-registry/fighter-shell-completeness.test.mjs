@@ -11,8 +11,15 @@ const prototype = read("modules/fighter-erp/features/FighterErpPrototype.tsx");
 const overview = read("modules/fighter-erp/components/FighterOverview.tsx");
 const realModuleView = read("modules/organizer-erp/components/RealModuleDataView.tsx");
 
+const visibleNavigation = navigation.slice(
+  navigation.indexOf("export const fighterModules"),
+  navigation.indexOf("export const fighterFutureModules"),
+);
+const futureNavigation = navigation.slice(
+  navigation.indexOf("export const fighterFutureModules"),
+);
 const visibleModules = [
-  ...navigation.matchAll(/\{ id: '([^']+)', label:/g),
+  ...visibleNavigation.matchAll(/\bid:\s*'([^']+)'/g),
 ].map((match) => match[1]);
 
 const fighterRegistry = new Map(
@@ -32,7 +39,7 @@ const hiddenModules = [
   "sponsors",
 ];
 const futureModuleIds = [
-  ...navigation.matchAll(/\n\s+id: '([^']+)',\n\s+label:/g),
+  ...futureNavigation.matchAll(/\bid:\s*'([^']+)'/g),
 ].map((match) => match[1]);
 
 function methodBlock(name, nextName) {
@@ -109,19 +116,19 @@ test("all five unavailable Fighter modules remain registered as unavailable", ()
   }
 });
 
-test("Fight Room is hidden from Fighter V1 navigation", () => {
-  assert.ok(!visibleModules.includes("fight-room"));
+test("Fight Room is visible in Fighter navigation", () => {
+  assert.ok(visibleModules.includes("fight-room"));
 });
 
-test("Fight Room is no longer classified implemented", () => {
+test("Fight Room is classified implemented through Fight Live", () => {
   assert.deepEqual(fighterRegistry.get("fight-room"), {
-    status: "unavailable",
-    handler: "unavailable",
+    status: "implemented",
+    handler: "fight-live",
   });
-  assert.ok(futureModuleIds.includes("fight-room"));
+  assert.ok(!futureModuleIds.includes("fight-room"));
 });
 
-test("Fighter V1 exposes exactly the nine certified modules in order", () => {
+test("Fighter exposes exactly the ten certified modules in order", () => {
   assert.deepEqual(visibleModules, [
     "overview",
     "profile",
@@ -132,6 +139,7 @@ test("Fighter V1 exposes exactly the nine certified modules in order", () => {
     "marketplace",
     "calendar",
     "settings",
+    "fight-room",
   ]);
 });
 

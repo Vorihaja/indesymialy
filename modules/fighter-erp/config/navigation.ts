@@ -13,6 +13,12 @@ export const fighterModules: FighterModule[] = [
   { id: 'marketplace', label: 'Marketplace', tabs: [] },
   { id: 'calendar', label: 'Agenda', tabs: [] },
   { id: 'settings', label: 'Paramètres', tabs: defineErpTabs([tab('account', 'Compte'), tab('profile-verification', 'Vérification du profil'), tab('privacy', 'Confidentialité'), tab('notifications', 'Notifications'), tab('preferences', 'Préférences')]) },
+  {
+    id: 'fight-room',
+    label: 'Fight Room',
+    tabs: defineErpTabs([tab('live', 'Direct')]),
+    live: true,
+  },
 ];
 
 // Conservés pour les lots futurs, mais volontairement absents du shell Fighter V1.
@@ -41,11 +47,5 @@ export const fighterFutureModules: FighterModule[] = [
     id: 'sponsors',
     label: 'Sponsors',
     tabs: defineErpTabs([tab('partners', 'Partenaires'), tab('offers', 'Offres'), tab('contracts', 'Contrats'), tab('deliverables', 'Livrables'), tab('visibility', 'Visibilité')]),
-  },
-  {
-    id: 'fight-room',
-    label: 'Fight Room',
-    tabs: defineErpTabs([tab('live', 'Direct')]),
-    live: true,
   },
 ];
