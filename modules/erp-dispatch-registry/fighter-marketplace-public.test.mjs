@@ -82,7 +82,7 @@ test("Fighter Marketplace exposes no seller management surface", () => {
 });
 
 test("other role Marketplace registry contracts remain distinct", () => {
-  for (const role of ["organizer", "official", "sponsor", "fan", "club", "coach", "federation", "league"]) {
+  for (const role of ["official", "sponsor", "fan", "club", "coach", "federation", "league"]) {
     assert.match(
       registry,
       new RegExp(`makeEntry\\("${role}", "marketplace", "implemented", "marketplace-public"`),
@@ -90,6 +90,7 @@ test("other role Marketplace registry contracts remain distinct", () => {
   }
   assert.match(registry, /makeEntry\("seller", "marketplace", "implemented", "seller-marketplace"/);
   assert.match(registry, /makeEntry\("admin", "marketplace", "implemented", "admin-marketplace-moderation"/);
+  assert.match(registry, /makeEntry\("organizer", "marketplace", "unavailable", "unavailable"/);
 });
 
 test("Fighter Marketplace has no placeholder, unsupported path, or parallel authority", () => {

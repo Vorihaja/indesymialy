@@ -333,7 +333,7 @@ export const ERP_DISPATCH_REGISTRY: readonly ErpDispatchRegistryEntry[] = [
   makeEntry("organizer", "partners", "implemented", "organizer-partners", "event-partners", "event", { read: true, create: true, update: true, delete: true }),
   makeEntry("organizer", "finance", "implemented", "finance-erp", "finance-erp", "platform", { read: true, create: true, update: true, delete: true }),
   makeEntry("organizer", "performance", "implemented", "organizer-performance", "event-performance", "event", { read: true }),
-  makeEntry("organizer", "marketplace", "implemented", "marketplace-public", "marketplace-public", "public", { read: true }),
+  makeEntry("organizer", "marketplace", "unavailable", "unavailable", "not-implemented", "none", { read: false, create: false, update: false, delete: false }),
   makeEntry("organizer", "calendar", "implemented", "erp-calendar", "erp-calendar", "personal", { read: true, create: true, update: true, delete: true }),
   makeEntry("organizer", "settings", "implemented", "account-settings", "identity-core", "personal", { read: true }),
   makeEntry("organizer", "personnel", "implemented", "organizer-personnel", "event-team", "event", { read: true, create: true, update: true, delete: true }),

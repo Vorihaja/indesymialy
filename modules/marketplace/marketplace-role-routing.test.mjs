@@ -24,14 +24,30 @@ const publicRoles = [
   ["league", "app/dashboard/ligue/marketplace/page.tsx"],
 ];
 
-test("nine public roles share explicit public Marketplace authority", () => {
-  for (const [role] of publicRoles) {
+const publicRegistryRoles = publicRoles.filter(
+  ([role]) => role !== "organizer",
+);
+
+test("eight shell-enabled public roles share explicit public Marketplace authority", () => {
+  for (const [role] of publicRegistryRoles) {
     const pattern = new RegExp(
       `makeEntry\\("${role}",\\s*"marketplace",\\s*"implemented",\\s*"marketplace-public",\\s*"marketplace-public",\\s*"public",\\s*\\{\\s*read:\\s*true\\s*\\}\\)`
     );
 
     assert.match(registry, pattern, role);
   }
+});
+
+test("Organizer Marketplace stays unavailable while its public bridge code is preserved", () => {
+  assert.match(
+    registry,
+    /makeEntry\("organizer",\s*"marketplace",\s*"unavailable",\s*"unavailable",\s*"not-implemented",\s*"none",\s*\{\s*read:\s*false,\s*create:\s*false,\s*update:\s*false,\s*delete:\s*false\s*\}\)/,
+  );
+
+  assert.equal(
+    fs.existsSync("app/dashboard/organisateur/marketplace/page.tsx"),
+    true,
+  );
 });
 
 test("Marketplace contracts contain no generic Marketplace handler", () => {

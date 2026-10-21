@@ -31,6 +31,10 @@ import {
 } from "../components/OrganizerSettingsView";
 
 import {
+  OrganizerOverviewFeature,
+} from "./OrganizerOverviewFeature";
+
+import {
   FightCenterFeature,
 } from "../fight-center";
 
@@ -111,6 +115,19 @@ export function OrganizerErpPrototype({
       )
     ) {
       return routeContent;
+    }
+
+    if (
+      activeModule.id ===
+      "overview"
+    ) {
+      return (
+        <OrganizerOverviewFeature
+          onNavigate={
+            selectModule
+          }
+        />
+      );
     }
 
     if (
