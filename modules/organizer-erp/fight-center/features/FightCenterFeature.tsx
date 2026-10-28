@@ -67,15 +67,20 @@ const FIGHT_CARD_TAB = "fight-card";
 const COMBATS_TAB = "fights";
 const WEIGH_IN_TAB = "weigh-in";
 const OFFICIALS_TAB = "officials";
+const REAL_PROJECTION_TABS = new Set([
+  "fighters",
+  "replacements",
+  "results",
+]);
 
 function fightCenterTabLabel(value: string) {
   switch (value) {
-    case "fight-card":
-      return "Carte des combats";
-    case "matchmaking":
-      return "Matchmaking";
-    case "fight-live":
-      return "Combat en direct";
+    case "fighters":
+      return "Combattants";
+    case "replacements":
+      return "Remplacements";
+    case "results":
+      return "Résultats";
     default:
       return value;
   }
@@ -1194,7 +1199,9 @@ export function FightCenterFeature({
           key={resolvedEventId}
           eventId={resolvedEventId}
         />
-      ) : (
+      ) : REAL_PROJECTION_TABS.has(
+          tab,
+        ) ? (
         <section className="grid gap-2">
           <div className="flex flex-wrap items-center justify-between gap-2 border border-[#2d3036] bg-[#111214] px-3 py-2">
             <div className="min-w-0">
@@ -1220,6 +1227,13 @@ export function FightCenterFeature({
             tab={tab}
           />
         </section>
+      ) : (
+        <FightCardWorkspace
+          key={resolvedEventId}
+          eventId={
+            resolvedEventId
+          }
+        />
       )}
     </div>
   );
